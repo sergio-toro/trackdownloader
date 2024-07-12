@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import '@styles/app.scss';
 import icons from '@components/icons';
 
+// import test from "@renderer/scrappers/test";
+
 const Application: React.FC = () => {
   const [counter, setCounter] = useState(0);
   const [darkTheme, setDarkTheme] = useState(true);
@@ -50,7 +52,7 @@ const Application: React.FC = () => {
     <div id='erwt'>
       <div className='header'>
         <div className='main-heading'>
-          <h1 className='themed'>ERWT - Electron Boilerplate</h1>
+          <h1 className='themed'>TrackDownloader - Electron Boilerplate</h1>
         </div>
         <div className='main-teaser'>
           Desktop Application with Electron, React, Webpack & TypeScript
@@ -129,6 +131,17 @@ const Application: React.FC = () => {
           &nbsp;&nbsp; &nbsp;&nbsp;
           <button onClick={toggleTheme}>
             {darkTheme ? 'Light Theme' : 'Dark Theme'}
+          </button>
+
+
+          &nbsp;&nbsp; &nbsp;&nbsp;
+          <button onClick={async () => {
+            console.log("WINDOW!", window.scrappers);
+            const response = await window.scrappers.test('storo90');
+
+            console.log("RESPONSE", response);
+          }}>
+            TEST SCRAPPING
           </button>
         </div>
       </div>

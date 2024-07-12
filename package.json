@@ -1,6 +1,6 @@
 {
-  "name": "erwt",
-  "productName": "ERWT",
+  "name": "TrackDownloader",
+  "productName": "Track Downloader",
   "version": "8.0.0",
   "description": "Robust project for developing Desktop Application with Electron, React, Webpack & TypeScript.",
   "main": ".webpack/main",
@@ -55,7 +55,7 @@
     "@types/webpack-env": "^1.18.4",
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
-    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "classnames": "^2.5.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.9.0",
@@ -77,6 +77,8 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",
+    "puppeteer-core": "^22.13.0",
+    "puppeteer-in-electron": "^3.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

@@ -1,5 +1,16 @@
 import { app, BrowserWindow } from 'electron';
 import { createAppWindow } from './appWindow';
+import pie from "puppeteer-in-electron";
+
+async function main() {
+  try {
+    await pie.initialize(app);
+  } catch(e){
+    console.log("Error while initializing puppeteer in electron", e);
+  }
+}
+
+main();
 
 /** Handle creating/removing shortcuts on Windows when installing/uninstalling. */
 if (require('electron-squirrel-startup')) {

@@ -148,10 +148,10 @@ const titlebarMenus: TitlebarMenu[] = [
     name: 'Credits',
     items: [
       {
-        name: 'Guasam',
+        name: 'Sergio Toro',
         action: 'open_url',
-        value: 'https://github.com/guasam',
-        shortcut: '@guasam',
+        value: 'https://github.com/sergio-toro',
+        shortcut: '@sergio-toro',
       },
     ],
   },

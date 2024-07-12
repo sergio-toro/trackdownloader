@@ -1,7 +1,8 @@
 import '@main/window/windowPreload';
+import '@main/scrappers/scrappersPreload';
 
 // Say something
-console.log('[ERWT] : Preload execution started');
+console.log('[TrackDownloader] : Preload execution started');
 
 // Get versions
 window.addEventListener('DOMContentLoaded', () => {
