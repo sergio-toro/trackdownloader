@@ -57,9 +57,8 @@ body {
 /* Grid texture */
 body {
   background-size: 32px 32px;
-  background-image:
-    linear-gradient(to right, #7070700d 1px, transparent 1px),
-    linear-gradient(to bottom, #7070700d 1px, transparent 1px);
+  background-image: linear-gradient(to right, #7070700d 1px, transparent 1px),
+  linear-gradient(to bottom, #7070700d 1px, transparent 1px);
 }
 
 h1 {
@@ -102,7 +101,7 @@ button {
     background: var(--button-active-bgcolor);
   }
 
-  &>span {
+  & > span {
     color: var(--button-badge-color);
     background-color: var(--button-badge-bgcolor);
     font-size: 12px;
@@ -131,25 +130,6 @@ button {
   }
 }
 
-.main-heading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2rem;
-
-  img {
-    margin-right: 1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 400;
-    color: var(--erwt-heading-color);
-    line-height: 1;
-    text-transform: uppercase;
-  }
-}
-
 .hidden {
   display: none !important;
 }
@@ -164,10 +144,8 @@ button {
   line-height: 25px;
   font-size: 14px;
   color: #d8d8d894;
-  width: 60%;
   margin: 0 auto;
   margin-bottom: 3rem;
-  justify-content: center;
   padding: 1rem;
   padding-right: 1rem;
   border-radius: 0 0 8px 8px;
@@ -177,7 +155,7 @@ button {
 .main-teaser:after {
   content: "";
   position: absolute;
-  top: 0;
+  bottom: 0;
   width: calc(100% + 40px);
   height: 1px;
   background: var(--app-accent-color);
@@ -209,7 +187,7 @@ button {
   box-sizing: border-box;
   border-radius: 4px;
 
-  &>* {
+  & > * {
     display: flex;
   }
 
@@ -220,7 +198,7 @@ button {
     opacity: 0.8;
   }
 
-  &>span {
+  & > span {
     color: gray;
     text-align: right;
   }

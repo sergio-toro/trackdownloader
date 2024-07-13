@@ -3,12 +3,11 @@ import React, { useEffect, useState } from 'react';
 import '@styles/main.css';
 import '@styles/app.scss';
 import PilotsSheet from '@components/PilotsSheet';
+import Configuration from '@components/Configuration';
 
 
 const Application: React.FC = () => {
-  const [counter, setCounter] = useState(0);
   const [darkTheme, setDarkTheme] = useState(true);
-  const [versions, setVersions] = useState<Record<string, string>>({});
 
   /**
    * On component mount
@@ -22,11 +21,6 @@ const Application: React.FC = () => {
     } else if (useDarkTheme == 0) {
       setDarkTheme(false);
     }
-
-    // Apply verisons
-    const app = document.getElementById('app');
-    const versions = JSON.parse(app.getAttribute('data-versions'));
-    setVersions(versions);
   }, []);
 
   /**
@@ -50,27 +44,31 @@ const Application: React.FC = () => {
   }
 
   return (
-    <div id='application' className="w-full">
-      <div className='header w-full'>
-        <div className='main-heading'>
-          <h1 className='themed'>TrackDownloader</h1>
+    <div id="application" className="w-full">
+      <div className="w-full p-4 pb-0">
+
+        <div className="main-teaser">
+          Settings
         </div>
-        <div className='main-teaser'>
-          Desktop Application with Electron, React, Webpack & TypeScript
-        </div>
+        <Configuration />
       </div>
 
       <div className="content">
-        <PilotsSheet darkMode={darkTheme}/>
+        <PilotsSheet darkMode={darkTheme} />
       </div>
 
-      <div className='footer'>
-        <div className='center'>
+      <div className="footer">
+        <div className="center">
+          <button onClick={toggleTheme}>
+            {darkTheme ? 'Light Theme' : 'Dark Theme'}
+          </button>
+          &nbsp;&nbsp; &nbsp;&nbsp;
+
           <button onClick={async () => {
-            console.log("WINDOW!", window.scrappers);
+            console.log('WINDOW!', window.scrappers);
             const response = await window.scrappers.test('storo90');
 
-            console.log("RESPONSE", response);
+            console.log('RESPONSE', response);
           }}>
             TEST SCRAPPING
           </button>

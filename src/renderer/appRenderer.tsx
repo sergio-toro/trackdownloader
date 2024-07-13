@@ -8,12 +8,39 @@ console.log('[Track Downloader]: Renderer execution started');
 
 const platform = window.app.platform === 'darwin' ? 'mac' : 'windows';
 
+type SettingsContextType = {
+  flymaster: null | {
+    username: string;
+    password: string;
+  };
+  xcontest: null | {
+    username: string;
+    password: string;
+  }
+};
+
+const flymasterSettings = localStorage.getItem('flymaster');
+const xcontestSettings = localStorage.getItem('xcontest');
+export const SettingsContext = React.createContext<SettingsContextType>({
+  flymaster: null,
+  xcontest: null,
+});
+
 // Application to Render
-const app = (
-  <WindowFrame title='Track Downloader' platform={platform}>
-    <Application />
-  </WindowFrame>
-);
+function MainApp() {
+  const [settings, setSettings] = React.useState<SettingsContextType>({
+    flymaster: flymasterSettings ? JSON.parse(flymasterSettings) : null,
+    xcontest: xcontestSettings ? JSON.parse(xcontestSettings) : null,
+  });
+  return (
+    <SettingsContext.Provider value={settings}>
+      <WindowFrame title="Track Downloader">
+        <Application />
+      </WindowFrame>
+    </SettingsContext.Provider>
+  );
+}
+
 
 // Render application in DOM
-createRoot(document.getElementById('app')).render(app);
+createRoot(document.getElementById('app')).render(<MainApp />);

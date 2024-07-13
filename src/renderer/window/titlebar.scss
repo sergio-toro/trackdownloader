@@ -1,6 +1,7 @@
 $titlebar-baseSize: 16px;
 $titlebar-height: 28px;
-$titlebar-bg: var(--titlebar-bgcolor);;
+$titlebar-bg: var(--titlebar-bgcolor);
+;
 $titlebar-iconSize: 16px;
 $em: $titlebar-baseSize*1em;
 
@@ -21,7 +22,7 @@ $em: $titlebar-baseSize*1em;
   user-select: none;
   position: relative;
 
-  &>section {
+  & > section {
     display: flex;
     align-items: center;
   }
@@ -29,12 +30,13 @@ $em: $titlebar-baseSize*1em;
   &-menu {
     background: $titlebar-bg;
     z-index: 110;
-    padding-right:50px;
+    padding-right: 50px;
   }
 
   &-content {
     flex: 1;
     font-size: calc($titlebar-baseSize - 3px);
+    padding-right: 70px;
     color: #a9b0bb;
 
     &.centered {
