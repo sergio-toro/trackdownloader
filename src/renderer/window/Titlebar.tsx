@@ -15,7 +15,6 @@ import titlebarMenus from '@main/window/titlebarMenus';
 import classNames from 'classnames';
 import WindowControls from './WindowControls';
 import context from '@main/window/titlebarContextApi';
-import { WindowContext } from './WindowFrame';
 import './titlebar.scss';
 
 type Props = {
@@ -28,7 +27,6 @@ const Titlebar: React.FC<Props> = (props) => {
   const activeMenuIndex = useRef<number | null>(null);
   const menusRef = titlebarMenus.map(() => createRef<HTMLDivElement>());
   const [menusVisible, setMenusVisible] = useState(true);
-  const windowContext = useContext(WindowContext);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -131,13 +129,6 @@ const Titlebar: React.FC<Props> = (props) => {
         ''
       )}
 
-      <section
-        className={classNames('window-titlebar-content', {
-          centered: props.mode === 'centered-title',
-        })}
-      >
-        {menusVisible ? '' : <div className='window-title'>{props.title}</div>}
-      </section>
 
       <section
         className={classNames('window-titlebar-menu', {
@@ -188,7 +179,19 @@ const Titlebar: React.FC<Props> = (props) => {
         })}
       </section>
 
-      <WindowControls platform={windowContext.platform} tooltips={true} />
+      <section
+        className={classNames('window-titlebar-content', {
+          centered: props.mode === 'centered-title',
+        })}
+      >
+        <div className='window-title'>{props.title}</div>
+      </section>
+
+
+      {window.app.platform !== 'darwin' && (
+        <WindowControls platform="windows" tooltips={true} />
+      )}
+
     </div>
   );
 };

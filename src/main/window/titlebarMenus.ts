@@ -33,51 +33,51 @@ const titlebarMenus: TitlebarMenu[] = [
       },
     ],
   },
-  {
-    name: 'Edit',
-    items: [
-      {
-        name: 'Undo',
-        action: 'undo',
-        shortcut: 'Ctrl+Z',
-      },
-      {
-        name: 'Redo',
-        action: 'redo',
-        shortcut: 'Ctrl+Y',
-      },
-      {
-        name: '__',
-      },
-      {
-        name: 'Cut',
-        action: 'cut',
-        shortcut: 'Ctrl+X',
-      },
-      {
-        name: 'Copy',
-        action: 'copy',
-        shortcut: 'Ctrl+C',
-      },
-      {
-        name: 'Paste',
-        action: 'paste',
-        shortcut: 'Ctrl+V',
-      },
-      {
-        name: 'Delete',
-        action: 'delete',
-      },
-      {
-        name: '__',
-      },
-      {
-        name: 'Select All',
-        action: 'select_all',
-        shortcut: 'Ctrl+A',
-      },
-    ],
-  },
+  // {
+  //   name: 'Edit',
+  //   items: [
+  //     {
+  //       name: 'Undo',
+  //       action: 'undo',
+  //       shortcut: 'Ctrl+Z',
+  //     },
+  //     {
+  //       name: 'Redo',
+  //       action: 'redo',
+  //       shortcut: 'Ctrl+Y',
+  //     },
+  //     {
+  //       name: '__',
+  //     },
+  //     {
+  //       name: 'Cut',
+  //       action: 'cut',
+  //       shortcut: 'Ctrl+X',
+  //     },
+  //     {
+  //       name: 'Copy',
+  //       action: 'copy',
+  //       shortcut: 'Ctrl+C',
+  //     },
+  //     {
+  //       name: 'Paste',
+  //       action: 'paste',
+  //       shortcut: 'Ctrl+V',
+  //     },
+  //     {
+  //       name: 'Delete',
+  //       action: 'delete',
+  //     },
+  //     {
+  //       name: '__',
+  //     },
+  //     {
+  //       name: 'Select All',
+  //       action: 'select_all',
+  //       shortcut: 'Ctrl+A',
+  //     },
+  //   ],
+  // },
   {
     name: 'View',
     items: [
@@ -96,54 +96,54 @@ const titlebarMenus: TitlebarMenu[] = [
         action: 'toggle_devtools',
         shortcut: 'Ctrl+Shift+I',
       },
-      {
-        name: '__',
-      },
-      {
-        name: 'Actual Size',
-        action: 'actual_size',
-        shortcut: 'Ctrl+0',
-      },
-      {
-        name: 'Zoom In',
-        action: 'zoom_in',
-        shortcut: 'Ctrl++',
-      },
-      {
-        name: 'Zoom Out',
-        action: 'zoom_out',
-        shortcut: 'Ctrl+-',
-      },
-      {
-        name: '__',
-      },
-      {
-        name: 'Toggle Fullscreen',
-        action: 'toggle_fullscreen',
-        shortcut: 'F11',
-      },
+      // {
+      //   name: '__',
+      // },
+      // {
+      //   name: 'Actual Size',
+      //   action: 'actual_size',
+      //   shortcut: 'Ctrl+0',
+      // },
+      // {
+      //   name: 'Zoom In',
+      //   action: 'zoom_in',
+      //   shortcut: 'Ctrl++',
+      // },
+      // {
+      //   name: 'Zoom Out',
+      //   action: 'zoom_out',
+      //   shortcut: 'Ctrl+-',
+      // },
+      // {
+      //   name: '__',
+      // },
+      // {
+      //   name: 'Toggle Fullscreen',
+      //   action: 'toggle_fullscreen',
+      //   shortcut: 'F11',
+      // },
     ],
   },
-  {
-    name: 'Window',
-    items: [
-      {
-        name: 'Maximize',
-        action: 'toggle_maximize',
-        shortcut: 'Toggle'
-      },
-      {
-        name: 'Minimize',
-        action: 'minimize',
-        shortcut: 'Ctrl+M',
-      },
-      {
-        name: 'Close',
-        action: 'exit',
-        shortcut: 'Ctrl+W',
-      },
-    ],
-  },
+  // {
+  //   name: 'Window',
+  //   items: [
+  //     {
+  //       name: 'Maximize',
+  //       action: 'toggle_maximize',
+  //       shortcut: 'Toggle'
+  //     },
+  //     {
+  //       name: 'Minimize',
+  //       action: 'minimize',
+  //       shortcut: 'Ctrl+M',
+  //     },
+  //     {
+  //       name: 'Close',
+  //       action: 'exit',
+  //       shortcut: 'Ctrl+W',
+  //     },
+  //   ],
+  // },
   {
     name: 'Credits',
     items: [
@@ -152,6 +152,12 @@ const titlebarMenus: TitlebarMenu[] = [
         action: 'open_url',
         value: 'https://github.com/sergio-toro',
         shortcut: '@sergio-toro',
+      },
+      {
+        name: 'Mireia Garcia',
+        action: 'open_url',
+        value: 'https://github.com/mireia22',
+        shortcut: '@mireia22',
       },
     ],
   },

@@ -44,7 +44,7 @@ const WindowFrame: React.FC<Props> = (props) => {
   }, []);
 
   return (
-    <WindowContext.Provider value={{ platform: props.platform }}>
+    <>
       {/* Reference creator */}
       <div className='start-electron-window' ref={itsRef}></div>
       {/* Window Titlebar */}
@@ -55,7 +55,7 @@ const WindowFrame: React.FC<Props> = (props) => {
       />
       {/* Window Content (Application to render) */}
       <div className='window-content'>{props.children}</div>
-    </WindowContext.Provider>
+    </>
   );
 };
 
