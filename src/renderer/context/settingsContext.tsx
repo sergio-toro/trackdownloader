@@ -1,43 +1,39 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 
 export interface SettingsState {
   darkTheme: boolean;
-  flymaster: null | {
-    username: string;
-    password: string;
-  };
-  xcontest: null | {
-    username: string;
-    password: string;
-  };
+  flymaster: null | { username: string; password: string };
+  xcontest: null | { username: string; password: string };
+  selectedGroup: null | { id: string; name: string };
 }
 
-interface SettingsContextType {
+interface SettingsContextProps {
   settings: SettingsState;
-  setSettings: React.Dispatch<React.SetStateAction<SettingsState | null>>;
+  setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
   setDarkTheme: (darkTheme: boolean) => void;
   setFlymaster: (flymaster: SettingsState["flymaster"]) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
+  setSelectedGroup: (selectedGroup: SettingsState['selectedGroup']) => void;
 }
 
-const initialContext: SettingsContextType = {
+const initialContext: SettingsContextProps = {
   settings: {
     darkTheme: true,
     flymaster: null,
     xcontest: null,
+    selectedGroup: null,
   },
   setSettings: () => {},
   setDarkTheme: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
+  setSelectedGroup: () => {},
 };
 
-export const SettingsContext =
-  createContext<SettingsContextType>(initialContext);
+const SettingsContext = createContext<SettingsContextProps>(initialContext);
 
-export function useSettings() {
-  return React.useContext(SettingsContext);
-}
+export const useSettings = () => useContext(SettingsContext);
+
 
 // SettingsProvider component
 type Props = {
@@ -46,8 +42,10 @@ type Props = {
 
 const LOCAL_STORAGE_KEY = "settings";
 
-export function SettingsProvider({ children }: Props) {
-  const [settings, setSettings] = useState<SettingsState | null>(() => {
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [settings, setSettings] = useState<SettingsState>(() => {
     const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEY);
     return storedSettings
       ? JSON.parse(storedSettings)
@@ -58,10 +56,7 @@ export function SettingsProvider({ children }: Props) {
     settings,
     setSettings,
     setDarkTheme: (darkTheme: boolean) => {
-      setSettings((prevSettings) => ({
-        ...prevSettings,
-        darkTheme,
-      }));
+      setSettings((prevSettings) => ({ ...prevSettings, darkTheme }));
     },
     setFlymaster: (flymaster: SettingsState["flymaster"]) => {
       setSettings((prevSettings) => ({
@@ -70,10 +65,10 @@ export function SettingsProvider({ children }: Props) {
       }));
     },
     setXContest: (xcontest: SettingsState["xcontest"]) => {
-      setSettings((prevSettings) => ({
-        ...prevSettings,
-        xcontest,
-      }));
+      setSettings((prevSettings) => ({ ...prevSettings, xcontest }));
+    },
+    setSelectedGroup: (selectedGroup: SettingsState['selectedGroup']) => {
+      setSettings((prevSettings) => ({ ...prevSettings, selectedGroup }));
     },
   };
 
@@ -91,4 +86,4 @@ export function SettingsProvider({ children }: Props) {
       {children}
     </SettingsContext.Provider>
   );
-}
+};

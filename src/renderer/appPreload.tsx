@@ -36,7 +36,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (v) versions[type] = v.replace("^", "");
   }
 
-  console.log("ENV", env, process);
+  console.log('ENV', env, process);
 
   // Set versions to app data
   app.setAttribute("data-versions", JSON.stringify(versions));

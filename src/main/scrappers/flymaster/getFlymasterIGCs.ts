@@ -1,15 +1,32 @@
-import { Page } from 'puppeteer-core';
 import { format, parse } from 'date-fns';
 import { SelectedGroup } from './flymasterScraper';
+import pie from 'puppeteer-in-electron';
+import { BrowserWindow, app } from 'electron';
+import puppeteer from 'puppeteer-core';
+import doLoginAndTableSearch from './doLoginAndTableSearch';
 
 export const getFlymasterIGCs = async (
-  page: Page,
   selectedGroup: SelectedGroup,
   date: string,
+  username: string,
+  password: string,
 ) => {
   try {
-    const { id } = selectedGroup;
-    const rowSelector = `#groupstable tbody tr[id="${id}"]`;
+    // @ts-ignore
+    const browser = await pie.connect(app, puppeteer);
+
+    const window = new BrowserWindow();
+    const url = `https://lt.flymaster.net/#`;
+    await window.loadURL(url);
+
+    const page = await pie.getPage(browser, window);
+
+    console.log(`Navigating to ${url}...`);
+
+    await doLoginAndTableSearch(username, password, page);
+
+    console.log('SELECTED GROUP BACK', selectedGroup);
+    const rowSelector = `#groupstable tbody tr[id="${selectedGroup}"]`;
     const igcButtonSelector = `${rowSelector} button#igcGroup`;
 
     const igcButton = await page.waitForSelector(igcButtonSelector, {
@@ -18,9 +35,9 @@ export const getFlymasterIGCs = async (
 
     if (igcButton) {
       await igcButton.click();
-      console.log(`Clicked IGC button for group ID ${id}.`);
+      console.log(`Clicked IGC button for group ID ${selectedGroup}.`);
     } else {
-      throw new Error(`IGC button not found for group ID ${id}.`);
+      throw new Error(`IGC button not found for group ID ${selectedGroup}.`);
     }
 
     await page.waitForNetworkIdle();
