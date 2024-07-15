@@ -10,47 +10,47 @@
  * @package : Window Controls - Close, Minimize, Maximize (Component)
  */
 
-import classNames from 'classnames';
-import React from 'react';
-import context from '@main/window/titlebarContextApi';
+import classNames from "classnames";
+import React from "react";
+import context from "@main/window/titlebarContextApi";
 
-import ControlButton from './ControlButton';
+import ControlButton from "./ControlButton";
 
 type Props = {
-  platform: 'windows' | 'mac';
+  platform: "windows" | "mac";
   tooltips?: boolean;
 };
 
 const closePath =
-  'M 0,0 0,0.7 4.3,5 0,9.3 0,10 0.7,10 5,5.7 9.3,10 10,10 10,9.3 5.7,5 10,0.7 10,0 9.3,0 5,4.3 0.7,0 Z';
-const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z';
-const minimizePath = 'M 0,5 10,5 10,6 0,6 Z';
+  "M 0,0 0,0.7 4.3,5 0,9.3 0,10 0.7,10 5,5.7 9.3,10 10,10 10,9.3 5.7,5 10,0.7 10,0 9.3,0 5,4.3 0.7,0 Z";
+const maximizePath = "M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z";
+const minimizePath = "M 0,5 10,5 10,6 0,6 Z";
 
 const WindowControls: React.FC<Props> = (props) => {
   return (
     <section
       className={classNames(
-        'window-titlebar-controls',
-        `type-${props.platform}`,
+        "window-titlebar-controls",
+        `type-${props.platform}`
       )}
     >
       <ControlButton
-        name='minimize'
+        name="minimize"
         onClick={() => context.minimize()}
         path={minimizePath}
-        title={props.tooltips ? 'Minimize' : null}
+        title={props.tooltips ? "Minimize" : null}
       />
       <ControlButton
-        name='maximize'
+        name="maximize"
         onClick={() => context.toggle_maximize()}
         path={maximizePath}
-        title={props.tooltips ? 'Maximize' : null}
+        title={props.tooltips ? "Maximize" : null}
       />
       <ControlButton
-        name='close'
+        name="close"
         onClick={() => context.exit()}
         path={closePath}
-        title={props.tooltips ? 'Close' : null}
+        title={props.tooltips ? "Close" : null}
       />
     </section>
   );

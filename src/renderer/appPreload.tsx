@@ -1,44 +1,43 @@
-import { contextBridge, ipcRenderer } from 'electron';
-import '@main/window/windowPreload';
-import '@main/scrappers/scrappersPreload';
+import { contextBridge } from "electron";
+import "@main/window/windowPreload";
+import "@main/scrappers/scrappersPreload";
 
 // Say something
-console.log('[TrackDownloader] : Preload execution started');
+console.log("[TrackDownloader] : Preload execution started");
 
-
-contextBridge.exposeInMainWorld('app', {
+contextBridge.exposeInMainWorld("app", {
   platform: process.platform,
 });
 
 // Get versions
-window.addEventListener('DOMContentLoaded', () => {
-  const app = document.getElementById('app');
+window.addEventListener("DOMContentLoaded", () => {
+  const app = document.getElementById("app");
   const { env } = process;
   const versions: Record<string, unknown> = {};
 
   // ERWT Package version
-  versions['erwt'] = env['npm_package_version'];
-  versions['license'] = env['npm_package_license'];
+  versions.erwt = env.npm_package_version;
+  versions.license = env.npm_package_license;
 
   // Process versions
-  for (const type of ['chrome', 'node', 'electron']) {
-    versions[type] = process.versions[type].replace('+', '');
+  for (const type of ["chrome", "node", "electron"]) {
+    versions[type] = process.versions[type].replace("+", "");
   }
 
   // NPM deps versions
-  for (const type of ['react']) {
-    const v = env['npm_package_dependencies_' + type];
-    if (v) versions[type] = v.replace('^', '');
+  for (const type of ["react"]) {
+    const v = env["npm_package_dependencies_" + type];
+    if (v) versions[type] = v.replace("^", "");
   }
 
   // NPM @dev deps versions
-  for (const type of ['webpack', 'typescript']) {
-    const v = env['npm_package_devDependencies_' + type];
-    if (v) versions[type] = v.replace('^', '');
+  for (const type of ["webpack", "typescript"]) {
+    const v = env["npm_package_devDependencies_" + type];
+    if (v) versions[type] = v.replace("^", "");
   }
 
   console.log("ENV", env, process);
 
   // Set versions to app data
-  app.setAttribute('data-versions', JSON.stringify(versions));
+  app.setAttribute("data-versions", JSON.stringify(versions));
 });

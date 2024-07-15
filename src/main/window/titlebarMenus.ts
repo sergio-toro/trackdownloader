@@ -25,11 +25,11 @@ export type TitlebarMenu = {
 
 const titlebarMenus: TitlebarMenu[] = [
   {
-    name: 'File',
+    name: "File",
     items: [
       {
-        name: 'Exit',
-        action: 'exit',
+        name: "Exit",
+        action: "exit",
       },
     ],
   },
@@ -79,22 +79,22 @@ const titlebarMenus: TitlebarMenu[] = [
   //   ],
   // },
   {
-    name: 'View',
+    name: "View",
     items: [
       {
-        name: 'Reload',
-        action: 'reload',
-        shortcut: 'Ctrl+R',
+        name: "Reload",
+        action: "reload",
+        shortcut: "Ctrl+R",
       },
       {
-        name: 'Force Reload',
-        action: 'force_reload',
-        shortcut: 'Ctrl+Shift+R',
+        name: "Force Reload",
+        action: "force_reload",
+        shortcut: "Ctrl+Shift+R",
       },
       {
-        name: 'Toogle Developer Tools',
-        action: 'toggle_devtools',
-        shortcut: 'Ctrl+Shift+I',
+        name: "Toogle Developer Tools",
+        action: "toggle_devtools",
+        shortcut: "Ctrl+Shift+I",
       },
       // {
       //   name: '__',
@@ -145,19 +145,19 @@ const titlebarMenus: TitlebarMenu[] = [
   //   ],
   // },
   {
-    name: 'Credits',
+    name: "Credits",
     items: [
       {
-        name: 'Sergio Toro',
-        action: 'open_url',
-        value: 'https://github.com/sergio-toro',
-        shortcut: '@sergio-toro',
+        name: "Sergio Toro",
+        action: "open_url",
+        value: "https://github.com/sergio-toro",
+        shortcut: "@sergio-toro",
       },
       {
-        name: 'Mireia Garcia',
-        action: 'open_url',
-        value: 'https://github.com/mireia22',
-        shortcut: '@mireia22',
+        name: "Mireia Garcia",
+        action: "open_url",
+        value: "https://github.com/mireia22",
+        shortcut: "@mireia22",
       },
     ],
   },
