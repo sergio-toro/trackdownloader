@@ -10,9 +10,9 @@
  * @package : Window Frame (Component)
  */
 
-import React, { useEffect, useRef } from 'react';
-import Titlebar from './Titlebar';
-import logo from '@assets/images/logo.png';
+import React, { useEffect, useRef } from "react";
+import Titlebar from "./Titlebar";
+import logo from "@assets/images/logo.png";
 
 type Props = {
   title?: string;
@@ -25,8 +25,8 @@ const WindowFrame: React.FC<Props> = (props) => {
 
   useEffect(() => {
     const { parentElement } = itsRef.current;
-    parentElement.classList.add('has-electron-window');
-    parentElement.classList.add('has-border');
+    parentElement.classList.add("has-electron-window");
+    parentElement.classList.add("has-border");
 
     // Apply border color if prop given
     if (props.borderColor) {
@@ -40,7 +40,7 @@ const WindowFrame: React.FC<Props> = (props) => {
       <div className="start-electron-window" ref={itsRef}></div>
       {/* Window Titlebar */}
       <Titlebar
-        title={props.title ?? 'Electron Window'}
+        title={props.title ?? "Electron Window"}
         mode="centered-title"
         icon={logo}
       />

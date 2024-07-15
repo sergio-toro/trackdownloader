@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from "react";
 
 export interface SettingsState {
   darkTheme: boolean;
@@ -12,32 +12,28 @@ export interface SettingsState {
   };
 }
 
-interface SettingsContext {
+interface SettingsContextType {
   settings: SettingsState;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState | null>>;
   setDarkTheme: (darkTheme: boolean) => void;
-  setFlymaster: (flymaster: SettingsState['flymaster']) => void;
-  setXContest: (xcontest: SettingsState['xcontest']) => void;
+  setFlymaster: (flymaster: SettingsState["flymaster"]) => void;
+  setXContest: (xcontest: SettingsState["xcontest"]) => void;
 }
 
-const initialContext: SettingsContext = {
+const initialContext: SettingsContextType = {
   settings: {
     darkTheme: true,
     flymaster: null,
     xcontest: null,
   },
-  setSettings: () => {
-  },
-  setDarkTheme: () => {
-  },
-  setFlymaster: () => {
-  },
-  setXContest: () => {
-  },
+  setSettings: () => {},
+  setDarkTheme: () => {},
+  setFlymaster: () => {},
+  setXContest: () => {},
 };
 
-export const SettingsContext = createContext<SettingsContext>(initialContext);
-
+export const SettingsContext =
+  createContext<SettingsContextType>(initialContext);
 
 export function useSettings() {
   return React.useContext(SettingsContext);
@@ -48,12 +44,14 @@ type Props = {
   children: React.ReactNode;
 };
 
-const LOCAL_STORAGE_KEY = 'settings';
+const LOCAL_STORAGE_KEY = "settings";
 
 export function SettingsProvider({ children }: Props) {
   const [settings, setSettings] = useState<SettingsState | null>(() => {
     const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return storedSettings ? JSON.parse(storedSettings) : initialContext.settings;
+    return storedSettings
+      ? JSON.parse(storedSettings)
+      : initialContext.settings;
   });
 
   const contextValue = {
@@ -65,13 +63,13 @@ export function SettingsProvider({ children }: Props) {
         darkTheme,
       }));
     },
-    setFlymaster: (flymaster: SettingsState['flymaster']) => {
+    setFlymaster: (flymaster: SettingsState["flymaster"]) => {
       setSettings((prevSettings) => ({
         ...prevSettings,
         flymaster,
       }));
     },
-    setXContest: (xcontest: SettingsState['xcontest']) => {
+    setXContest: (xcontest: SettingsState["xcontest"]) => {
       setSettings((prevSettings) => ({
         ...prevSettings,
         xcontest,
@@ -82,9 +80,9 @@ export function SettingsProvider({ children }: Props) {
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
     if (settings.darkTheme) {
-      document.body.classList.add('dark-mode');
+      document.body.classList.add("dark-mode");
     } else {
-      document.body.classList.remove('dark-mode');
+      document.body.classList.remove("dark-mode");
     }
   }, [settings]);
 

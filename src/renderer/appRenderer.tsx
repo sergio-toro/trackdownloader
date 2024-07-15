@@ -1,11 +1,11 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import WindowFrame from '@renderer/window/WindowFrame';
-import Application from '@renderer/Application';
-import { SettingsProvider } from '@renderer/context/settingsContext';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import WindowFrame from "@renderer/window/WindowFrame";
+import Application from "@renderer/Application";
+import { SettingsProvider } from "@renderer/context/settingsContext";
 
 // Say something
-console.log('[Track Downloader]: Renderer execution started');
+console.log("[Track Downloader]: Renderer execution started");
 
 // Application to Render
 function MainApp() {
@@ -18,6 +18,5 @@ function MainApp() {
   );
 }
 
-
 // Render application in DOM
-createRoot(document.getElementById('app')).render(<MainApp />);
+createRoot(document.getElementById("app")).render(<MainApp />);

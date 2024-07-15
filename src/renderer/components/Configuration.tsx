@@ -1,17 +1,15 @@
-import React from 'react';
-import Input from '@components/forms/Input';
-import { useSettings } from '@renderer/context/settingsContext';
-import Card from '@components/layout/Card';
-import PilotsSheet from '@components/PilotsSheet';
+import React from "react";
+import Input from "@components/forms/Input";
+import { useSettings } from "@renderer/context/settingsContext";
+import Card from "@components/layout/Card";
+import PilotsSheet from "@components/PilotsSheet";
 
 export default function Configuration() {
   const { settings, setFlymaster, setXContest } = useSettings();
-  console.log('settings', settings);
+  console.log("settings", settings);
   return (
     <div className="w-full p-4 pb-0">
-      <div className="main-teaser pb-2 mb-2">
-        Settings
-      </div>
+      <div className="main-teaser pb-2 mb-2">Settings</div>
       <div className="grid grid-cols-2 gap-4">
         <Card title="Flymaster">
           <Input
@@ -24,7 +22,8 @@ export default function Configuration() {
                 ...settings.flymaster,
                 username: e.target.value,
               });
-            }} />
+            }}
+          />
           <Input
             id="flymaster-password"
             name="flymasterPassword"
@@ -36,7 +35,8 @@ export default function Configuration() {
                 ...settings.flymaster,
                 password: e.target.value,
               });
-            }} />
+            }}
+          />
         </Card>
         <Card title="XContest">
           <Input
@@ -49,7 +49,8 @@ export default function Configuration() {
                 ...settings.xcontest,
                 username: e.target.value,
               });
-            }} />
+            }}
+          />
           <Input
             id="xcontest-password"
             name="xcontestPassword"
@@ -61,7 +62,8 @@ export default function Configuration() {
                 ...settings.xcontest,
                 password: e.target.value,
               });
-            }} />
+            }}
+          />
         </Card>
       </div>
       <div className="content">
