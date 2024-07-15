@@ -17,7 +17,7 @@ import context from '@main/window/titlebarContextApi';
 import ControlButton from './ControlButton';
 
 type Props = {
-  platform: string;
+  platform: 'windows' | 'mac';
   tooltips?: boolean;
 };
 

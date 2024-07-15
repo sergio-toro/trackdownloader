@@ -1,8 +1,14 @@
+import { contextBridge, ipcRenderer } from 'electron';
 import '@main/window/windowPreload';
 import '@main/scrappers/scrappersPreload';
 
 // Say something
 console.log('[TrackDownloader] : Preload execution started');
+
+
+contextBridge.exposeInMainWorld('app', {
+  platform: process.platform,
+});
 
 // Get versions
 window.addEventListener('DOMContentLoaded', () => {
@@ -30,6 +36,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const v = env['npm_package_devDependencies_' + type];
     if (v) versions[type] = v.replace('^', '');
   }
+
+  console.log("ENV", env, process);
 
   // Set versions to app data
   app.setAttribute('data-versions', JSON.stringify(versions));

@@ -1,17 +1,23 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import WindowFrame from '@renderer/window/WindowFrame';
-import Application from '@components/Application';
+import Application from '@renderer/Application';
+import { SettingsProvider } from '@renderer/context/settingsContext';
 
 // Say something
-console.log('[Track Downloader] : Renderer execution started');
+console.log('[Track Downloader]: Renderer execution started');
 
 // Application to Render
-const app = (
-  <WindowFrame title='Track Downloader' platform='windows'>
-    <Application />
-  </WindowFrame>
-);
+function MainApp() {
+  return (
+    <SettingsProvider>
+      <WindowFrame title="Track Downloader">
+        <Application />
+      </WindowFrame>
+    </SettingsProvider>
+  );
+}
+
 
 // Render application in DOM
-createRoot(document.getElementById('app')).render(app);
+createRoot(document.getElementById('app')).render(<MainApp />);

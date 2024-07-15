@@ -7,6 +7,7 @@
  */
 
 body:not(.dark-mode) {
+  --body-color: #2e2e2e;
   // Application
   --app-accent-color: #27954f;
   --app-bgcolor: #e2e2e2;
@@ -47,6 +48,14 @@ body:not(.dark-mode) {
   // ERWT
   --erwt-heading-color: #282828;
 
+  body {
+    color: var(--body-color);
+  }
+
+  input {
+    background: #fff;
+  }
+
   // Overrides
   .main-teaser {
     color: #2e2e2e;
@@ -61,7 +70,7 @@ body:not(.dark-mode) {
     background: #ffffffa2;
     box-shadow: 0 2px 4px #00000005;
 
-    &>span {
+    & > span {
       color: #999999;
     }
   }
