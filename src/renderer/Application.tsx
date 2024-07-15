@@ -1,16 +1,16 @@
-import React from 'react';
-import { HashRouter, Route, Routes } from 'react-router-dom';
-import Home from './routes/Home';
-import '@styles/main.css';
-import '@styles/app.scss';
+import React from "react";
+import { HashRouter, Route, Routes } from "react-router-dom";
+import Home from "./routes/Home";
+import "@styles/main.css";
+import "@styles/app.scss";
 
 const Application: React.FC = () => {
   return (
-    <div className='App'>
+    <div className="App">
       {/* <Home /> */}
       <HashRouter>
         <Routes>
-          <Route path='/' element={<Home />} />
+          <Route path="/" element={<Home />} />
         </Routes>
       </HashRouter>
     </div>

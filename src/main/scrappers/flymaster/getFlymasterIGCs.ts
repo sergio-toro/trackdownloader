@@ -1,22 +1,23 @@
-import { format, parse } from 'date-fns';
-import { SelectedGroup } from './flymasterScraper';
-import pie from 'puppeteer-in-electron';
-import { BrowserWindow, app } from 'electron';
-import puppeteer from 'puppeteer-core';
-import doLoginAndTableSearch from './doLoginAndTableSearch';
+import { format, parse } from "date-fns";
+import { SelectedGroup } from "./flymasterScraper";
+import pie from "puppeteer-in-electron";
+import { BrowserWindow, app } from "electron";
+import puppeteer from "puppeteer-core";
+import doLoginAndTableSearch from "./doLoginAndTableSearch";
 
 export const getFlymasterIGCs = async (
   selectedGroup: SelectedGroup,
   date: string,
   username: string,
-  password: string,
+  password: string
 ) => {
   try {
+    // eslint-disable-next-line
     // @ts-ignore
     const browser = await pie.connect(app, puppeteer);
 
     const window = new BrowserWindow();
-    const url = `https://lt.flymaster.net/#`;
+    const url = "https://lt.flymaster.net/#";
     await window.loadURL(url);
 
     const page = await pie.getPage(browser, window);
@@ -25,7 +26,7 @@ export const getFlymasterIGCs = async (
 
     await doLoginAndTableSearch(username, password, page);
 
-    console.log('SELECTED GROUP BACK', selectedGroup);
+    console.log("SELECTED GROUP BACK", selectedGroup);
     const rowSelector = `#groupstable tbody tr[id="${selectedGroup}"]`;
     const igcButtonSelector = `${rowSelector} button#igcGroup`;
 
@@ -42,29 +43,29 @@ export const getFlymasterIGCs = async (
 
     await page.waitForNetworkIdle();
 
-    const parsedDate = parse(date, 'dd.MM.yy', new Date());
-    const formattedDate = format(parsedDate, 'yyyy-MM-dd');
+    const parsedDate = parse(date, "dd.MM.yy", new Date());
+    const formattedDate = format(parsedDate, "yyyy-MM-dd");
 
     await page.evaluate(
       (selector, date) => {
         (document.querySelector(selector) as HTMLInputElement).removeAttribute(
-          'readonly',
+          "readonly"
         );
         (document.querySelector(selector) as HTMLInputElement).value = date;
       },
-      '#igcDate',
-      formattedDate,
+      "#igcDate",
+      formattedDate
     );
 
     console.log(`Date set to ${formattedDate}.`);
 
-    const generateIGCButton = await page.waitForSelector('#genIgcBtn');
+    const generateIGCButton = await page.waitForSelector("#genIgcBtn");
     await generateIGCButton.click();
-    console.log('Generate IGC button clicked');
+    console.log("Generate IGC button clicked");
 
     await page.waitForNetworkIdle();
   } catch (error) {
-    console.error('Error in getFlymasterIGCs:', error);
+    console.error("Error in getFlymasterIGCs:", error);
     throw error;
   }
 };

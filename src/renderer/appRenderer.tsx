@@ -11,7 +11,7 @@ console.log("[Track Downloader]: Renderer execution started");
 function MainApp() {
   return (
     <SettingsProvider>
-      <WindowFrame title='Track Downloader'>
+      <WindowFrame title="Track Downloader">
         <Application />
       </WindowFrame>
     </SettingsProvider>

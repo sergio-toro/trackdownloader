@@ -13,13 +13,13 @@ export interface ScrapperMethods {
   test: (username: string) => Promise<void>;
   flymasterGroups: (
     username: string,
-    password: string,
+    password: string
   ) => Promise<FlymasterGroupsResponse>;
   flymasterIGCs: (
     selectedGroup: string,
     date: string,
     username: string,
-    password: string,
+    password: string
   ) => Promise<FlymasterIGCsResponse>;
 }
 
@@ -27,19 +27,19 @@ const scrappers: ScrapperMethods = {
   test: async (username: string) =>
     ipcRenderer.invoke("scrapper-test", username),
   flymasterGroups: async (username: string, password: string) =>
-    ipcRenderer.invoke('scrapper-flymaster-groups', username, password),
+    ipcRenderer.invoke("scrapper-flymaster-groups", username, password),
   flymasterIGCs: async (
     selectedGroup: string,
     date: string,
     username: string,
-    password: string,
+    password: string
   ) =>
     ipcRenderer.invoke(
-      'get-flymaster-igcs',
+      "get-flymaster-igcs",
       selectedGroup,
       date,
       username,
-      password,
+      password
     ),
 };
 

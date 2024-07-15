@@ -13,7 +13,7 @@ interface SettingsContextProps {
   setDarkTheme: (darkTheme: boolean) => void;
   setFlymaster: (flymaster: SettingsState["flymaster"]) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
-  setSelectedGroup: (selectedGroup: SettingsState['selectedGroup']) => void;
+  setSelectedGroup: (selectedGroup: SettingsState["selectedGroup"]) => void;
 }
 
 const initialContext: SettingsContextProps = {
@@ -33,12 +33,6 @@ const initialContext: SettingsContextProps = {
 const SettingsContext = createContext<SettingsContextProps>(initialContext);
 
 export const useSettings = () => useContext(SettingsContext);
-
-
-// SettingsProvider component
-type Props = {
-  children: React.ReactNode;
-};
 
 const LOCAL_STORAGE_KEY = "settings";
 
@@ -67,7 +61,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     setXContest: (xcontest: SettingsState["xcontest"]) => {
       setSettings((prevSettings) => ({ ...prevSettings, xcontest }));
     },
-    setSelectedGroup: (selectedGroup: SettingsState['selectedGroup']) => {
+    setSelectedGroup: (selectedGroup: SettingsState["selectedGroup"]) => {
       setSettings((prevSettings) => ({ ...prevSettings, selectedGroup }));
     },
   };
