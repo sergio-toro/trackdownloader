@@ -18,7 +18,9 @@ const Home: React.FC = () => {
 
   const [groups, setGroups] = useState<Groups[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
+  console.log("SELECTED DATE", selectedDate);
   const fetchFlymasterGroups = async () => {
     try {
       const groups = await window.scrappers.flymasterGroups(
@@ -35,10 +37,12 @@ const Home: React.FC = () => {
     try {
       const group = await window.scrappers.flymasterIGCs(
         selectedGroup?.id,
+        selectedDate,
         flymaster?.username,
         flymaster?.password
       );
       console.log("SELECTED GROUP FRONT", selectedGroup.id);
+      console.log("SELECTED DATE FRONT", selectedDate);
 
       setSelectedGroupId(group.id);
     } catch (error) {
@@ -55,7 +59,7 @@ const Home: React.FC = () => {
   return (
     <div id="application" className={` ${darkTheme ? "dark" : ""}`}>
       <Configuration />
-      <DateForm />
+      <DateForm selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
 
       <div className="flex flex-col gap-8">
         <div className="flex flex-row gap-4">
@@ -90,7 +94,7 @@ const Home: React.FC = () => {
                     <tr
                       key={group.id}
                       className={`hover:bg-slate-200 cursor-pointer ${
-                        selectedGroupId === group.id ? "bg-blue-100" : ""
+                        selectedGroupId === group.id ? "bg-blue-300" : ""
                       }`}
                       onClick={() => handleGroupClick(group)}
                     >
