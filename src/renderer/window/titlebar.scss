@@ -36,7 +36,7 @@ $em: $titlebar-baseSize*1em;
   &-content {
     flex: 1;
     font-size: calc($titlebar-baseSize - 3px);
-    padding-right: 70px;
+    padding-right: 100px;
     color: #a9b0bb;
 
     &.centered {
@@ -48,6 +48,8 @@ $em: $titlebar-baseSize*1em;
   }
 
   &-icon {
+    background: $titlebar-bg;
+    z-index: 110;
     padding: 0 0.75em;
 
     img {
