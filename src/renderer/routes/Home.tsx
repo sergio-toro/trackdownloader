@@ -10,25 +10,30 @@ const Home: React.FC = () => {
   } = useSettings();
 
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string>("");
 
   console.log("SELECTED DATE", selectedDate);
 
   const fetchFlyMasterIGCs = async () => {
     try {
       console.log("SELECTED GROUP FRONT", flymaster.selectedGroup);
-      await window.scrappers.flymasterIGCs(
+      const { group } = await window.scrappers.flymasterIGCs(
         flymaster.selectedGroup?.id,
         selectedDate,
         flymaster?.username,
-        flymaster?.password
+        flymaster?.password,
+        selectedFolderPath
       );
       console.log("SELECTED GROUP FRONT", flymaster.selectedGroup.id);
       console.log("SELECTED DATE FRONT", selectedDate);
-
-      // setSelectedGroupId(group.id);
     } catch (error) {
       console.error("Error fetching Flymaster groups:", error);
     }
+  };
+  const selectFolder = async () => {
+    const filePath = await window.tracks.IGCsDirectory();
+    console.log(filePath);
+    setSelectedFolderPath(filePath);
   };
 
   return (
@@ -36,9 +41,9 @@ const Home: React.FC = () => {
       <Configuration />
       <DateForm selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
 
+      <button onClick={selectFolder}>Choose Folder</button>
       <div className="flex flex-col gap-8">
         <div className="flex flex-row gap-4">
-          {/*<button onClick={fetchFlymasterGroups}>FIND FLYMASTER GROUPS</button>*/}
           <button onClick={fetchFlyMasterIGCs}>Get IGCs</button>
         </div>
       </div>

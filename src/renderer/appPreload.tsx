@@ -1,6 +1,7 @@
 import { contextBridge } from "electron";
 import "@main/window/windowPreload";
 import "@main/scrappers/scrappersPreload";
+import "@main/tracks/tracksPreload";
 
 // Say something
 console.log("[TrackDownloader] : Preload execution started");

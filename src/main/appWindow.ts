@@ -3,7 +3,7 @@ import path from "path";
 
 import { registerTitlebarIpc } from "@main/window/titlebarIpc";
 import registerScrappersIpc from "@main/scrappers/registerScrappersIpc";
-
+import registerTracksIpc from "./tracks/registerTracksIpc";
 // Electron Forge automatically creates these entry points
 declare const APP_WINDOW_WEBPACK_ENTRY: string;
 declare const APP_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -21,6 +21,7 @@ function registerMainIPC() {
   registerTitlebarIpc(appWindow);
 
   registerScrappersIpc();
+  registerTracksIpc(appWindow);
 }
 
 /**

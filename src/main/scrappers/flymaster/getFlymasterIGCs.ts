@@ -4,12 +4,14 @@ import pie from "puppeteer-in-electron";
 import { BrowserWindow, app } from "electron";
 import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
+import { handleDownloadIGCs } from "@main/tracks/flymasterZipDownloader";
 
 export const getFlymasterIGCs = async (
   selectedGroup: SelectedGroup,
   date: string,
   username: string,
-  password: string
+  password: string,
+  selectedFolderPath: string
 ) => {
   try {
     // eslint-disable-next-line
@@ -28,6 +30,7 @@ export const getFlymasterIGCs = async (
     await page.waitForNetworkIdle();
 
     console.log("SELECTED GROUP BACK", selectedGroup);
+    console.log("SELECTED FOLDER", selectedFolderPath);
     console.log("SELECTED DATE BACK", date);
     await page.waitForSelector("#groupstable", { timeout: 60000 });
 
@@ -47,13 +50,12 @@ export const getFlymasterIGCs = async (
 
     await page.waitForNetworkIdle();
 
-    const parsedDate = parse(date, "dd.MM.yy", new Date());
-
+    const parsedDate = parse(date, "yyyy-MM-dd", new Date());
     if (!isValid(parsedDate)) {
-      throw new Error(`Invalid date value: ${date}`);
+      throw new Error(`Invalid date value: ${parsedDate}`);
     }
 
-    const formattedDate = format(parsedDate, "yyyy-MM-dd");
+    const formattedDate = format(date, "yyyy-MM-dd");
 
     await page.evaluate(
       (selector, date) => {
@@ -70,20 +72,54 @@ export const getFlymasterIGCs = async (
     );
 
     console.log(`Date set to ${formattedDate}.`);
+    await page.waitForNetworkIdle();
 
-    const areIGCsGenerated = await page.$("#genIgcBtnAgain");
+    const areIGCsGenerated = await page.$("#infoDiv");
 
     if (!areIGCsGenerated) {
-      const generateIGCButton = await page.waitForSelector("#genIgcBtn", {
-        timeout: 60000,
-      });
+      console.log("IGC not generated ");
+
+      const generateIGCButton = await page.waitForSelector("#genIgcBtn");
       await generateIGCButton.click();
       console.log("Generate IGC button clicked");
     }
-    await page.click("#genIgcBtnAgain");
-    console.log("GenerateAgain IGC button clicked");
 
+    console.log("IGC already generated ");
     await page.waitForNetworkIdle();
+
+    const downloadZipButton = await page.waitForSelector(
+      'a[onclick^="DoDownload"]',
+      {
+        timeout: 300000,
+      }
+    );
+    const downloadLinkSelector = 'a[onclick^="DoDownload"]';
+    await page.waitForSelector(downloadLinkSelector, { timeout: 300000 });
+
+    const zipURL = await page.evaluate((selector) => {
+      const link = document.querySelector(selector) as HTMLAnchorElement;
+      if (link) {
+        const onclickValue = link.getAttribute("onclick");
+        const matches = onclickValue.match(/'(https?:\/\/[^']+)'/);
+        if (matches && matches.length > 1) {
+          return matches[1];
+        } else {
+          throw new Error(
+            `URL not found in onclick attribute: ${onclickValue}`
+          );
+        }
+      } else {
+        throw new Error(`Download link not found using selector: ${selector}`);
+      }
+    }, downloadLinkSelector);
+
+    console.log("Download URL:", zipURL);
+    await downloadZipButton.click();
+
+    console.log("Download btn clicked");
+
+    await handleDownloadIGCs(zipURL, selectedFolderPath);
+    return zipURL;
   } catch (error) {
     console.error("Error in getFlymasterIGCs:", error);
     throw error;

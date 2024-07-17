@@ -1,3 +1,4 @@
+import { TrackMethods } from "@main/tracks/tracksPreload";
 import type { ScrapperMethods } from "./src/scrappers/ScrapperMethods";
 import { TitlebarContextApi } from "@main/window/titlebarContext";
 
@@ -7,10 +8,17 @@ declare global {
       titlebar: TitlebarContextApi;
     };
     scrappers: ScrapperMethods;
+    tracks: TrackMethods;
     app: {
       platform: NodeJS.Platform;
     };
   }
 }
-
+declare module "react" {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    // extends React's HTMLAttributes
+    directory?: string;
+    webkitdirectory?: string;
+  }
+}
 export {};

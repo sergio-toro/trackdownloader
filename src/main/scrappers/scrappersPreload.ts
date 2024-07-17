@@ -19,7 +19,8 @@ export interface ScrapperMethods {
     selectedGroup: string,
     date: string,
     username: string,
-    password: string
+    password: string,
+    selectedFolderPath: string
   ) => Promise<FlymasterIGCsResponse>;
 }
 
@@ -32,14 +33,16 @@ const scrappers: ScrapperMethods = {
     selectedGroup: string,
     date: string,
     username: string,
-    password: string
+    password: string,
+    selectedFolderPath: string
   ) =>
     ipcRenderer.invoke(
       "get-flymaster-igcs",
       selectedGroup,
       date,
       username,
-      password
+      password,
+      selectedFolderPath
     ),
 };
 
