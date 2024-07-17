@@ -12,15 +12,24 @@ interface FlymasterState {
   selectedGroup: FlymasterGroup | null;
 }
 
+interface PilotsState {
+  id: string;
+  name: string;
+  xctrack: string | null;
+  volandoo: string | null;
+}
+
 export interface SettingsState {
   darkTheme: boolean;
   flymaster: null | FlymasterState;
+  pilots: null | PilotsState[];
   xcontest: null | { username: string; password: string };
 }
 
 interface SettingsContextProps {
   settings: SettingsState;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
+  setPilots: (pilots: PilotsState[] | null) => void;
   setDarkTheme: (darkTheme: boolean) => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
@@ -31,8 +40,10 @@ const initialContext: SettingsContextProps = {
     darkTheme: true,
     flymaster: null,
     xcontest: null,
+    pilots: null,
   },
   setSettings: () => {},
+  setPilots: () => {},
   setDarkTheme: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
@@ -57,6 +68,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   const contextValue = {
     settings,
     setSettings,
+    setPilots: (pilots: PilotsState[] | null) => {
+      setSettings((prevSettings) => ({ ...prevSettings, pilots }));
+    },
     setDarkTheme: (darkTheme: boolean) => {
       setSettings((prevSettings) => ({ ...prevSettings, darkTheme }));
     },

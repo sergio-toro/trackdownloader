@@ -3,6 +3,7 @@ import { useSettings } from "@renderer/context/settingsContext";
 import FlymasterGroupSelector from "@components/flymaster/GroupSelector";
 import FlymasterCredentialsForm from "@components/flymaster/CredentialsForm";
 import XContestCredentialsForm from "@components/xcontest/CredentialsForm";
+import PilotsForm from "@components/PilotsForm";
 
 export default function Configuration() {
   const {
@@ -45,6 +46,7 @@ export default function Configuration() {
           <FlymasterCredentialsForm />
           <FlymasterGroupSelector />
           <XContestCredentialsForm />
+          <PilotsForm />
         </div>
       )}
     </div>
