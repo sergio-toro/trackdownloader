@@ -1,18 +1,16 @@
 import { format, isValid, parse } from "date-fns";
-import { SelectedGroup } from "./flymasterScraper";
+import { SelectedGroup } from "./getFlymasterGroups";
 import pie from "puppeteer-in-electron";
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
-import { handleDownloadIGCs } from "@main/tracks/flymasterZipDownloader";
 
 export const getFlymasterIGCs = async (
   selectedGroup: SelectedGroup,
   date: string,
   username: string,
-  password: string,
-  selectedFolderPath: string
-) => {
+  password: string
+): Promise<string> => {
   try {
     // eslint-disable-next-line
     // @ts-ignore
@@ -30,7 +28,6 @@ export const getFlymasterIGCs = async (
     await page.waitForNetworkIdle();
 
     console.log("SELECTED GROUP BACK", selectedGroup);
-    console.log("SELECTED FOLDER", selectedFolderPath);
     console.log("SELECTED DATE BACK", date);
     await page.waitForSelector("#groupstable", { timeout: 60000 });
 
@@ -108,7 +105,6 @@ export const getFlymasterIGCs = async (
     }, downloadLinkSelector);
     console.log("Download URL:", zipURL);
 
-    await handleDownloadIGCs(zipURL, selectedFolderPath);
     window.close();
 
     return zipURL;

@@ -4,7 +4,8 @@ import cx from "classnames";
 type Props = {
   label: string;
   name: string;
-  type?: "text" | "password";
+  mode?: "inline" | "vertical";
+  type?: "text" | "password" | "date";
   placeholder?: string;
   autoComplete?: string;
   value: string;
@@ -15,6 +16,7 @@ type Props = {
 export default function Input({
   id,
   label,
+  mode = "vertical",
   type = "text",
   value,
   autoComplete,
@@ -24,12 +26,18 @@ export default function Input({
   onChange,
 }: Props) {
   return (
-    <div className={cx("sm:col-span-4", className)}>
+    <div
+      className={cx(
+        "sm:col-span-4",
+        { "flex gap-2 items-center": mode === "inline" },
+        className
+      )}
+    >
       <label htmlFor={id} className="block text-sm font-medium leading-6">
         {label}
       </label>
-      <div className="mt-2">
-        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
+      <div className={cx({ "mt-2": mode === "vertical" })}>
+        <div className="flex rounded-md border border-gray-300 shadow-sm ring-inset focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
           {/*<span className="flex select-none items-center pl-3 text-gray-500 sm:text-sm"></span>*/}
           <input
             id={id}
@@ -39,7 +47,7 @@ export default function Input({
             placeholder={placeholder || ""}
             autoComplete={autoComplete || "off"}
             onChange={onChange}
-            className="block flex-1 border-0 bg-transparent py-1.5 pl-1 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+            className="flex-1 block border-0 flex-1 bg-transparent p-1.5 px-1.5 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
           />
         </div>
       </div>

@@ -2,10 +2,7 @@ import fs from "fs";
 import AdmZip from "adm-zip";
 import path from "path";
 
-export async function decompressAndListFiles(
-  zipFilePath: string,
-  outputFolderPath: string
-) {
+export async function unzipFile(zipFilePath: string, outputFolderPath: string) {
   try {
     const zip = new AdmZip(zipFilePath);
     const extractedFiles: string[] = [];
