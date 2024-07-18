@@ -87,12 +87,6 @@ export const getFlymasterIGCs = async (
     console.log("IGC already generated ");
     await page.waitForNetworkIdle();
 
-    const downloadZipButton = await page.waitForSelector(
-      'a[onclick^="DoDownload"]',
-      {
-        timeout: 300000,
-      }
-    );
     const downloadLinkSelector = 'a[onclick^="DoDownload"]';
     await page.waitForSelector(downloadLinkSelector, { timeout: 300000 });
 
@@ -112,13 +106,11 @@ export const getFlymasterIGCs = async (
         throw new Error(`Download link not found using selector: ${selector}`);
       }
     }, downloadLinkSelector);
-
     console.log("Download URL:", zipURL);
-    await downloadZipButton.click();
-
-    console.log("Download btn clicked");
 
     await handleDownloadIGCs(zipURL, selectedFolderPath);
+    window.close();
+
     return zipURL;
   } catch (error) {
     console.error("Error in getFlymasterIGCs:", error);

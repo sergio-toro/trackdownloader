@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 
 import flymasterScraper from "./flymaster/flymasterScraper";
 import { getFlymasterIGCs } from "./flymaster/getFlymasterIGCs";
+import xcontestScraper from "./xcontest/xcontestScraper";
 
 export default function registerScrappersIpc() {
   ipcMain.handle("scrapper-flymaster-groups", async (_, username, password) => {
@@ -21,6 +22,27 @@ export default function registerScrappersIpc() {
         selectedFolderPath
       );
       return IGCs;
+    }
+  );
+
+  ipcMain.handle(
+    "get-xcontest-igcs",
+    async (
+      _,
+      username,
+      password,
+      date,
+      pilotId
+      // selectedFolderPath
+    ) => {
+      const allXContestFlights = await xcontestScraper(
+        username,
+        password,
+        date,
+        pilotId
+        // selectedFolderPath
+      );
+      return allXContestFlights;
     }
   );
 }
