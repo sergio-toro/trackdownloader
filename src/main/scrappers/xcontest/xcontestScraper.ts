@@ -64,6 +64,8 @@ export default async function xcontestScraper(
     allXContestFlights.push(...flightDetails);
 
     console.log("Final All IGCs:", allXContestFlights);
+    window.close();
+
     return allXContestFlights;
   } catch (error) {
     console.error("Error scraping flights:", error);

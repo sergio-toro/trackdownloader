@@ -60,6 +60,7 @@ export default function PilotsForm() {
     [
       { value: "ID", readOnly: true, className: "cell read-only w-[50px]" },
       { value: "Name", readOnly: true },
+
       {
         value: "XCTrack",
         readOnly: true,

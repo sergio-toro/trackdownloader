@@ -1,7 +1,7 @@
 import fs from "fs";
 import fetch from "node-fetch";
 import { decompressAndListFiles } from "./decompressAndListFiles";
-import { extractIdsFromFiles } from "./extractIdsFromFiles";
+import { extractIdsAndNamesFromFiles } from "./extractIdsFromFiles";
 
 export async function handleDownloadIGCs(
   zipURL: string,
@@ -27,10 +27,9 @@ export async function handleDownloadIGCs(
     const files = await decompressAndListFiles(filePath, selectedFolderPath);
     console.log("Extracted files:", files);
 
-    const trackerNumbers = extractIdsFromFiles(files);
-    console.log("Extracted numbers:", trackerNumbers);
+    const pilotsData = extractIdsAndNamesFromFiles(files);
 
-    return { files, trackerNumbers };
+    return { files, pilotsData };
   } catch (error) {
     console.error("Error downloading or saving ZIP:", error);
   }

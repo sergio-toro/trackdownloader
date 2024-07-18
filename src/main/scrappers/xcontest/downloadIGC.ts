@@ -26,6 +26,8 @@ export default async function downloadIGC(detailsLink: string) {
   if (igcLinkElement) {
     const igcUrl = await page.evaluate((el) => el.href, igcLinkElement);
     console.log(`Found IGC download link: ${igcUrl}`);
+    window.close();
+
     return igcUrl;
   }
 }

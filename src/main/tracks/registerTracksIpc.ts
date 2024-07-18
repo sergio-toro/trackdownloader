@@ -6,7 +6,11 @@ export default function registerTracksIpc(appWindow: BrowserWindow) {
       properties: ["openDirectory"],
     });
 
-    console.log("directories selected", result.filePaths[0]);
-    return result.filePaths[0];
+    if (!result.canceled && result.filePaths.length > 0) {
+      console.log("Selected folder path:", result.filePaths[0]);
+      return result.filePaths[0];
+    } else {
+      throw new Error("No folder selected");
+    }
   });
 }
