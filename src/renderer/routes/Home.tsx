@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import Configuration from "@components/Configuration";
 import { useSettings } from "@renderer/context/settingsContext";
 import DateForm from "@components/forms/DateForm";
-import PilotsDataSheet from "@components/PilotsDataSheet";
 
 const Home: React.FC = () => {
   const {
@@ -43,8 +42,6 @@ const Home: React.FC = () => {
           <button onClick={fetchFlyMasterIGCs}>Get IGCs</button>
         </div>
       </div>
-
-      <PilotsDataSheet />
     </div>
   );
 };

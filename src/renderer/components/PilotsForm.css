@@ -1,0 +1,16 @@
+.PilotsForm {
+  * {
+    box-sizing: border-box;
+  }
+
+  .data-grid-container .data-grid .cell {
+    height: 25px;
+    text-align: left;
+  }
+
+  .data-grid-container .data-grid .cell > input {
+
+    height: 100%;
+    width: 100%;
+  }
+}
