@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Configuration from "@components/Configuration";
 import { useSettings } from "@renderer/context/settingsContext";
 import { format } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
+import { useTableTracks } from "@renderer/context/tracksContext";
 
 const Home: React.FC = () => {
   const {
-    settings: { darkTheme, flymaster, xcontest },
+    settings: { theme, flymaster, xcontest, pilots },
   } = useSettings();
 
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedFolderPath, setSelectedFolderPath] = useState<string>("");
+  const { selectedDate, selectedFolder, setSelectedDate, setSelectedFolder } =
+    useTableTracks();
+
+  const [igcFiles, setIgcFiles] = useState<string[]>([]);
+  const [parsedIgcIds, setParsedIgcIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (igcFiles.length > 0) {
+      const parsedIds = parseIgcFiles(igcFiles);
+      setParsedIgcIds(parsedIds);
+    }
+  }, [igcFiles]);
 
   const fetchFlyMasterIGCs = async () => {
     try {
@@ -21,35 +32,71 @@ const Home: React.FC = () => {
         selectedDate,
         flymaster?.username,
         flymaster?.password,
-        selectedFolderPath
+        selectedFolder
       );
       const fileName = "flymaster.zip";
-      const filePath = `${selectedFolderPath}/${fileName}`;
+      const filePath = `${selectedFolder}/${fileName}`;
       const zipPath = await window.tracks.downloadFile(zipURL, filePath);
-      await window.tracks.unzipFile(zipPath, selectedFolderPath);
-      const igcFiles = await window.tracks.listIGCs(selectedFolderPath);
+      await window.tracks.unzipFile(zipPath, selectedFolder);
+      const igcFiles = await window.tracks.listIGCs(selectedFolder);
 
       console.log("IGC FILES", igcFiles);
+      setIgcFiles(igcFiles);
     } catch (error) {
       console.error("Error fetching Flymaster groups:", error);
     }
   };
 
+  const parseIgcFiles = (files: string[]) => {
+    return files.map((file) => {
+      const match = file.match(/\.(\d+)\.igc$/);
+
+      if (match) {
+        return match[1];
+      }
+      return "";
+    });
+  };
+
+  console.log("PILOTS", pilots);
+  console.log("PARSED IDS", parsedIgcIds);
+
   const fetchXcontestIGCs = async () => {
-    const pilotId = "Mnel";
+    const pilotsWithNoTrack = pilots.filter(
+      (pilot) => !parsedIgcIds.includes(pilot.id)
+    );
+
+    const xcontestNicknames = pilotsWithNoTrack
+      .filter((pilot) => pilot.xctrack !== null)
+      .map((pilot) => pilot.xctrack!);
+
+    console.log("Pilots with no track:", pilotsWithNoTrack);
+    console.log("XContest nicknames:", xcontestNicknames);
 
     try {
-      const allXContestFlights = await window.scrappers.xcontestIGCs(
-        xcontest?.username,
-        xcontest?.password,
-        selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-        pilotId,
-        selectedFolderPath
-      );
-      console.log("ALL XCONTEST FLIGHTS", allXContestFlights);
+      let allXcontestFiles: string[] = [];
+      for (const nickname of xcontestNicknames) {
+        try {
+          const xcontestFiles = await window.scrappers.xcontestIGCs(
+            xcontest?.username,
+            xcontest?.password,
+            selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
+            nickname,
+            selectedFolder
+          );
+          console.log(`XContest IGCs for ${nickname}:`, xcontestFiles);
 
-      // TODO: Trigger download
-      // TODO: List IGCs
+          allXcontestFiles = [...allXcontestFiles, ...xcontestFiles];
+          // const fileName = "xcontest.zip";
+          // const filePath = `${selectedFolderPath}/${fileName}`;
+          // const zipPath = await window.tracks.downloadFile(zipURL, filePath);
+
+          console.log("ALL XCONTEST FILES", allXcontestFiles);
+        } catch (error) {
+          console.log("Error processing nickname ", nickname, error);
+          continue;
+        }
+      }
     } catch (error) {
       console.error("Error fetching Xcontest IGCs:", error);
     }
@@ -75,14 +122,14 @@ const Home: React.FC = () => {
     try {
       const directory = await window.tracks.selectDirectory();
       console.log("Selected folder path:", directory);
-      setSelectedFolderPath(directory);
+      setSelectedFolder(directory);
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
   };
 
   return (
-    <div id="application" className={`${darkTheme ? "dark" : ""}`}>
+    <div id="application" className={theme}>
       <Configuration />
 
       <Card className="w-full" title="Download Tracks">
@@ -98,43 +145,74 @@ const Home: React.FC = () => {
           />
           <div className="flex gap-2 items-center">
             <button onClick={selectFolder} className="border-gray-300">
-              {!selectedFolderPath ? "Select Folder" : "Change Folder"}
+              {!selectedFolder ? "Select Folder" : "Change Folder"}
             </button>
-            {selectedFolderPath && (
+            {selectedFolder && (
               <span className="text-sm text-gray-700 font-medium">
-                {selectedFolderPath}
+                {selectedFolder}
               </span>
             )}
           </div>
           <div className="flex gap-2 grow justify-end">
-            <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
-            <button onClick={fetchXcontestIGCs}>Get Xcontest IGCs</button>
+            <button onClick={() => fetchFlyMasterIGCs()}>
+              Get Flymaster IGCs
+            </button>
+            <button onClick={() => fetchXcontestIGCs()}>
+              Get Xcontest IGCs
+            </button>
             <button onClick={fetchVolandooIGCs}>Get Volandoo IGCs</button>
           </div>
         </div>
       </Card>
 
-      <div className="flex flex-col gap-8">
-        <div className="Home mt-8">
-          <h2>Extracted Files and Tracker Numbers:</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Pilot Name</th>
-                <th>Tracker Number</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>PILOTNAME</td>
-                <td>TRACKNUMBER</td>
-                <td>Flymaster</td>
-              </tr>
-            </tbody>
-          </table>
+      {pilots.length > 0 ? (
+        <div className="flex flex-col gap-8">
+          <div className="Home mt-8">
+            <h2>Extracted Files and Tracker Numbers:</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Pilot Name</th>
+                  <th>Source</th>
+                  <th>Find</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pilots.map((pilot, index) => {
+                  const source = parsedIgcIds.includes(pilot.id)
+                    ? "Flymaster"
+                    : "Track not found";
+                  const isFlymaster = source === "Flymaster";
+
+                  return (
+                    <tr
+                      key={index}
+                      className={isFlymaster ? "bg-green-200" : ""}
+                    >
+                      <td>{pilot.id}</td>
+                      <td>{pilot.name}</td>
+                      <td>{source}</td>
+                      <td>
+                        {!isFlymaster && (
+                          <button onClick={() => fetchXcontestIGCs()}>
+                            Find in XContest
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center">
+          <p>No extracted flights.</p>
+          <p>Select a group, a date, and a folder.</p>
+        </div>
+      )}
     </div>
   );
 };

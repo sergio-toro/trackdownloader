@@ -19,7 +19,7 @@ export default function registerScrappersIpc() {
   );
 
   ipcMain.handle(
-    "get-xcontest-igcs",
+    "get-xcontest-igcs-zip",
     async (_, username, password, date, pilotId) => {
       return await xcontestScraper(username, password, date, pilotId);
     }

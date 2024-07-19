@@ -60,16 +60,16 @@ export default function FlymasterGroupSelector() {
       )}
       {isFlymasterConfigured && flymaster.groups?.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead className="bg-gray-100">
+          <table className="max-w-[50rem] ">
+            <thead>
               <tr>
-                <th className="border-b border-gray-200 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="border-b border-gray-200 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="border-b border-gray-200 tracking-wider"></th>
+                <th className=" tracking-wider"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -85,13 +85,11 @@ export default function FlymasterGroupSelector() {
                     }`}
                     onClick={() => handleGroupClick(group)}
                   >
-                    <td className="border-b border-gray-200 px-6 py-4 whitespace-nowrap">
-                      {group.id}
-                    </td>
-                    <td className="border-b border-gray-200 px-6 py-4 whitespace-nowrap">
+                    <td className=" px-6 py-4 whitespace-nowrap">{group.id}</td>
+                    <td className=" px-6 py-4 whitespace-nowrap">
                       {group.name}
                     </td>
-                    <td className="border-b border-gray-200 px-6 py-4 whitespace-nowrap">
+                    <td className=" px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
                         value={group.id}
@@ -107,7 +105,7 @@ export default function FlymasterGroupSelector() {
         </div>
       ) : (
         isFlymasterConfigured && (
-          <p className="text-gray-600 text-center">No groups to render.</p>
+          <p className=" text-center">No groups to render.</p>
         )
       )}
     </Card>

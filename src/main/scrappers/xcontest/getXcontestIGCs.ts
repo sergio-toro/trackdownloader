@@ -1,18 +1,17 @@
-import { ElementHandle, Page } from "puppeteer-core";
-import getIGCUrl from "./getIGCUrl";
+import { Page, TimeoutError, ElementHandle } from "puppeteer-core";
 
 export const getXcontestIGCs = async (
   page: Page,
   date: string,
   pilotId: string
-  //   selectedFolderPath: string
 ) => {
   console.log("inside GET");
 
   try {
     await page.waitForSelector("div.XCslotPilotFlights table.XClist tr", {
-      timeout: 60000,
+      timeout: 5000,
     });
+
     const rows = await page.$$("div.XCslotPilotFlights table.XClist tr");
 
     console.log("table xctr list found");
@@ -70,7 +69,11 @@ export const getXcontestIGCs = async (
 
     return pilotIGCs;
   } catch (error) {
-    console.error("Error in getXcontestIGCs:", error);
+    if (error instanceof TimeoutError) {
+      console.error("Timeout waiting for selector:", error);
+    } else {
+      console.error("Error in getXcontestIGCs:", error);
+    }
     throw error;
   }
 };
