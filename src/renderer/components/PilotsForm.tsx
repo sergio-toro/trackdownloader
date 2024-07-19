@@ -111,8 +111,9 @@ export default function PilotsForm() {
     setPilots(pilotsData);
   }, [debouncedData]);
 
+  console.log("DATA", data);
   return (
-    <Card title="Pilots" className="PilotsForm bg-white">
+    <Card title="Pilots" className="PilotsForm bg-bgCard">
       <DataSheet
         className="w-full"
         data={data}

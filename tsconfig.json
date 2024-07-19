@@ -20,7 +20,7 @@
       "@main/*": ["./src/main/*"],
       "@renderer/*": ["./src/renderer/*"],
       "@src/*": ["./src/*"],
-      "@misc/*": ["./misc/*"],
+      "@misc/*": ["./misc/*"]
     }
   },
   "include": ["src/**/*", "tools/**/*"]

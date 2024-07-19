@@ -47,7 +47,7 @@ export default function Input({
             placeholder={placeholder || ""}
             autoComplete={autoComplete || "off"}
             onChange={onChange}
-            className="flex-1 block border-0 flex-1 bg-transparent p-1.5 px-1.5 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+            className="block flex-1 border-0 py-1.5 pl-1  focus:ring-0 sm:text-sm sm:leading-6 text-inputText"
           />
         </div>
       </div>

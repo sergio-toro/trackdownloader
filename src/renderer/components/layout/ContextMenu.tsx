@@ -41,13 +41,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   return (
     <div
       ref={ref}
-      className="fixed z-200 bg-white shadow-lg rounded-md"
+      className="fixed z-200  shadow-lg rounded-md"
       style={{ top: `${y}px`, left: `${x}px` }}
     >
       {options.map((option, index) => (
         <div
           key={index}
-          className="p-2 text-sm hover:bg-gray-100 cursor-pointer"
+          className="p-2 text-sm  cursor-pointer"
           onClick={() => {
             option.handle();
             onClose();

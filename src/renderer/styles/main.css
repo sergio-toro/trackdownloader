@@ -1,3 +1,93 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background: 248, 250, 252; /* Light background */
+  --text-color: 29, 39, 54; /* Dark text */
+  --accent-color: 66, 153, 225; /* Accent blue */
+  --input-background: 255, 255, 255, 0.85; /* Light input background */
+  --config-background: 245, 247, 250; /* Light config card background */
+  --button-background: 66, 153, 225; /* Accent blue for buttons */
+  --card-background: 255, 255, 255; /* White card background */
+  --card-border: 229, 231, 235; /* Light gray border for cards */
+  --input-text: 26, 32, 44;
+}
+
+.dark {
+  --background: 18, 18, 18; /* Dark blue background */
+  --text-color: 229, 231, 235; /* Light text */
+  --accent-color: 90, 185, 234; /* Accent blue */
+  --input-background: 38, 44, 60, 0.85; /* Dark blue input background */
+  --config-background: 40, 40, 40; /* Dark blue config card background */
+  --button-background: 90, 185, 234; /* Accent blue for buttons */
+  --card-background: 63, 63, 63; /* Dark blue card background */
+  --card-border: 58, 60, 80; /* Dark gray border for cards */
+  --input-text: 26, 32, 44;
+}
+
+.light {
+  --background: 248, 250, 252; /* Light background */
+  --text-color: 29, 39, 54; /* Dark text */
+  --accent-color: 66, 153, 225; /* Accent blue */
+  --input-background: 255, 255, 255, 0.85; /* Light input background */
+  --config-background: 245, 247, 250; /* Light config card background */
+  --button-background: 66, 153, 225; /* Accent blue for buttons */
+  --card-background: 255, 255, 255; /* White card background */
+  --card-border: 229, 231, 235; /* Light gray border for cards */
+  --input-text: 26, 32, 44;
+}
+
+body,
+#application {
+  background-color: rgba(var(--background));
+  color: rgba(var(--text-color));
+}
+
+input {
+  color: rgba(var(--input-text));
+}
+html,
+body,
+#app {
+  height: 100%;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+#application {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2rem;
+  padding: 1rem;
+}
+table {
+  width: 60rem;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.89);
+  border-collapse: collapse;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  color: rgba(var(--input-text));
+}
+
+th,
+td {
+  padding: 0.8rem;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #050430;
+  color: white;
+}

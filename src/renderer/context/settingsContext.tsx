@@ -12,7 +12,7 @@ interface FlymasterState {
   selectedGroup: FlymasterGroup | null;
 }
 
-interface PilotsState {
+export interface PilotsState {
   id: string;
   name: string;
   xctrack: string | null;
@@ -20,7 +20,7 @@ interface PilotsState {
 }
 
 export interface SettingsState {
-  darkTheme: boolean;
+  theme: "dark" | "light";
   flymaster: null | FlymasterState;
   pilots: null | PilotsState[];
   xcontest: null | { username: string; password: string };
@@ -30,21 +30,21 @@ interface SettingsContextProps {
   settings: SettingsState;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
   setPilots: (pilots: PilotsState[] | null) => void;
-  setDarkTheme: (darkTheme: boolean) => void;
+  setTheme: (theme: "dark" | "light") => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
 }
 
 const initialContext: SettingsContextProps = {
   settings: {
-    darkTheme: true,
+    theme: "dark",
     flymaster: null,
     xcontest: null,
     pilots: null,
   },
   setSettings: () => {},
   setPilots: () => {},
-  setDarkTheme: () => {},
+  setTheme: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
 };
@@ -71,8 +71,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     setPilots: (pilots: PilotsState[] | null) => {
       setSettings((prevSettings) => ({ ...prevSettings, pilots }));
     },
-    setDarkTheme: (darkTheme: boolean) => {
-      setSettings((prevSettings) => ({ ...prevSettings, darkTheme }));
+    setTheme: (theme: "dark" | "light") => {
+      setSettings((prevSettings) => ({ ...prevSettings, theme }));
     },
     setFlymaster: (flymaster: SettingsState["flymaster"]) => {
       setSettings((prevSettings) => ({
@@ -87,10 +87,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
-    if (settings.darkTheme) {
-      document.body.classList.add("dark-mode");
+    if (settings.theme === "dark") {
+      document.body.classList.add("dark");
+      document.body.classList.remove("light");
     } else {
-      document.body.classList.remove("dark-mode");
+      document.body.classList.add("light");
+      document.body.classList.remove("dark");
     }
   }, [settings]);
 
