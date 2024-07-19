@@ -1,8 +1,8 @@
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 import pie from "puppeteer-in-electron";
 import puppeteer, { ElementHandle } from "puppeteer-core";
 
-export default async function downloadIGC(detailsLink: string) {
+export default async function getIGCUrl(detailsLink: string) {
   // eslint-disable-next-line
   // @ts-ignore
   const browser = await pie.connect(app, puppeteer);

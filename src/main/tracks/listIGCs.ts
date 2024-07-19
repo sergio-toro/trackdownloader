@@ -10,3 +10,6 @@ export async function listIGCs(directory: string) {
     throw error;
   }
 }
+
+// "XContest Sergio Toro DATE.ID.igc"
+// "Volandoo Sergio Toro DATE.ID.igc"

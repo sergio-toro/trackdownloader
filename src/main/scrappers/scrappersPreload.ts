@@ -18,6 +18,14 @@ type XcontestIGCsResponse = Array<{
   startTime: string;
   duration: string;
 }>;
+type VolandooIGCsResponse = Array<{
+  pilotId: string;
+  igcUrl: string;
+
+  date: string;
+  startTime: string;
+  duration: string;
+}>;
 
 export interface ScrapperMethods {
   test: (username: string) => Promise<void>;
@@ -39,6 +47,10 @@ export interface ScrapperMethods {
     pilotName: string
     // selectedFolderPath: string
   ) => Promise<XcontestIGCsResponse>;
+  volandooIGCs: (
+    date: string,
+    pilotUsername: string
+  ) => Promise<VolandooIGCsResponse>;
 }
 
 const scrappers: ScrapperMethods = {
@@ -74,6 +86,8 @@ const scrappers: ScrapperMethods = {
       pilotId,
       pilotName
     ),
+  volandooIGCs: async (date: string, pilotUsername: string) =>
+    ipcRenderer.invoke("get-volandoo-igcs", date, pilotUsername),
 };
 
 contextBridge.exposeInMainWorld("scrappers", scrappers);
