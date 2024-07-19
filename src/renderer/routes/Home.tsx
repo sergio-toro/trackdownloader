@@ -4,14 +4,16 @@ import { useSettings } from "@renderer/context/settingsContext";
 import { format } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
+import { useTableTracks } from "@renderer/context/tracksContext";
 
 const Home: React.FC = () => {
   const {
     settings: { theme, flymaster, xcontest, pilots },
   } = useSettings();
 
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedFolderPath, setSelectedFolderPath] = useState<string>("");
+  const { selectedDate, selectedFolder, setSelectedDate, setSelectedFolder } =
+    useTableTracks();
+
   const [igcFiles, setIgcFiles] = useState<string[]>([]);
   const [parsedIgcIds, setParsedIgcIds] = useState<string[]>([]);
 
@@ -30,13 +32,13 @@ const Home: React.FC = () => {
         selectedDate,
         flymaster?.username,
         flymaster?.password,
-        selectedFolderPath
+        selectedFolder
       );
       const fileName = "flymaster.zip";
-      const filePath = `${selectedFolderPath}/${fileName}`;
+      const filePath = `${selectedFolder}/${fileName}`;
       const zipPath = await window.tracks.downloadFile(zipURL, filePath);
-      await window.tracks.unzipFile(zipPath, selectedFolderPath);
-      const igcFiles = await window.tracks.listIGCs(selectedFolderPath);
+      await window.tracks.unzipFile(zipPath, selectedFolder);
+      const igcFiles = await window.tracks.listIGCs(selectedFolder);
 
       console.log("IGC FILES", igcFiles);
       setIgcFiles(igcFiles);
@@ -74,17 +76,26 @@ const Home: React.FC = () => {
     try {
       let allXcontestFiles: string[] = [];
       for (const nickname of xcontestNicknames) {
-        const xcontestFiles = await window.scrappers.xcontestIGCs(
-          xcontest?.username,
-          xcontest?.password,
-          selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-          nickname,
-          selectedFolderPath
-        );
-        console.log(`XContest IGCs for ${nickname}:`, xcontestFiles);
+        try {
+          const xcontestFiles = await window.scrappers.xcontestIGCs(
+            xcontest?.username,
+            xcontest?.password,
+            selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
+            nickname,
+            selectedFolder
+          );
+          console.log(`XContest IGCs for ${nickname}:`, xcontestFiles);
 
-        allXcontestFiles = [...allXcontestFiles, ...xcontestFiles];
-        console.log("ALL XCONTEST FILES", allXcontestFiles);
+          allXcontestFiles = [...allXcontestFiles, ...xcontestFiles];
+          // const fileName = "xcontest.zip";
+          // const filePath = `${selectedFolderPath}/${fileName}`;
+          // const zipPath = await window.tracks.downloadFile(zipURL, filePath);
+
+          console.log("ALL XCONTEST FILES", allXcontestFiles);
+        } catch (error) {
+          console.log("Error processing nickname ", nickname, error);
+          continue;
+        }
       }
     } catch (error) {
       console.error("Error fetching Xcontest IGCs:", error);
@@ -111,7 +122,7 @@ const Home: React.FC = () => {
     try {
       const directory = await window.tracks.selectDirectory();
       console.log("Selected folder path:", directory);
-      setSelectedFolderPath(directory);
+      setSelectedFolder(directory);
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
@@ -134,11 +145,11 @@ const Home: React.FC = () => {
           />
           <div className="flex gap-2 items-center">
             <button onClick={selectFolder} className="border-gray-300">
-              {!selectedFolderPath ? "Select Folder" : "Change Folder"}
+              {!selectedFolder ? "Select Folder" : "Change Folder"}
             </button>
-            {selectedFolderPath && (
+            {selectedFolder && (
               <span className="text-sm text-gray-700 font-medium">
-                {selectedFolderPath}
+                {selectedFolder}
               </span>
             )}
           </div>
