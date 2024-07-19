@@ -30,9 +30,6 @@ const Home: React.FC = () => {
       const igcFiles = await window.tracks.listIGCs(selectedFolderPath);
 
       console.log("IGC FILES", igcFiles);
-      // trigger download
-      // unzip
-      // getListOfIGCs
     } catch (error) {
       console.error("Error fetching Flymaster groups:", error);
     }
@@ -50,8 +47,27 @@ const Home: React.FC = () => {
         selectedFolderPath
       );
       console.log("ALL XCONTEST FLIGHTS", allXContestFlights);
+
+      // TODO: Trigger download
+      // TODO: List IGCs
     } catch (error) {
       console.error("Error fetching Xcontest IGCs:", error);
+    }
+  };
+
+  const fetchVolandooIGCs = async () => {
+    const pilotUsername = "abdel";
+    try {
+      const allVolandooFlights = await window.scrappers.volandooIGCs(
+        selectedDate ? format(new Date(selectedDate), "dd/MM/yyyy") : "",
+        pilotUsername
+      );
+      console.log("ALL VOLANDOO FLIGHTS", allVolandooFlights);
+
+      // TODO: Trigger download
+      // TODO: List IGCs
+    } catch (error) {
+      console.error("Error fetching Volandoo IGCs:", error);
     }
   };
 
@@ -93,6 +109,7 @@ const Home: React.FC = () => {
           <div className="flex gap-2 grow justify-end">
             <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
             <button onClick={fetchXcontestIGCs}>Get Xcontest IGCs</button>
+            <button onClick={fetchVolandooIGCs}>Get Volandoo IGCs</button>
           </div>
         </div>
       </Card>

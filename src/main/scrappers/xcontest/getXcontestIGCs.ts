@@ -1,5 +1,5 @@
-import { Page, ElementHandle } from "puppeteer-core";
-import downloadIGC from "./downloadIGC";
+import { ElementHandle, Page } from "puppeteer-core";
+import getIGCUrl from "./getIGCUrl";
 
 export const getXcontestIGCs = async (
   page: Page,
@@ -50,7 +50,7 @@ export const getXcontestIGCs = async (
               detailsLinkElement
             );
 
-            const igcUrl = await downloadIGC(detailsLink);
+            const igcUrl = await getIGCUrl(detailsLink);
 
             pilotIGCs.push({
               pilotId,
