@@ -1,4 +1,5 @@
 import React from "react";
+import Input from "@components/forms/Input";
 
 interface DateFormProps {
   selectedDate: string;
@@ -10,19 +11,15 @@ const DateForm: React.FC<DateFormProps> = ({
   setSelectedDate,
 }) => {
   return (
-    <div className="flex flex-col gap-2 items-center justify-center">
-      <p>Select a date:</p>
-      <form>
-        <div className="flex flex-row gap-2">
-          <input
-            type="date"
-            id="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-        </div>
-      </form>
-    </div>
+    <Input
+      mode="inline"
+      type="date"
+      label="Select a date"
+      id="date"
+      name="date"
+      value={selectedDate}
+      onChange={(e) => setSelectedDate(e.target.value)}
+    />
   );
 };
 

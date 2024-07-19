@@ -51,7 +51,7 @@ export default async function doLoginAndTableSearch(
 
     console.log("Table loaded successfully.");
   } catch (e) {
-    console.log("flymasterScraper error:", e);
+    console.log("getFlymasterGroups error:", e);
     throw e;
   }
 }

@@ -1,5 +1,5 @@
 import pie from "puppeteer-in-electron";
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
 
@@ -8,7 +8,7 @@ export interface SelectedGroup {
   name: string;
 }
 
-export default async function flymasterScraper(
+export default async function getFlymasterGroups(
   username: string,
   password: string
 ) {
@@ -52,7 +52,7 @@ export default async function flymasterScraper(
     window.close();
     return groupsToSelect;
   } catch (e) {
-    console.log("flymasterScraper error:", e);
+    console.log("getFlymasterGroups error:", e);
     throw e;
   }
 }

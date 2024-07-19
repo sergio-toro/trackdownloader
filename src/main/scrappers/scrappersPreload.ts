@@ -18,6 +18,7 @@ type XcontestIGCsResponse = Array<{
   startTime: string;
   duration: string;
 }>;
+
 export interface ScrapperMethods {
   test: (username: string) => Promise<void>;
   flymasterGroups: (
@@ -28,8 +29,7 @@ export interface ScrapperMethods {
     selectedGroup: string,
     date: string,
     username: string,
-    password: string,
-    selectedFolderPath: string
+    password: string
   ) => Promise<FlymasterIGCsResponse>;
   xcontestIGCs: (
     username: string,
@@ -50,16 +50,14 @@ const scrappers: ScrapperMethods = {
     selectedGroup: string,
     date: string,
     username: string,
-    password: string,
-    selectedFolderPath: string
+    password: string
   ) =>
     ipcRenderer.invoke(
-      "get-flymaster-igcs",
+      "get-flymaster-igcs-zip",
       selectedGroup,
       date,
       username,
-      password,
-      selectedFolderPath
+      password
     ),
   xcontestIGCs: async (
     username: string,
@@ -67,16 +65,14 @@ const scrappers: ScrapperMethods = {
     date: string,
     pilotId: string,
     pilotName: string
-    // selectedFolderPath: string
   ) =>
     ipcRenderer.invoke(
-      "get-xcontest-igcs",
+      "get-xcontest-igcs-zip",
       username,
       password,
       date,
       pilotId,
       pilotName
-      // selectedFolderPath
     ),
 };
 

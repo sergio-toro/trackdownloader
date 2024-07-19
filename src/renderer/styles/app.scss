@@ -58,7 +58,7 @@ body {
 body {
   background-size: 32px 32px;
   background-image: linear-gradient(to right, #7070700d 1px, transparent 1px),
-    linear-gradient(to bottom, #7070700d 1px, transparent 1px);
+  linear-gradient(to bottom, #7070700d 1px, transparent 1px);
 }
 
 h1 {
@@ -200,34 +200,38 @@ button {
   }
 }
 
-table {
-  width: 60vw;
-  border-collapse: collapse;
-  font-size: 0.8rem;
-  cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.89);
-  border-collapse: collapse;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+.Home {
+  table {
+    width: 60vw;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.89);
+    border-collapse: collapse;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  th,
+  td {
+    padding: 0.8rem;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #050430;
+    color: white;
+  }
+
+  th.clicked {
+    background-color: #ddd;
+  }
+
+  tr:hover {
+    background-color: #ddd;
+  }
 }
 
-th,
-td {
-  padding: 0.8rem;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-th {
-  background-color: #050430;
-  color: white;
-}
-th.clicked {
-  background-color: #ddd;
-}
-
-tr:hover {
-  background-color: #ddd;
-}
 
 #application {
   // user-select: none;
