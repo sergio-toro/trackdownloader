@@ -1,4 +1,5 @@
 import { Page, TimeoutError, ElementHandle } from "puppeteer-core";
+import getIGCUrl from "./getIGCUrl";
 
 export const getXcontestIGCs = async (
   page: Page,

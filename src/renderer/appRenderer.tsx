@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import WindowFrame from "@renderer/window/WindowFrame";
 import Application from "@renderer/Application";
 import { SettingsProvider } from "@renderer/context/settingsContext";
+import { TracksProvider } from "./context/tableTracksContext";
 
 // Say something
 console.log("[Track Downloader]: Renderer execution started");
@@ -11,9 +12,11 @@ console.log("[Track Downloader]: Renderer execution started");
 function MainApp() {
   return (
     <SettingsProvider>
-      <WindowFrame title="Track Downloader">
-        <Application />
-      </WindowFrame>
+      <TracksProvider>
+        <WindowFrame title="Track Downloader">
+          <Application />
+        </WindowFrame>
+      </TracksProvider>
     </SettingsProvider>
   );
 }
