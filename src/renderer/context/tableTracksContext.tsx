@@ -1,12 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
+export interface IGCFile {
+  name: string;
+  date: string;
+  pilot: string;
+  site: string;
+  startTime: string | null;
+  endTime: string | null;
+  duration: object;
+}
 export interface TracksState {
-  igcFiles: string[];
+  igcFiles: IGCFile[];
   parsedIgcIds: string[];
   selectedDate: string;
   selectedFolder: string;
   igcsInDirectory: string;
-  setIgcFiles: (files: string[]) => void;
+  setIgcFiles: (files: IGCFile[]) => void;
   setParsedIgcIds: (ids: string[]) => void;
   setSelectedDate: (date: string) => void;
   setSelectedFolder: (folder: string) => void;
@@ -35,7 +43,7 @@ const LOCAL_STORAGE_KEY = "tracks";
 export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [igcFiles, setIgcFiles] = useState<string[]>(initialContext.igcFiles);
+  const [igcFiles, setIgcFiles] = useState<IGCFile[]>(initialContext.igcFiles);
   const [parsedIgcIds, setParsedIgcIds] = useState<string[]>(
     initialContext.parsedIgcIds
   );

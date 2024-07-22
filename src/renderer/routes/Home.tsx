@@ -24,6 +24,7 @@ const Home: React.FC = () => {
     selectedFolder,
     igcFiles,
     // setIgcFiles,
+    // setIgcFiles,
     setSelectedDate,
     setSelectedFolder,
   } = useTableTracks();
@@ -33,9 +34,11 @@ const Home: React.FC = () => {
     []
   );
 
+  console.log("IGFILES", igcFiles);
   useEffect(() => {
     if (igcFiles.length > 0) {
-      const parsedIds = parseIgcFiles(igcFiles);
+      const names = igcFiles.map((file) => file.name);
+      const parsedIds = parseIgcFiles(names);
       setParsedIgcIds(parsedIds);
     }
   }, [igcFiles]);
@@ -58,14 +61,15 @@ const Home: React.FC = () => {
 
       console.log("IGC FILES", igcFiles);
       // setIgcFiles(igcFiles);
+      // setIgcFiles(igcFiles);
     } catch (error) {
       console.error("Error fetching Flymaster IGCS:", error);
     }
   };
 
-  const parseIgcFiles = (files: string[]) => {
-    return files.map((file) => {
-      const match = file.match(/\.(\d+)\.igc$/);
+  const parseIgcFiles = (names: string[]) => {
+    return names.map((name) => {
+      const match = name.match(/\.(\d+)\.igc$/);
       if (match) {
         return match[1];
       }
@@ -74,19 +78,13 @@ const Home: React.FC = () => {
   };
 
   const fetchXcontestIGCs = async () => {
-    const pilotsWithNoTrack = pilots.filter(
-      (pilot) => !parsedIgcIds.includes(pilot.id)
-    );
-
-    const xcontestPilots = pilotsWithNoTrack.filter(
-      (pilot) => pilot.xctrack !== null
-    );
+    const xcontestPilots = pilots.filter((pilot) => pilot.xctrack !== null);
 
     try {
       const allXcontestTracks: XContestTrack[] = [];
       for (const pilot of xcontestPilots) {
         try {
-          const xcontestTrack = await window.scrappers.xcontestIGCs(
+          const igcs = await window.scrappers.xcontestIGCs(
             xcontest?.username,
             xcontest?.password,
             selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
@@ -95,17 +93,13 @@ const Home: React.FC = () => {
             pilot.name,
             selectedFolder
           );
-
-          for (const track of xcontestTrack) {
-            await window.tracks.downloadFile(track.igcUrl, selectedFolder);
-            allXcontestTracks.push(track);
-          }
+          console.log(" XCONTEST igc", igcs);
         } catch (error) {
           console.error(`Error processing nickname ${pilot.xctrack}:`, error);
         }
       }
-      const igcFiles = await window.tracks.listIGCs(selectedFolder);
-      console.log("XC IGC FILES", igcFiles);
+      // const igcFiles = await window.tracks.listIGCs(selectedFolder);
+      // console.log("XC IGC FILES", igcFiles);
       // setIgcFiles(igcFiles);
       setAllXcontestTracks(allXcontestTracks);
       console.log("all XCONTEST TRACKS", allXcontestTracks);
