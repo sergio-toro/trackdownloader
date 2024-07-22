@@ -1,14 +1,17 @@
-import { BrowserWindow, app } from "electron";
+import { app, BrowserWindow } from "electron";
 import puppeteer from "puppeteer-core";
 import pie from "puppeteer-in-electron";
 import { getXcontestIGCs } from "./getXcontestIGCs";
+import { downloadFile } from "@main/tracks/downloadFile";
 
 export default async function xcontestScraper(
   username: string,
   password: string,
   date: string,
-  pilotId: string
-  //   selectedFolderPath: string
+  xcontestId: string,
+  pilotId: string,
+  pilotName: string,
+  selectedFolder: string
 ) {
   try {
     // eslint-disable-next-line
@@ -48,7 +51,7 @@ export default async function xcontestScraper(
 
     const allXContestFlights = [];
 
-    const pilotUrl = `https://www.xcontest.org/world/en/pilots/detail:${pilotId}`;
+    const pilotUrl = `https://www.xcontest.org/world/en/pilots/detail:${xcontestId}`;
     console.log(`Navigating to ${pilotUrl}...`);
 
     await page.goto(pilotUrl, {
@@ -58,10 +61,35 @@ export default async function xcontestScraper(
     const flightDetails = await getXcontestIGCs(
       page,
       date,
-      pilotId
+      xcontestId
       //   selectedFolderPath
     );
     allXContestFlights.push(...flightDetails);
+
+    // get cookies of the page
+    const cookies = await page.cookies();
+
+    const downloadedFiles = [];
+    const headers = {
+      "upgrade-insecure-requests": "1",
+      Referer: pilotUrl,
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      Host: "www.xcontest.org",
+      cookie: cookies
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join("; "),
+    };
+
+    for (const flight of flightDetails) {
+      const fileName = await downloadFile(
+        flight.igcUrl,
+        `${selectedFolder}/TestDOWNLOAD ${pilotName} ${flight.date} ${flight.startTime.replace("=", "")}.${pilotId}.igc`,
+        headers
+      );
+      downloadedFiles.push(fileName);
+    }
+
+    // @TODO: Adapt xcontestScraper to return the downloadedFiles array if needed
 
     console.log("Final PILOT IGCs:", allXContestFlights);
     window.close();

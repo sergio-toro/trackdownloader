@@ -43,9 +43,10 @@ export interface ScrapperMethods {
     username: string,
     password: string,
     date: string,
+    xcontestId: string,
     pilotId: string,
-    pilotName: string
-    // selectedFolderPath: string
+    pilotName: string,
+    selectedFolder: string
   ) => Promise<XcontestIGCsResponse>;
   volandooIGCs: (
     date: string,
@@ -75,16 +76,20 @@ const scrappers: ScrapperMethods = {
     username: string,
     password: string,
     date: string,
+    xcontestId: string,
     pilotId: string,
-    pilotName: string
+    pilotName: string,
+    selectedFolder: string
   ) =>
     ipcRenderer.invoke(
       "get-xcontest-igcs-zip",
       username,
       password,
       date,
+      xcontestId,
       pilotId,
-      pilotName
+      pilotName,
+      selectedFolder
     ),
   volandooIGCs: async (date: string, pilotUsername: string) =>
     ipcRenderer.invoke("get-volandoo-igcs", date, pilotUsername),

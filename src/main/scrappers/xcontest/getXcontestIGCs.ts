@@ -1,4 +1,4 @@
-import { Page, TimeoutError, ElementHandle } from "puppeteer-core";
+import { ElementHandle, Page, TimeoutError } from "puppeteer-core";
 import getIGCUrl from "./getIGCUrl";
 
 export const getXcontestIGCs = async (
@@ -6,18 +6,12 @@ export const getXcontestIGCs = async (
   date: string,
   pilotId: string
 ) => {
-  console.log("inside GET");
-
   try {
     await page.waitForSelector("div.XCslotPilotFlights table.XClist tr", {
       timeout: 5000,
     });
 
     const rows = await page.$$("div.XCslotPilotFlights table.XClist tr");
-
-    console.log("table xctr list found");
-    console.log("ROWS length:", rows.length);
-
     const pilotIGCs = [];
 
     for (const row of rows) {
@@ -28,9 +22,6 @@ export const getXcontestIGCs = async (
           dateElement
         );
         const [scrapedDate, scrapedTime] = dateValue.split(" ");
-
-        console.log(" DATE", date);
-        console.log("SCRAPED DATE", scrapedDate);
 
         if (date === scrapedDate) {
           const durationElement = await row.$("td.dur strong span.d1");

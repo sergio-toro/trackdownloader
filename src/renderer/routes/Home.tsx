@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
+
 interface XContestTrack {
   pilotId: string;
   igcUrl: string;
@@ -12,6 +13,7 @@ interface XContestTrack {
   startTime: string;
   duration: string;
 }
+
 const Home: React.FC = () => {
   const {
     settings: { theme, flymaster, xcontest, pilots },
@@ -76,19 +78,21 @@ const Home: React.FC = () => {
       (pilot) => !parsedIgcIds.includes(pilot.id)
     );
 
-    const xcontestNicknames = pilotsWithNoTrack
-      .filter((pilot) => pilot.xctrack !== null)
-      .map((pilot) => pilot.xctrack!);
+    const xcontestPilots = pilotsWithNoTrack.filter(
+      (pilot) => pilot.xctrack !== null
+    );
 
     try {
       let allXcontestTracks: XContestTrack[] = [];
-      for (const nickname of xcontestNicknames) {
+      for (const pilot of xcontestPilots) {
         try {
           const xcontestTrack = await window.scrappers.xcontestIGCs(
             xcontest?.username,
             xcontest?.password,
             selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-            nickname,
+            pilot.xctrack!,
+            pilot.id,
+            pilot.name,
             selectedFolder
           );
           allXcontestTracks = [...allXcontestTracks, ...xcontestTrack];
@@ -103,13 +107,23 @@ const Home: React.FC = () => {
           // const igcFiles = await window.tracks.listIGCs(selectedFolder);
           // console.log("IGC FILES XCONTEST", igcFiles);
         } catch (error) {
-          console.error(`Error processing nickname ${nickname}:`, error);
+          console.error(`Error processing nickname ${pilot.xctrack}:`, error);
         }
       }
       setAllXcontestTracks(allXcontestTracks);
       console.log("all XCONTEST TRACKS", allXcontestTracks);
     } catch (error) {
       console.error("Error fetching Xcontest IGCs:", error);
+    }
+  };
+
+  const listIGCs = async () => {
+    try {
+      const igcFiles = await window.tracks.listIGCs(selectedFolder);
+      console.log("IGC FILES", igcFiles);
+      // setIgcFiles(igcFiles);
+    } catch (error) {
+      console.error("Error listing IGCs:", error);
     }
   };
 
@@ -148,6 +162,7 @@ const Home: React.FC = () => {
             )}
           </div>
           <div className="flex gap-2 grow justify-end">
+            <button onClick={listIGCs}>List IGCs</button>
             <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
             <button onClick={fetchXcontestIGCs}>Get Xcontest IGCs</button>
           </div>
