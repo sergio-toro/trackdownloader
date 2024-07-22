@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { ListIGCsResponse } from "@main/tracks/listIGCs";
 
 export interface TrackMethods {
   selectDirectory: () => Promise<string>;
@@ -7,7 +8,7 @@ export interface TrackMethods {
     zipFilePath: string,
     outputDirectory: string
   ) => Promise<string[]>;
-  listIGCs: (directory: string) => Promise<string[]>;
+  listIGCs: (directory: string) => Promise<ListIGCsResponse>;
 }
 
 const tracks: TrackMethods = {

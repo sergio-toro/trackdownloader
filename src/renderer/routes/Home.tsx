@@ -23,7 +23,7 @@ const Home: React.FC = () => {
     selectedDate,
     selectedFolder,
     igcFiles,
-    setIgcFiles,
+    // setIgcFiles,
     setSelectedDate,
     setSelectedFolder,
   } = useTableTracks();
@@ -57,7 +57,7 @@ const Home: React.FC = () => {
       const igcFiles = await window.tracks.listIGCs(selectedFolder);
 
       console.log("IGC FILES", igcFiles);
-      setIgcFiles(igcFiles);
+      // setIgcFiles(igcFiles);
     } catch (error) {
       console.error("Error fetching Flymaster groups:", error);
     }
@@ -188,7 +188,7 @@ const Home: React.FC = () => {
                   const isXcontest = allXcontestTracks.some(
                     (track) => track.pilotId === pilot.xctrack
                   );
-                  console.log(isXcontest);
+                  // console.log(isXcontest);
                   const source = isFlymaster
                     ? "Flymaster"
                     : isXcontest

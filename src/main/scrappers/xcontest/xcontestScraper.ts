@@ -3,6 +3,7 @@ import puppeteer from "puppeteer-core";
 import pie from "puppeteer-in-electron";
 import { getXcontestIGCs } from "./getXcontestIGCs";
 import { downloadFile } from "@main/tracks/downloadFile";
+import { parse } from "date-fns";
 
 export default async function xcontestScraper(
   username: string,
@@ -81,9 +82,15 @@ export default async function xcontestScraper(
     };
 
     for (const flight of flightDetails) {
+      const parsedDate = parse(
+        `${flight.date} ${flight.startTime}`,
+        "dd.MM.yy HH:mm'=UTC'xxx",
+        new Date()
+      );
+
       const fileName = await downloadFile(
         flight.igcUrl,
-        `${selectedFolder}/TestDOWNLOAD ${pilotName} ${flight.date} ${flight.startTime.replace("=", "")}.${pilotId}.igc`,
+        `${selectedFolder}/XContest ${pilotName} - ${parsedDate.getTime()}.${pilotId}.igc`,
         headers
       );
       downloadedFiles.push(fileName);

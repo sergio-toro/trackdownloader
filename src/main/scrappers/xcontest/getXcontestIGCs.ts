@@ -8,7 +8,7 @@ export const getXcontestIGCs = async (
 ) => {
   try {
     await page.waitForSelector("div.XCslotPilotFlights table.XClist tr", {
-      timeout: 5000,
+      timeout: 10000,
     });
 
     const rows = await page.$$("div.XCslotPilotFlights table.XClist tr");

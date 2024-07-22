@@ -87,7 +87,6 @@ export default function PilotsForm() {
       { value: pilot.xctrack },
       { value: pilot.volandoo },
     ]),
-    // [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
   ]);
   const debouncedData = useDebounce(data, 250);
 
@@ -111,7 +110,6 @@ export default function PilotsForm() {
     setPilots(pilotsData);
   }, [debouncedData]);
 
-  console.log("DATA", data);
   return (
     <Card title="Pilots" className="PilotsForm bg-bgCard">
       <DataSheet
