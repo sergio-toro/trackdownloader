@@ -64,6 +64,7 @@ const Home: React.FC = () => {
       // setIgcFiles(igcFiles);
     } catch (error) {
       console.error("Error fetching Flymaster IGCS:", error);
+      console.error("Error fetching Flymaster IGCS:", error);
     }
   };
 
