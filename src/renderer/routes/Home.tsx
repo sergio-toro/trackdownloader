@@ -4,18 +4,32 @@ import { useSettings } from "@renderer/context/settingsContext";
 import { format } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
-import { useTableTracks } from "@renderer/context/tracksContext";
-
+import { useTableTracks } from "@renderer/context/tableTracksContext";
+interface XContestTrack {
+  pilotId: string;
+  igcUrl: string;
+  date: string;
+  startTime: string;
+  duration: string;
+}
 const Home: React.FC = () => {
   const {
     settings: { theme, flymaster, xcontest, pilots },
   } = useSettings();
 
-  const { selectedDate, selectedFolder, setSelectedDate, setSelectedFolder } =
-    useTableTracks();
+  const {
+    selectedDate,
+    selectedFolder,
+    igcFiles,
+    setIgcFiles,
+    setSelectedDate,
+    setSelectedFolder,
+  } = useTableTracks();
 
-  const [igcFiles, setIgcFiles] = useState<string[]>([]);
   const [parsedIgcIds, setParsedIgcIds] = useState<string[]>([]);
+  const [allXcontestTracks, setAllXcontestTracks] = useState<XContestTrack[]>(
+    []
+  );
 
   useEffect(() => {
     if (igcFiles.length > 0) {
@@ -50,16 +64,12 @@ const Home: React.FC = () => {
   const parseIgcFiles = (files: string[]) => {
     return files.map((file) => {
       const match = file.match(/\.(\d+)\.igc$/);
-
       if (match) {
         return match[1];
       }
       return "";
     });
   };
-
-  console.log("PILOTS", pilots);
-  console.log("PARSED IDS", parsedIgcIds);
 
   const fetchXcontestIGCs = async () => {
     const pilotsWithNoTrack = pilots.filter(
@@ -70,58 +80,42 @@ const Home: React.FC = () => {
       .filter((pilot) => pilot.xctrack !== null)
       .map((pilot) => pilot.xctrack!);
 
-    console.log("Pilots with no track:", pilotsWithNoTrack);
-    console.log("XContest nicknames:", xcontestNicknames);
-
     try {
-      let allXcontestFiles: string[] = [];
+      let allXcontestTracks: XContestTrack[] = [];
       for (const nickname of xcontestNicknames) {
         try {
-          const xcontestFiles = await window.scrappers.xcontestIGCs(
+          const xcontestTrack = await window.scrappers.xcontestIGCs(
             xcontest?.username,
             xcontest?.password,
             selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
             nickname,
             selectedFolder
           );
-          console.log(`XContest IGCs for ${nickname}:`, xcontestFiles);
-
-          allXcontestFiles = [...allXcontestFiles, ...xcontestFiles];
+          allXcontestTracks = [...allXcontestTracks, ...xcontestTrack];
           // const fileName = "xcontest.zip";
-          // const filePath = `${selectedFolderPath}/${fileName}`;
-          // const zipPath = await window.tracks.downloadFile(zipURL, filePath);
 
-          console.log("ALL XCONTEST FILES", allXcontestFiles);
+          // const filePath = `${selectedFolder}/${fileName}`;
+          // xcontestTrack.forEach(async (track: string) => {
+          //   const zipPath = await window.tracks.downloadFile(track, filePath);
+          //   await window.tracks.unzipFile(zipPath, selectedFolder);
+          // });
+
+          // const igcFiles = await window.tracks.listIGCs(selectedFolder);
+          // console.log("IGC FILES XCONTEST", igcFiles);
         } catch (error) {
-          console.log("Error processing nickname ", nickname, error);
-          continue;
+          console.error(`Error processing nickname ${nickname}:`, error);
         }
       }
+      setAllXcontestTracks(allXcontestTracks);
+      console.log("all XCONTEST TRACKS", allXcontestTracks);
     } catch (error) {
       console.error("Error fetching Xcontest IGCs:", error);
-    }
-  };
-
-  const fetchVolandooIGCs = async () => {
-    const pilotUsername = "abdel";
-    try {
-      const allVolandooFlights = await window.scrappers.volandooIGCs(
-        selectedDate ? format(new Date(selectedDate), "dd/MM/yyyy") : "",
-        pilotUsername
-      );
-      console.log("ALL VOLANDOO FLIGHTS", allVolandooFlights);
-
-      // TODO: Trigger download
-      // TODO: List IGCs
-    } catch (error) {
-      console.error("Error fetching Volandoo IGCs:", error);
     }
   };
 
   const selectFolder = async () => {
     try {
       const directory = await window.tracks.selectDirectory();
-      console.log("Selected folder path:", directory);
       setSelectedFolder(directory);
     } catch (error) {
       console.error("Error selecting folder:", error);
@@ -154,13 +148,8 @@ const Home: React.FC = () => {
             )}
           </div>
           <div className="flex gap-2 grow justify-end">
-            <button onClick={() => fetchFlyMasterIGCs()}>
-              Get Flymaster IGCs
-            </button>
-            <button onClick={() => fetchXcontestIGCs()}>
-              Get Xcontest IGCs
-            </button>
-            <button onClick={fetchVolandooIGCs}>Get Volandoo IGCs</button>
+            <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
+            <button onClick={fetchXcontestIGCs}>Get Xcontest IGCs</button>
           </div>
         </div>
       </Card>
@@ -175,30 +164,38 @@ const Home: React.FC = () => {
                   <th>ID</th>
                   <th>Pilot Name</th>
                   <th>Source</th>
-                  <th>Find</th>
+                  <th>Link</th>
                 </tr>
               </thead>
               <tbody>
                 {pilots.map((pilot, index) => {
-                  const source = parsedIgcIds.includes(pilot.id)
+                  const isFlymaster = parsedIgcIds.includes(pilot.id);
+                  const isXcontest = allXcontestTracks.some(
+                    (track) => track.pilotId === pilot.xctrack
+                  );
+                  console.log(isXcontest);
+                  const source = isFlymaster
                     ? "Flymaster"
-                    : "Track not found";
-                  const isFlymaster = source === "Flymaster";
+                    : isXcontest
+                      ? "Xcontest"
+                      : "Track not found";
 
                   return (
                     <tr
                       key={index}
-                      className={isFlymaster ? "bg-green-200" : ""}
+                      className={
+                        isFlymaster
+                          ? "bg-green-200"
+                          : isXcontest
+                            ? "bg-orange-200"
+                            : ""
+                      }
                     >
                       <td>{pilot.id}</td>
                       <td>{pilot.name}</td>
                       <td>{source}</td>
                       <td>
-                        {!isFlymaster && (
-                          <button onClick={() => fetchXcontestIGCs()}>
-                            Find in XContest
-                          </button>
-                        )}
+                        <button onClick={fetchXcontestIGCs}>Track Link</button>
                       </td>
                     </tr>
                   );

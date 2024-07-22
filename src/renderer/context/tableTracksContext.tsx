@@ -49,19 +49,6 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
     initialContext.igcsInDirectory
   );
 
-  const tracks: TracksState = {
-    igcFiles,
-    parsedIgcIds,
-    selectedDate,
-    selectedFolder,
-    igcsInDirectory,
-    setIgcFiles,
-    setParsedIgcIds,
-    setSelectedDate,
-    setSelectedFolder,
-    setIgcsInDirectory,
-  };
-
   useEffect(() => {
     const storedTracks = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedTracks) {
@@ -75,10 +62,34 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tracks));
+    localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        igcFiles,
+        parsedIgcIds,
+        selectedDate,
+        selectedFolder,
+        igcsInDirectory,
+      })
+    );
   }, [igcFiles, parsedIgcIds, selectedDate, selectedFolder, igcsInDirectory]);
 
   return (
-    <TracksContext.Provider value={tracks}>{children}</TracksContext.Provider>
+    <TracksContext.Provider
+      value={{
+        igcFiles,
+        parsedIgcIds,
+        selectedDate,
+        selectedFolder,
+        igcsInDirectory,
+        setIgcFiles,
+        setParsedIgcIds,
+        setSelectedDate,
+        setSelectedFolder,
+        setIgcsInDirectory,
+      }}
+    >
+      {children}
+    </TracksContext.Provider>
   );
 };
