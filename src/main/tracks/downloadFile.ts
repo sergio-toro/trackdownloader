@@ -3,10 +3,11 @@ import fetch from "node-fetch";
 
 export async function downloadFile(
   fileUrl: string,
-  filePath: string
+  filePath: string,
+  headers: Record<string, string> = {}
 ): Promise<string> {
   try {
-    const response = await fetch(fileUrl);
+    const response = await fetch(fileUrl, { headers });
     if (!response.ok) {
       throw new Error(
         `Failed to download file [${fileUrl}]: ${response.status} ${response.statusText}`
@@ -19,6 +20,6 @@ export async function downloadFile(
 
     return filePath;
   } catch (error) {
-    console.error("Error downloading file:", error);
+    console.error("Error downloading file:", fileUrl, filePath, headers, error);
   }
 }
