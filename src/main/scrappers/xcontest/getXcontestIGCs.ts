@@ -1,6 +1,10 @@
 import { ElementHandle, Page, TimeoutError } from "puppeteer-core";
 import getIGCUrl from "./getIGCUrl";
 
+const extractTime = (timeString: string) => {
+  return timeString.split("=")[0];
+};
+
 export const getXcontestIGCs = async (
   page: Page,
   date: string,
@@ -47,7 +51,7 @@ export const getXcontestIGCs = async (
               pilotId,
               igcUrl,
               date: scrapedDate,
-              startTime: scrapedTime,
+              startTime: extractTime(scrapedTime),
               duration: duration,
             });
           } else {
