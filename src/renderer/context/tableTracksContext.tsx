@@ -1,20 +1,13 @@
+import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import React, { createContext, useContext, useEffect, useState } from "react";
-export interface IGCFile {
-  name: string;
-  date: string;
-  pilot: string;
-  site: string;
-  startTime: string | null;
-  endTime: string | null;
-  duration: object;
-}
+
 export interface TracksState {
-  igcFiles: IGCFile[];
+  igcFiles: ListIGCsResponse;
   parsedIgcIds: string[];
   selectedDate: string;
   selectedFolder: string;
   igcsInDirectory: string;
-  setIgcFiles: (files: IGCFile[]) => void;
+  setIgcFiles: (files: ListIGCsResponse) => void;
   setParsedIgcIds: (ids: string[]) => void;
   setSelectedDate: (date: string) => void;
   setSelectedFolder: (folder: string) => void;
@@ -22,7 +15,7 @@ export interface TracksState {
 }
 
 const initialContext: TracksState = {
-  igcFiles: [],
+  igcFiles: { validIgcs: [], invalidIgcs: [] },
   parsedIgcIds: [],
   selectedDate: "",
   selectedFolder: "",
@@ -43,7 +36,10 @@ const LOCAL_STORAGE_KEY = "tracks";
 export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [igcFiles, setIgcFiles] = useState<IGCFile[]>(initialContext.igcFiles);
+  const [igcFiles, setIgcFiles] = useState<ListIGCsResponse>({
+    validIgcs: [],
+    invalidIgcs: [],
+  });
   const [parsedIgcIds, setParsedIgcIds] = useState<string[]>(
     initialContext.parsedIgcIds
   );
@@ -61,7 +57,7 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
     const storedTracks = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedTracks) {
       const parsedTracks = JSON.parse(storedTracks);
-      setIgcFiles(parsedTracks.igcFiles || []);
+      setIgcFiles(parsedTracks.igcFiles || { validIgcs: [], invalidIgcs: [] });
       setParsedIgcIds(parsedTracks.parsedIgcIds || []);
       setSelectedDate(parsedTracks.selectedDate || "");
       setSelectedFolder(parsedTracks.selectedFolder || "");

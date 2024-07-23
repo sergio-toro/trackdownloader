@@ -9,6 +9,7 @@ export interface TrackMethods {
     outputDirectory: string
   ) => Promise<string[]>;
   listIGCs: (directory: string) => Promise<ListIGCsResponse>;
+  deleteIGCs: (filePath: string) => Promise<ListIGCsResponse>;
 }
 
 const tracks: TrackMethods = {
@@ -19,6 +20,8 @@ const tracks: TrackMethods = {
     ipcRenderer.invoke("track-unzip-file", filePath, outputDirectory),
   listIGCs: async (directory) =>
     ipcRenderer.invoke("track-list-igcs", directory),
+  deleteIGCs: async (directory) =>
+    ipcRenderer.invoke("track-delete-igcs", directory),
 };
 
 contextBridge.exposeInMainWorld("tracks", tracks);
