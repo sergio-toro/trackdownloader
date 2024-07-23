@@ -82,7 +82,7 @@ export default function PilotsForm() {
         },
       ]
     ).map((pilot) => [
-      { value: pilot.id },
+      { value: String(pilot.id) },
       { value: pilot.name },
       { value: pilot.xctrack },
       { value: pilot.volandoo },
@@ -101,7 +101,7 @@ export default function PilotsForm() {
 
   useEffect(() => {
     const pilotsData = debouncedData.slice(1).map((row) => ({
-      id: row[0].value,
+      id: Number(row[0].value),
       name: row[1].value,
       xctrack: row[2].value,
       volandoo: row[3].value,

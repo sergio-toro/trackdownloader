@@ -59,15 +59,10 @@ export default async function xcontestScraper(
       waitUntil: ["domcontentloaded", "networkidle2"],
     });
 
-    const flightDetails = await getXcontestIGCs(
-      page,
-      date,
-      xcontestId
-      //   selectedFolderPath
-    );
+    const flightDetails = await getXcontestIGCs(page, date, xcontestId);
     allXContestFlights.push(...flightDetails);
 
-    // get cookies of the page
+    // Get cookies of the page
     const cookies = await page.cookies();
 
     const downloadedFiles = [];
@@ -82,21 +77,33 @@ export default async function xcontestScraper(
     };
 
     for (const flight of flightDetails) {
-      const parsedDate = parse(
-        `${flight.date} ${flight.startTime}`,
-        "dd.MM.yy HH:mm'=UTC'xxx",
-        new Date()
-      );
+      try {
+        const parsedDate = parse(
+          `${flight.date} ${flight.startTime}`,
+          "dd.MM.yy HH:mm",
+          new Date()
+        );
 
-      const fileName = await downloadFile(
-        flight.igcUrl,
-        `${selectedFolder}/XContest ${pilotName} - ${parsedDate.getTime()}.${pilotId}.igc`,
-        headers
-      );
-      downloadedFiles.push(fileName);
+        console.log("Parsed Date:", parsedDate);
+
+        if (isNaN(parsedDate.getTime())) {
+          throw new Error("Parsed date is invalid");
+        }
+
+        const fileName = `${selectedFolder}/XContest ${pilotName} - ${parsedDate.getTime()}.${pilotId}.igc`;
+
+        console.log("Generated File Name:", fileName);
+
+        const downloadedFile = await downloadFile(
+          flight.igcUrl,
+          fileName,
+          headers
+        );
+        downloadedFiles.push(downloadedFile);
+      } catch (error) {
+        console.error(`Error processing flight ${flight.igcUrl}:`, error);
+      }
     }
-
-    // @TODO: Adapt xcontestScraper to return the downloadedFiles array if needed
 
     console.log("Final PILOT IGCs:", allXContestFlights);
     window.close();

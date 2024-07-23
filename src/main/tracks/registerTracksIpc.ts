@@ -2,6 +2,7 @@ import { BrowserWindow, dialog, ipcMain } from "electron";
 import { downloadFile } from "@main/tracks/downloadFile";
 import { unzipFile } from "@main/tracks/unzipFile";
 import { listIGCs } from "@main/tracks/listIGCs";
+import { deleteIGCs } from "./deleteFile";
 
 export default function registerTracksIpc(appWindow: BrowserWindow) {
   ipcMain.handle("track-select-directory", async () => {
@@ -44,6 +45,13 @@ export default function registerTracksIpc(appWindow: BrowserWindow) {
       return await listIGCs(directory);
     } catch (error) {
       console.error("Error unzipping file", error);
+    }
+  });
+  ipcMain.handle("track-delete-igcs", async (_, filePath: string) => {
+    try {
+      return await deleteIGCs(filePath);
+    } catch (error) {
+      console.error("Error deleting file", error);
     }
   });
 }

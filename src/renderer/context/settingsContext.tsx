@@ -13,7 +13,7 @@ interface FlymasterState {
 }
 
 export interface PilotsState {
-  id: string;
+  id: number;
   name: string;
   xctrack: string | null;
   volandoo: string | null;

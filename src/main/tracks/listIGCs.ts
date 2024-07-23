@@ -58,7 +58,7 @@ export async function listIGCs(directory: string): Promise<ListIGCsResponse> {
         console.error("IGC File not matched to a pilot id.", file);
         continue;
       }
-      console.log("PARSING IGC FILE...", file);
+      // console.log("PARSING IGC FILE...", file);
 
       const matchDetails = file.match(/(XContest|LiveTrack)\s([^-]*)\s-.*$/);
       const pilotId = Number(matchId[1]);
