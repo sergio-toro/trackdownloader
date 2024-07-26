@@ -5,11 +5,6 @@ type FlymasterGroupsResponse = Array<{
   name: string;
 }>;
 
-type FlymasterIGCsResponse = Array<{
-  selectedGroup: string;
-  date: string;
-}>;
-
 type XcontestIGCsResponse = Array<{
   pilotId: string;
   igcUrl: string;
@@ -21,7 +16,6 @@ type XcontestIGCsResponse = Array<{
 type VolandooIGCsResponse = Array<{
   pilotId: string;
   igcUrl: string;
-
   date: string;
   startTime: string;
   duration: string;
@@ -38,13 +32,13 @@ export interface ScrapperMethods {
     date: string,
     username: string,
     password: string
-  ) => Promise<FlymasterIGCsResponse>;
+  ) => Promise<string>;
   xcontestIGCs: (
     username: string,
     password: string,
     date: string,
     xcontestId: string,
-    pilotId: string,
+    pilotId: number,
     pilotName: string,
     selectedFolder: string
   ) => Promise<XcontestIGCsResponse>;
@@ -77,7 +71,7 @@ const scrappers: ScrapperMethods = {
     password: string,
     date: string,
     xcontestId: string,
-    pilotId: string,
+    pilotId: number,
     pilotName: string,
     selectedFolder: string
   ) =>

@@ -2,6 +2,7 @@ import fs from "fs";
 import IGCParser from "igc-parser";
 import { formatDuration, intervalToDuration } from "date-fns";
 
+const FILENAME_REGEX = /(XContest|LiveTrack|Volandoo)\s([^-]*)\s-.*$/;
 type TrackSource = "XContest" | "LiveTrack" | "Volandoo" | "Unknown";
 
 export interface PilotIgc {
@@ -60,10 +61,10 @@ export async function listIGCs(directory: string): Promise<ListIGCsResponse> {
       }
       // console.log("PARSING IGC FILE...", file);
 
-      const matchDetails = file.match(/(XContest|LiveTrack)\s([^-]*)\s-.*$/);
+      const matchDetails = file.match(FILENAME_REGEX);
       const pilotId = Number(matchId[1]);
       const source: TrackSource = matchDetails
-        ? (matchDetails[1] as "XContest" | "LiveTrack")
+        ? (matchDetails[1] as "XContest" | "LiveTrack" | "Volandoo")
         : "Unknown";
       const content = fs.readFileSync(`${directory}/${file}`, "utf8");
 

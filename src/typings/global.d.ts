@@ -1,5 +1,5 @@
 import { TrackMethods } from "@main/tracks/tracksPreload";
-import type { ScrapperMethods } from "./src/scrappers/ScrapperMethods";
+import { ScrapperMethods } from "@main/scrappers/scrappersPreload";
 import { TitlebarContextApi } from "@main/window/titlebarContext";
 
 declare global {
