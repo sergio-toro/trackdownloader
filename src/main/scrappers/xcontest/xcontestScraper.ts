@@ -14,18 +14,25 @@ export default async function xcontestScraper(
   pilotName: string,
   selectedFolder: string
 ) {
+  if (!xcontestId) {
+    console.error(`XContest ID is required, "${xcontestId}" provided`);
+    throw new Error("XContest ID is required");
+  }
+  // eslint-disable-next-line
+  // @ts-ignore
+  const browser = await pie.connect(app, puppeteer);
+
+  const window = new BrowserWindow({
+    width: 400,
+    height: 200,
+    focusable: false,
+    opacity: 0.8,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
   try {
-    // eslint-disable-next-line
-    // @ts-ignore
-    const browser = await pie.connect(app, puppeteer);
-
-    const window = new BrowserWindow({
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-      },
-    });
-
     const url = "https://www.xcontest.org/world/es/";
     await window.loadURL(url);
 
@@ -59,6 +66,20 @@ export default async function xcontestScraper(
       waitUntil: ["domcontentloaded", "networkidle2"],
     });
 
+    // Check pilot exists
+    const pilotDetailElement = await page.$("#content div.bar h1");
+    if (!pilotDetailElement) {
+      throw new Error("XContest title element not found");
+    }
+    const scrapedPilotDetail = await pilotDetailElement.evaluate((el) =>
+      el.textContent.trim()
+    );
+    console.log(`Search pilot id "${xcontestId}" in...`, scrapedPilotDetail);
+
+    if (!scrapedPilotDetail.includes(xcontestId)) {
+      throw new Error("Pilot not found");
+    }
+
     const flightDetails = await getXcontestIGCs(page, date, xcontestId);
     allXContestFlights.push(...flightDetails);
 
@@ -83,8 +104,7 @@ export default async function xcontestScraper(
           "dd.MM.yy HH:mm",
           new Date()
         );
-
-        console.log("Parsed Date:", parsedDate);
+        // console.log("Parsed Date:", parsedDate);
 
         if (isNaN(parsedDate.getTime())) {
           throw new Error("Parsed date is invalid");
@@ -110,6 +130,8 @@ export default async function xcontestScraper(
 
     return allXContestFlights;
   } catch (error) {
+    window.close();
     console.error("Error scraping flights:", error);
+    throw error;
   }
 }
