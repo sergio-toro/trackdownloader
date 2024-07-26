@@ -10,7 +10,7 @@ export default async function xcontestScraper(
   password: string,
   date: string,
   xcontestId: string,
-  pilotId: string,
+  pilotId: number,
   pilotName: string,
   selectedFolder: string
 ) {

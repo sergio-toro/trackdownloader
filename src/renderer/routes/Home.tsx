@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Configuration from "@components/Configuration";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
-import { format } from "date-fns";
+import { format, intervalToDuration, parseISO } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
@@ -39,8 +39,7 @@ const Home: React.FC = () => {
         flymaster.selectedGroup?.id,
         selectedDate,
         flymaster?.username,
-        flymaster?.password,
-        selectedFolder
+        flymaster?.password
       );
       const fileName = "flymaster.zip";
       const filePath = `${selectedFolder}/${fileName}`;
@@ -143,33 +142,53 @@ const Home: React.FC = () => {
 
   const fetchVolandooIGCs = async (specificPilot?: PilotsState) => {
     if (!validateInputs()) return;
-
     let pilotsToFetch;
 
     if (specificPilot) {
       pilotsToFetch = [specificPilot];
     } else {
-      pilotsToFetch = pilots;
+      const pilotsWithTracksIds = new Set([
+        ...igcFiles.validIgcs.map((track) => track.pilotId),
+        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
+      ]);
+      const pilotsWithoutTrack = pilots.filter(
+        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
+      );
+
+      pilotsToFetch = pilotsWithoutTrack.filter(
+        (pilot) => pilot.volandoo !== null
+      );
     }
 
-    const pilotUserNames = pilotsToFetch.map((pilot) => pilot.volandoo!);
-    console.log("PILOT USERNAMEs", pilotUserNames);
-
     try {
-      for (const pilotUserName of pilotUserNames) {
-        if (!pilotUserName) {
-          console.log("No username found for pilot:", pilotUserName);
+      for (const pilot of pilotsToFetch) {
+        if (!pilot) {
+          console.log("No username found for pilot:", pilot);
           continue;
         }
-        const volandooIGCs = await window.scrappers.volandooIGCs(
-          selectedDate,
-          pilotUserName
+
+        const parsedDate = parseISO(selectedDate);
+        const formattedDate = format(parsedDate, "M/d/yyyy");
+        const pilotIGCs = await window.scrappers.volandooIGCs(
+          formattedDate,
+          pilot.volandoo
         );
-        console.log("PILOT USERNAME", pilotUserName);
-        console.log("VOLANDOO IGCS", volandooIGCs);
-        for (const igc of volandooIGCs) {
-          await window.tracks.unzipFile(igc, selectedFolder);
+        console.log("PILOT USERNAME", pilot.volandoo);
+        console.log("VOLANDOO IGCS", pilotIGCs);
+
+        for (const track of pilotIGCs) {
+          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${track.date}${track.startTime}.${pilot.id}.igc`;
+          try {
+            await window.tracks.downloadFile(track.igcUrl, filePath);
+          } catch (downloadError) {
+            console.error(
+              `Error downloading file: ${track.igcUrl} ${filePath}`,
+              downloadError
+            );
+          }
         }
+
+        await listIGCs();
       }
     } catch (error) {
       console.error("Error fetching Volandoo IGCS:", error);
@@ -281,24 +300,8 @@ const Home: React.FC = () => {
                   const isInvalid = pilotTracks.some(
                     (track) => track.isValid === false
                   );
-                  const isFlymaster = pilotTracks.some(
-                    (track) => track.source === "LiveTrack"
-                  );
-                  const isXcontest = pilotTracks.some(
-                    (track) => track.source === "XContest"
-                  );
 
-                  const isVolandoo = pilotTracks.some(
-                    (track) => track.source === "Volandoo"
-                  );
-
-                  const source = isFlymaster
-                    ? "Flymaster"
-                    : isXcontest
-                      ? "XContest"
-                      : isVolandoo
-                        ? "Volandoo"
-                        : "Track not found";
+                  const hasMoreThanOneFlight = pilotTracks.length > 1;
 
                   return (
                     <tr
@@ -306,20 +309,23 @@ const Home: React.FC = () => {
                       className={
                         isInvalid
                           ? "bg-red-200"
-                          : isFlymaster
-                            ? "bg-blue-200"
-                            : isXcontest
-                              ? "bg-orange-200"
-                              : isVolandoo
-                                ? "bg-violet-200"
-                                : ""
+                          : hasMoreThanOneFlight
+                            ? "bg-yellow-100"
+                            : ""
                       }
                     >
                       <td>{pilot.id}</td>
                       <td>{pilot.name}</td>
-                      <td>{source}</td>
+
                       <td>
-                        <div className="flex flex-col justify-between gap-8">
+                        <div className="flex flex-col justify-between gap-7">
+                          {pilotTracks.map((track) => (
+                            <div key={track.name}>{track.source}</div>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex flex-col justify-between gap-7">
                           {pilotTracks.map((track) =>
                             "site" in track ? (
                               <div key={track.name}>{track.site}</div>
@@ -331,8 +337,33 @@ const Home: React.FC = () => {
                       </td>
                       <td>
                         {pilotTracks.length > 0 &&
-                          pilotTracks.map((track, i) =>
-                            "start" in track ? (
+                          pilotTracks.map((track, i) => {
+                            if (!("start" in track)) {
+                              return (
+                                <div
+                                  key={i}
+                                  className="flex justify-between items-center gap-3"
+                                >
+                                  <p>Error: {track.errorMessage}</p>
+                                  <button
+                                    className="bg-red-800 text-white p-1 rounded-md "
+                                    onClick={() =>
+                                      deleteFlight(
+                                        track.name,
+                                        String(track.pilotId)
+                                      )
+                                    }
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              );
+                            }
+                            const trackDuration = intervalToDuration({
+                              start: new Date(track.start.timestamp),
+                              end: new Date(track.end.timestamp),
+                            });
+                            return (
                               <div
                                 key={i}
                                 className="flex justify-between items-center mt-2 mb-2  "
@@ -347,7 +378,13 @@ const Home: React.FC = () => {
                                   <p>
                                     Duration:{" "}
                                     <span className="font-normal">
-                                      {track.duration}
+                                      {trackDuration.hours > 0 && (
+                                        <>{trackDuration.hours} h</>
+                                      )}
+
+                                      {trackDuration.minutes > 0 && (
+                                        <>{trackDuration.minutes} min</>
+                                      )}
                                     </span>{" "}
                                   </p>
                                 </div>
@@ -361,33 +398,15 @@ const Home: React.FC = () => {
                                   Delete
                                 </button>
                               </div>
-                            ) : (
-                              <div
-                                key={i}
-                                className="flex justify-between items-center gap-3"
-                              >
-                                <p>Error: {track.errorMessage}</p>
-                                <button
-                                  className="bg-red-800 text-white p-1 rounded-md "
-                                  onClick={() =>
-                                    deleteFlight(
-                                      track.name,
-                                      String(track.pilotId)
-                                    )
-                                  }
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            )
-                          )}
+                            );
+                          })}
                       </td>
                       <td>
-                        <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-5">
                           {pilotTracks.map((track) => (
                             <div
                               key={track.name}
-                              className="flex flex-col mb-2"
+                              className="flex flex-col mt-1 mb-1"
                             >
                               <div>
                                 <p>{track.isValid ? "Valid" : "Invalid"}</p>

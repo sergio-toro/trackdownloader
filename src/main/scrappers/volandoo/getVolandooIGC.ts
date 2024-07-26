@@ -14,10 +14,10 @@ export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
 
     const window = new BrowserWindow();
     const url = `https://volandoo.com/pilots/${pilotUsername}`;
+    console.log(`Navigating to ${url}...`);
     await window.loadURL(url);
 
     const page = await pie.getPage(browser, window);
-    console.log(`Navigating to ${url}...`);
 
     try {
       await page.waitForSelector("table.MuiTable-root tbody tr", {
@@ -35,6 +35,7 @@ export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
 
     const flightsItems = await page.$$("table.MuiTable-root tbody > a");
 
+    console.log("flight items", flightsItems);
     const pilotIGCs = [];
 
     for (const row of flightsItems) {
@@ -42,11 +43,13 @@ export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
       if (!dateElement) {
         continue;
       }
+
       const scrappedDate = await dateElement.evaluate((el) =>
         el.textContent.trim()
       );
 
       if (date !== scrappedDate) {
+        console.log(date, "dates doesnt match", scrappedDate);
         continue;
       }
 
