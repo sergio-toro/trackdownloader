@@ -2,7 +2,7 @@ import fs from "fs";
 import IGCParser from "igc-parser";
 import { formatDuration, intervalToDuration } from "date-fns";
 
-type TrackSource = "XContest" | "LiveTrack" | "Unknown";
+type TrackSource = "XContest" | "LiveTrack" | "Volandoo" | "Unknown";
 
 export interface PilotIgc {
   name: string;

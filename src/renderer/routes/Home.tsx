@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Configuration from "@components/Configuration";
-import { useSettings } from "@renderer/context/settingsContext";
+import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { format } from "date-fns";
 import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
@@ -55,24 +55,29 @@ const Home: React.FC = () => {
     }
   };
 
-  const fetchXcontestIGCs = async () => {
+  const fetchXcontestIGCs = async (specificPilot?: PilotsState) => {
     if (!validateInputs()) return;
-    const pilotsWithTracksIds = new Set([
-      ...igcFiles.validIgcs.map((track) => track.pilotId),
-      ...igcFiles.invalidIgcs.map((track) => track.pilotId),
-    ]);
-    const pilotsWithoutTrack = pilots.filter(
-      (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
-    );
 
-    console.log("PILOTS WITHOUT TRACKS", pilotsWithoutTrack);
+    let pilotsToFetch;
 
-    const xcontestPilots = pilotsWithoutTrack.filter(
-      (pilot) => pilot.xctrack !== null
-    );
+    if (specificPilot) {
+      pilotsToFetch = [specificPilot];
+    } else {
+      const pilotsWithTracksIds = new Set([
+        ...igcFiles.validIgcs.map((track) => track.pilotId),
+        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
+      ]);
+      const pilotsWithoutTrack = pilots.filter(
+        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
+      );
+
+      pilotsToFetch = pilotsWithoutTrack.filter(
+        (pilot) => pilot.xctrack !== null
+      );
+    }
 
     try {
-      for (const pilot of xcontestPilots) {
+      for (const pilot of pilotsToFetch) {
         try {
           await window.scrappers.xcontestIGCs(
             xcontest?.username,
@@ -136,10 +141,18 @@ const Home: React.FC = () => {
     }
   };
 
-  const fetchVolandooIGCs = async () => {
+  const fetchVolandooIGCs = async (specificPilot?: PilotsState) => {
     if (!validateInputs()) return;
 
-    const pilotUserNames = pilots.map((pilot) => pilot.volandoo!);
+    let pilotsToFetch;
+
+    if (specificPilot) {
+      pilotsToFetch = [specificPilot];
+    } else {
+      pilotsToFetch = pilots;
+    }
+
+    const pilotUserNames = pilotsToFetch.map((pilot) => pilot.volandoo!);
     console.log("PILOT USERNAMEs", pilotUserNames);
 
     try {
@@ -163,9 +176,13 @@ const Home: React.FC = () => {
     }
   };
 
-  const deleteFlight = async (fileName: string) => {
+  const deleteFlight = async (fileName: string, pilotName: string) => {
     try {
-      if (window.confirm(`Are you sure you want to delete ${fileName}?`)) {
+      if (
+        window.confirm(
+          `Are you sure you want to delete ${fileName} from ${pilotName}?`
+        )
+      ) {
         await window.tracks.deleteIGCs(`${selectedFolder}/${fileName}`);
 
         setIgcFiles((prevIgcFiles: ListIGCsResponse) => {
@@ -190,7 +207,7 @@ const Home: React.FC = () => {
     ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
     ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
   ];
-
+  console.log("COMBINED", combinedIgcFiles);
   return (
     <div id="application" className={theme}>
       <Configuration />
@@ -222,8 +239,12 @@ const Home: React.FC = () => {
           <div className="flex gap-2 grow justify-end">
             <button onClick={listIGCs}>List IGCs</button>
             <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
-            <button onClick={fetchXcontestIGCs}>Get Xcontest IGCs</button>
-            <button onClick={fetchVolandooIGCs}>Get Volandoo IGCs</button>
+            <button onClick={() => fetchXcontestIGCs()}>
+              Get Xcontest IGCs
+            </button>
+            <button onClick={() => fetchVolandooIGCs()}>
+              Get Volandoo IGCs
+            </button>
           </div>
         </div>
         {errorMessage && (
@@ -246,6 +267,7 @@ const Home: React.FC = () => {
                   <th>Site</th>
                   <th>Details</th>
                   <th>Status</th>
+                  <th>Scrap</th>
                   <th>Links</th>
                 </tr>
               </thead>
@@ -254,21 +276,29 @@ const Home: React.FC = () => {
                   const pilotTracks = combinedIgcFiles.filter(
                     (track) => track.pilotId === Number(pilot.id)
                   );
+                  console.log("PILOT TRACKS", pilotTracks);
 
+                  const isInvalid = pilotTracks.some(
+                    (track) => track.isValid === false
+                  );
                   const isFlymaster = pilotTracks.some(
                     (track) => track.source === "LiveTrack"
                   );
                   const isXcontest = pilotTracks.some(
                     (track) => track.source === "XContest"
                   );
-                  const isInvalid = pilotTracks.some(
-                    (track) => track.isValid === false
+
+                  const isVolandoo = pilotTracks.some(
+                    (track) => track.source === "Volandoo"
                   );
+
                   const source = isFlymaster
                     ? "Flymaster"
                     : isXcontest
                       ? "XContest"
-                      : "Track not found";
+                      : isVolandoo
+                        ? "Volandoo"
+                        : "Track not found";
 
                   return (
                     <tr
@@ -280,14 +310,16 @@ const Home: React.FC = () => {
                             ? "bg-blue-200"
                             : isXcontest
                               ? "bg-orange-200"
-                              : ""
+                              : isVolandoo
+                                ? "bg-violet-200"
+                                : ""
                       }
                     >
                       <td>{pilot.id}</td>
                       <td>{pilot.name}</td>
                       <td>{source}</td>
                       <td>
-                        <div className="flex flex-col justify-between gap-4">
+                        <div className="flex flex-col justify-between gap-8">
                           {pilotTracks.map((track) =>
                             "site" in track ? (
                               <div key={track.name}>{track.site}</div>
@@ -299,21 +331,31 @@ const Home: React.FC = () => {
                       </td>
                       <td>
                         {pilotTracks.length > 0 &&
-                          pilotTracks.map((track) =>
+                          pilotTracks.map((track, i) =>
                             "start" in track ? (
                               <div
-                                key={track.name}
-                                className="flex justify-between items-center "
+                                key={i}
+                                className="flex justify-between items-center mt-2 mb-2  "
                               >
-                                <div className="flex flex-col items-start">
-                                  <p>Start Time: {track.start.time}</p>
-                                  <p>Duration: {track.duration}</p>
+                                <div className="flex flex-col items-start font-bold ">
+                                  <p>
+                                    Start Time:{" "}
+                                    <span className="font-normal">
+                                      {format(track.start.time, "HH:mm")} h
+                                    </span>
+                                  </p>
+                                  <p>
+                                    Duration:{" "}
+                                    <span className="font-normal">
+                                      {track.duration}
+                                    </span>{" "}
+                                  </p>
                                 </div>
 
                                 <button
                                   className="bg-red-800 text-white p-1 rounded-md "
                                   onClick={() =>
-                                    deleteFlight(pilotTracks[0].name)
+                                    deleteFlight(track.name, track.pilotName)
                                   }
                                 >
                                   Delete
@@ -321,14 +363,17 @@ const Home: React.FC = () => {
                               </div>
                             ) : (
                               <div
-                                key={track.name}
+                                key={i}
                                 className="flex justify-between items-center gap-3"
                               >
                                 <p>Error: {track.errorMessage}</p>
                                 <button
                                   className="bg-red-800 text-white p-1 rounded-md "
                                   onClick={() =>
-                                    deleteFlight(pilotTracks[0].name)
+                                    deleteFlight(
+                                      track.name,
+                                      String(track.pilotId)
+                                    )
                                   }
                                 >
                                   Delete
@@ -338,7 +383,7 @@ const Home: React.FC = () => {
                           )}
                       </td>
                       <td>
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-6">
                           {pilotTracks.map((track) => (
                             <div
                               key={track.name}
@@ -352,16 +397,40 @@ const Home: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        {pilotTracks.length > 0 && (
-                          <div className="flex flex-col gap-1">
-                            <button className="bg-orange-800 text-white p-1 rounded-md ">
-                              XContest
-                            </button>
-                            <button className="bg-violet-800 text-white p-1 rounded-md ">
-                              Volandoo
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => fetchXcontestIGCs(pilot)}
+                            className="bg-orange-800 text-white p-1 rounded-md "
+                          >
+                            XContest
+                          </button>
+                          <button
+                            onClick={() => fetchVolandooIGCs(pilot)}
+                            className="bg-purple-800 text-white p-1 rounded-md "
+                          >
+                            Volandoo
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex flex-col gap-3">
+                          <a
+                            href={`https://www.xcontest.org/world/en/pilots/detail/${pilot.xctrack}`}
+                            className=" font-bold underline  "
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            XContest
+                          </a>
+                          <a
+                            href={`https://volandoo.com/pilots/${pilot.volandoo}`}
+                            className=" font-bold underline "
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Volandoo
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   );
