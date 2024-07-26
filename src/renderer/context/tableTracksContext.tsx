@@ -7,11 +7,11 @@ export interface TracksState {
   selectedDate: string;
   selectedFolder: string;
   igcsInDirectory: string;
-  setIgcFiles: (files: ListIGCsResponse) => void;
-  setParsedIgcIds: (ids: string[]) => void;
-  setSelectedDate: (date: string) => void;
-  setSelectedFolder: (folder: string) => void;
-  setIgcsInDirectory: (igcsInDirectory: string) => void;
+  setIgcFiles: React.Dispatch<React.SetStateAction<ListIGCsResponse>>;
+  setParsedIgcIds: React.Dispatch<React.SetStateAction<string[]>>;
+  setSelectedDate: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedFolder: React.Dispatch<React.SetStateAction<string>>;
+  setIgcsInDirectory: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const initialContext: TracksState = {

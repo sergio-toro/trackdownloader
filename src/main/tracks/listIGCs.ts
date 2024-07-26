@@ -100,7 +100,7 @@ export async function listIGCs(directory: string): Promise<ListIGCsResponse> {
           duration: formatDuration(duration),
         });
       } catch (error) {
-        console.error("Error parsing IGC file:", error);
+        console.error("Error parsing IGC file:", file, error);
 
         invalidIgcs.push({
           name: file,

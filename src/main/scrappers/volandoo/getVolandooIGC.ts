@@ -2,19 +2,21 @@ import pie from "puppeteer-in-electron";
 import { app, BrowserWindow } from "electron";
 import puppeteer, { TimeoutError } from "puppeteer-core";
 
-export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
+export const getVolandooIGCs = async (date: string, volandooId: string) => {
   console.log("inside GET");
+
+  if (!volandooId) {
+    console.error(`Volandoo ID is required, "${volandooId}" provided`);
+    throw new Error("Volandoo ID is required");
+  }
 
   try {
     // eslint-disable-next-line
     // @ts-ignore
     const browser = await pie.connect(app, puppeteer);
 
-    console.log("PILOT USERNAME VOLANDOO", pilotUsername);
-
     const window = new BrowserWindow();
-    const url = `https://volandoo.com/pilots/${pilotUsername}`;
-    console.log(`Navigating to ${url}...`);
+    const url = `https://volandoo.com/pilots/${volandooId}`;
     await window.loadURL(url);
 
     const page = await pie.getPage(browser, window);
@@ -26,9 +28,7 @@ export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
     } catch (error) {
       if (error instanceof TimeoutError) {
         console.error("Timeout waiting for selector:", error);
-        throw new Error(
-          `TimeoutError: Failed to load page for ${pilotUsername}`
-        );
+        throw new Error(`TimeoutError: Failed to load page for ${volandooId}`);
       }
       throw error;
     }
@@ -72,7 +72,7 @@ export const getVolandooIGCs = async (date: string, pilotUsername: string) => {
       console.log("ELEMENT", scrappedDate, downloadLink);
 
       pilotIGCs.push({
-        pilotUsername,
+        pilotUsername: volandooId,
         igcUrl: downloadLink,
         date: scrappedDate,
         duration,

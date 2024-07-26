@@ -6,12 +6,18 @@ import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
+import ProgressLine from "@components/layout/ProgressLine";
+
+interface ProgressState {
+  visible: boolean;
+  percent: number;
+  detail: string | null;
+}
 
 const Home: React.FC = () => {
   const {
     settings: { theme, flymaster, xcontest, pilots },
   } = useSettings();
-  console.log("PILOTS", pilots);
   const {
     selectedDate,
     selectedFolder,
@@ -20,6 +26,22 @@ const Home: React.FC = () => {
     setSelectedDate,
     setSelectedFolder,
   } = useTableTracks();
+  const [isListingDirectory, setIsListingDirectory] = useState(false);
+  const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
+    visible: false,
+    percent: 0,
+    detail: null,
+  });
+  const [xcontestProgress, setXcontestProgress] = useState<ProgressState>({
+    visible: false,
+    percent: 0,
+    detail: null,
+  });
+  // const [volandooProgress, setVolandooProgress] = useState<ProgressState>({
+  //   visible: false,
+  //   percent: 0,
+  //   detail: null,
+  // });
   const [errorMessage, setErrorMessage] = useState("");
 
   const validateInputs = () => {
@@ -32,30 +54,60 @@ const Home: React.FC = () => {
   };
 
   const fetchFlyMasterIGCs = async () => {
-    if (!validateInputs()) return;
+    if (!validateInputs() || flymasterProgress.visible) return;
     try {
-      console.log("SELECTED GROUP FRONT", flymaster.selectedGroup);
+      setFlymasterProgress({
+        visible: true,
+        percent: 5,
+        detail: "Flymaster: Creating IGCs ZIP...",
+      });
+      // console.log("SELECTED GROUP FRONT", flymaster.selectedGroup);
       const zipURL = await window.scrappers.flymasterIGCs(
         flymaster.selectedGroup?.id,
         selectedDate,
         flymaster?.username,
         flymaster?.password
       );
+      setFlymasterProgress({
+        visible: true,
+        percent: 35,
+        detail: "Flymaster: Downloading IGCs ZIP...",
+      });
       const fileName = "flymaster.zip";
       const filePath = `${selectedFolder}/${fileName}`;
-      const zipPath = await window.tracks.downloadFile(zipURL, filePath);
-      await window.tracks.unzipFile(zipPath, selectedFolder);
-      const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
 
-      console.log("IGC FILES", igcFiles);
-      setIgcFiles(igcFilesResponse);
+      const zipPath = await window.tracks.downloadFile(zipURL, filePath);
+      setFlymasterProgress({
+        visible: true,
+        percent: 75,
+        detail: "Flymaster: Decompressing IGCs ZIP...",
+      });
+      await window.tracks.unzipFile(zipPath, selectedFolder);
+
+      setFlymasterProgress({
+        visible: true,
+        percent: 90,
+        detail: "Flymaster: Listing IGCs...",
+      });
+      await listIGCs();
+
+      setFlymasterProgress({
+        visible: false,
+        percent: 0,
+        detail: null,
+      });
     } catch (error) {
+      setFlymasterProgress({
+        visible: false,
+        percent: 0,
+        detail: null,
+      });
       console.error("Error fetching Flymaster IGCS:", error);
     }
   };
 
   const fetchXcontestIGCs = async (specificPilot?: PilotsState) => {
-    if (!validateInputs()) return;
+    if (!validateInputs() || xcontestProgress.visible) return;
 
     let pilotsToFetch;
 
@@ -70,63 +122,57 @@ const Home: React.FC = () => {
         (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
       );
 
-      pilotsToFetch = pilotsWithoutTrack.filter(
-        (pilot) => pilot.xctrack !== null
+      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
+        Boolean(pilot.xctrack)
       );
     }
 
-    try {
-      for (const pilot of pilotsToFetch) {
-        try {
-          await window.scrappers.xcontestIGCs(
-            xcontest?.username,
-            xcontest?.password,
-            selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-            pilot.xctrack!,
-            pilot.id,
-            pilot.name,
-            selectedFolder
-          );
-        } catch (error) {
-          console.error(`Error processing nickname ${pilot.xctrack}:`, error);
-        }
+    for (const [index, pilot] of pilotsToFetch.entries()) {
+      try {
+        setXcontestProgress({
+          visible: true,
+          percent: Math.floor((index / pilotsToFetch.length) * 100),
+          detail: `Downloading "${pilot.xctrack}" XContest IGC track...`,
+        });
+        await window.scrappers.xcontestIGCs(
+          xcontest?.username,
+          xcontest?.password,
+          selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
+          pilot.xctrack!,
+          pilot.id,
+          pilot.name,
+          selectedFolder
+        );
+      } catch (error) {
+        console.error(`Error processing nickname ${pilot.xctrack}:`, error);
       }
-      const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
-      const uniqueValidIgcs = [
-        ...igcFiles.validIgcs,
-        ...igcFilesResponse.validIgcs.filter(
-          (newFile) =>
-            !igcFiles.validIgcs.some(
-              (existingFile) => existingFile.name === newFile.name
-            )
-        ),
-      ];
-
-      const uniqueInvalidIgcs = [
-        ...igcFiles.invalidIgcs,
-        ...igcFilesResponse.invalidIgcs.filter(
-          (newFile) =>
-            !igcFiles.invalidIgcs.some(
-              (existingFile) => existingFile.name === newFile.name
-            )
-        ),
-      ];
-
-      setIgcFiles({
-        validIgcs: uniqueValidIgcs,
-        invalidIgcs: uniqueInvalidIgcs,
-      });
-    } catch (error) {
-      console.error("Error fetching Xcontest IGCs:", error);
     }
+    setXcontestProgress({
+      visible: true,
+      percent: 99,
+      detail: "Listing IGCs...",
+    });
+    await listIGCs();
+
+    setXcontestProgress({
+      visible: false,
+      percent: 0,
+      detail: null,
+    });
   };
 
-  console.log("ALL", igcFiles);
   const listIGCs = async () => {
     try {
+      if (isListingDirectory) {
+        console.warn("Already listing directory...");
+        return;
+      }
+      setIsListingDirectory(true);
       const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
+      setIsListingDirectory(false);
       setIgcFiles(igcFilesResponse);
     } catch (error) {
+      setIsListingDirectory(false);
       console.error("Error listing IGCs:", error);
     }
   };
@@ -135,6 +181,8 @@ const Home: React.FC = () => {
     try {
       const directory = await window.tracks.selectDirectory();
       setSelectedFolder(directory);
+
+      await listIGCs();
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
@@ -226,7 +274,7 @@ const Home: React.FC = () => {
     ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
     ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
   ];
-  console.log("COMBINED", combinedIgcFiles);
+
   return (
     <div id="application" className={theme}>
       <Configuration />
@@ -273,6 +321,20 @@ const Home: React.FC = () => {
         )}
       </Card>
 
+      {flymasterProgress.visible && (
+        <ProgressLine
+          detail={flymasterProgress.detail}
+          percent={flymasterProgress.percent}
+        />
+      )}
+
+      {xcontestProgress.visible && (
+        <ProgressLine
+          detail={xcontestProgress.detail}
+          percent={xcontestProgress.percent}
+        />
+      )}
+
       {pilots.length > 0 ? (
         <div className="flex flex-col gap-8">
           <div className="Home mt-8">
@@ -295,7 +357,7 @@ const Home: React.FC = () => {
                   const pilotTracks = combinedIgcFiles.filter(
                     (track) => track.pilotId === Number(pilot.id)
                   );
-                  console.log("PILOT TRACKS", pilotTracks);
+                  // console.log("PILOT TRACKS", pilotTracks);
 
                   const isInvalid = pilotTracks.some(
                     (track) => track.isValid === false

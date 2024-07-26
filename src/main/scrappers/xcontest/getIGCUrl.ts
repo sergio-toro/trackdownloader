@@ -14,10 +14,10 @@ export default async function getIGCUrl(detailsLink: string) {
 
   const page = await pie.getPage(browser, window);
 
-  console.log(`Navigating to ${url}...`);
+  // console.log(`Navigating to ${url}...`);
 
   await page.waitForSelector("a[title='download tracklog in IGC format']", {
-    timeout: 60000,
+    timeout: 10000,
   });
 
   const igcLinkElement = (await page.$(
@@ -25,7 +25,7 @@ export default async function getIGCUrl(detailsLink: string) {
   )) as ElementHandle<HTMLAnchorElement>;
   if (igcLinkElement) {
     const igcUrl = await page.evaluate((el) => el.href, igcLinkElement);
-    console.log(`Found IGC download link: ${igcUrl}`);
+    // console.log(`Found IGC download link: ${igcUrl}`);
     window.close();
 
     return igcUrl;
