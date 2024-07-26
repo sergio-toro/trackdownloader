@@ -1,9 +1,7 @@
 import { format, isValid, parse } from "date-fns";
 import { SelectedGroup } from "./getFlymasterGroups";
-import pie from "puppeteer-in-electron";
-import { app, BrowserWindow } from "electron";
-import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
+import { getWindowAndPage } from "@main/scrappers/window";
 
 export const getFlymasterIGCs = async (
   selectedGroup: SelectedGroup,
@@ -12,17 +10,14 @@ export const getFlymasterIGCs = async (
   password: string
 ): Promise<string> => {
   try {
-    // eslint-disable-next-line
-    // @ts-ignore
-    const browser = await pie.connect(app, puppeteer);
-
-    const window = new BrowserWindow();
     const url = "https://lt.flymaster.net/#";
-    await window.loadURL(url);
-
-    const page = await pie.getPage(browser, window);
+    const [window, page] = await getWindowAndPage(url, {
+      width: 800,
+      height: 600,
+    });
 
     console.log(`Navigating to ${url}...`);
+    await page.waitForNetworkIdle();
 
     await doLoginAndTableSearch(username, password, page);
     await page.waitForNetworkIdle();
@@ -71,17 +66,23 @@ export const getFlymasterIGCs = async (
     console.log(`Date set to ${formattedDate}.`);
     await page.waitForNetworkIdle();
 
-    const areIGCsGenerated = await page.$("#infoDiv");
+    const infoDivElement = await page.$("#infoDiv");
+    if (infoDivElement) {
+      const areIGCsGenerated = await infoDivElement.evaluate((el) => {
+        return !el.classList.contains("hidden");
+      });
 
-    if (!areIGCsGenerated) {
-      console.log("IGC not generated ");
+      if (!areIGCsGenerated) {
+        console.log("IGC not generated ");
 
-      const generateIGCButton = await page.waitForSelector("#genIgcBtn");
-      await generateIGCButton.click();
-      console.log("Generate IGC button clicked");
+        const generateIGCButton = await page.waitForSelector("#genIgcBtn");
+        await generateIGCButton.click();
+        console.log("Generate IGC button clicked");
+      } else {
+        console.log("IGC already generated ");
+      }
     }
 
-    console.log("IGC already generated ");
     await page.waitForNetworkIdle();
 
     const downloadLinkSelector = 'a[onclick^="DoDownload"]';

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Configuration from "@components/Configuration";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { format, intervalToDuration, parseISO } from "date-fns";
@@ -7,6 +7,7 @@ import Input from "@components/forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import ProgressLine from "@components/layout/ProgressLine";
+import { chunkArray } from "@renderer/utils/array";
 
 interface ProgressState {
   visible: boolean;
@@ -37,12 +38,18 @@ const Home: React.FC = () => {
     percent: 0,
     detail: null,
   });
-  // const [volandooProgress, setVolandooProgress] = useState<ProgressState>({
-  //   visible: false,
-  //   percent: 0,
-  //   detail: null,
-  // });
+  const [volandooProgress, setVolandooProgress] = useState<ProgressState>({
+    visible: false,
+    percent: 0,
+    detail: null,
+  });
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (selectedFolder) {
+      listIGCs();
+    }
+  }, []);
 
   const validateInputs = () => {
     if (!selectedDate || !selectedFolder) {
@@ -127,24 +134,30 @@ const Home: React.FC = () => {
       );
     }
 
-    for (const [index, pilot] of pilotsToFetch.entries()) {
+    const pilotChunks = chunkArray(pilotsToFetch, 2);
+    for (const [chunkIndex, chunk] of pilotChunks.entries()) {
+      const pilotUsernames = chunk.map((pilot) => pilot.xctrack).join(", ");
+      setXcontestProgress({
+        visible: true,
+        percent: Math.floor((chunkIndex / pilotChunks.length) * 100),
+        detail: `XContest: Downloading "${pilotUsernames}" IGCs track...`,
+      });
       try {
-        setXcontestProgress({
-          visible: true,
-          percent: Math.floor((index / pilotsToFetch.length) * 100),
-          detail: `Downloading "${pilot.xctrack}" XContest IGC track...`,
-        });
-        await window.scrappers.xcontestIGCs(
-          xcontest?.username,
-          xcontest?.password,
-          selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-          pilot.xctrack!,
-          pilot.id,
-          pilot.name,
-          selectedFolder
+        await Promise.allSettled(
+          chunk.map(async (pilot) =>
+            window.scrappers.xcontestIGCs(
+              xcontest?.username,
+              xcontest?.password,
+              selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
+              pilot.xctrack!,
+              pilot.id,
+              pilot.name,
+              selectedFolder
+            )
+          )
         );
       } catch (error) {
-        console.error(`Error processing nickname ${pilot.xctrack}:`, error);
+        console.error(`Error processing pilots ${pilotUsernames}:`, error);
       }
     }
     setXcontestProgress({
@@ -189,7 +202,7 @@ const Home: React.FC = () => {
   };
 
   const fetchVolandooIGCs = async (specificPilot?: PilotsState) => {
-    if (!validateInputs()) return;
+    if (!validateInputs() || volandooProgress.visible) return;
     let pilotsToFetch;
 
     if (specificPilot) {
@@ -203,17 +216,18 @@ const Home: React.FC = () => {
         (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
       );
 
-      pilotsToFetch = pilotsWithoutTrack.filter(
-        (pilot) => pilot.volandoo !== null
+      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
+        Boolean(pilot.volandoo)
       );
     }
 
     try {
-      for (const pilot of pilotsToFetch) {
-        if (!pilot) {
-          console.log("No username found for pilot:", pilot);
-          continue;
-        }
+      for (const [index, pilot] of pilotsToFetch.entries()) {
+        setVolandooProgress({
+          visible: true,
+          percent: Math.floor((index / pilotsToFetch.length) * 100),
+          detail: `Volandoo: Downloading "${pilot.volandoo}" IGCs tracks...`,
+        });
 
         const parsedDate = parseISO(selectedDate);
         const formattedDate = format(parsedDate, "M/d/yyyy");
@@ -235,10 +249,26 @@ const Home: React.FC = () => {
             );
           }
         }
-
-        await listIGCs();
       }
+      setVolandooProgress({
+        visible: true,
+        percent: 99,
+        detail: "Volandoo: Listing IGCs...",
+      });
+
+      await listIGCs();
+
+      setVolandooProgress({
+        visible: false,
+        percent: 0,
+        detail: null,
+      });
     } catch (error) {
+      setVolandooProgress({
+        visible: false,
+        percent: 0,
+        detail: null,
+      });
       console.error("Error fetching Volandoo IGCS:", error);
     }
   };
@@ -332,6 +362,12 @@ const Home: React.FC = () => {
         <ProgressLine
           detail={xcontestProgress.detail}
           percent={xcontestProgress.percent}
+        />
+      )}
+      {volandooProgress.visible && (
+        <ProgressLine
+          detail={volandooProgress.detail}
+          percent={volandooProgress.percent}
         />
       )}
 
@@ -496,7 +532,7 @@ const Home: React.FC = () => {
                       <td>
                         <div className="flex flex-col gap-3">
                           <a
-                            href={`https://www.xcontest.org/world/en/pilots/detail/${pilot.xctrack}`}
+                            href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xctrack}`}
                             className=" font-bold underline  "
                             target="_blank"
                             rel="noopener noreferrer"
