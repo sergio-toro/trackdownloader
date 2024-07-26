@@ -6,6 +6,12 @@ import Card from "@components/layout/Card";
 import Input from "@components/forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
+import ProgressLine from "@components/layout/ProgressLine";
+
+interface ProgressState {
+  visible: boolean;
+  percent: number;
+}
 
 const Home: React.FC = () => {
   const {
@@ -20,6 +26,11 @@ const Home: React.FC = () => {
     setSelectedDate,
     setSelectedFolder,
   } = useTableTracks();
+  const [isListingDirectory, setIsListingDirectory] = useState(false);
+  const [progress, setProgress] = useState<ProgressState>({
+    visible: false,
+    percent: 0,
+  });
   const [errorMessage, setErrorMessage] = useState("");
 
   const validateInputs = () => {
@@ -75,58 +86,50 @@ const Home: React.FC = () => {
       );
     }
 
-    try {
-      for (const pilot of pilotsToFetch) {
-        try {
-          await window.scrappers.xcontestIGCs(
-            xcontest?.username,
-            xcontest?.password,
-            selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-            pilot.xctrack!,
-            pilot.id,
-            pilot.name,
-            selectedFolder
-          );
-        } catch (error) {
-          console.error(`Error processing nickname ${pilot.xctrack}:`, error);
-        }
+    for (const [index, pilot] of pilotsToFetch.entries()) {
+      try {
+        setProgress({
+          visible: true,
+          percent: Math.floor((index / pilotsToFetch.length) * 100),
+        });
+        await window.scrappers.xcontestIGCs(
+          xcontest?.username,
+          xcontest?.password,
+          selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
+          pilot.xctrack!,
+          pilot.id,
+          pilot.name,
+          selectedFolder
+        );
+      } catch (error) {
+        console.error(`Error processing nickname ${pilot.xctrack}:`, error);
       }
-      const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
-      const uniqueValidIgcs = [
-        ...igcFiles.validIgcs,
-        ...igcFilesResponse.validIgcs.filter(
-          (newFile) =>
-            !igcFiles.validIgcs.some(
-              (existingFile) => existingFile.name === newFile.name
-            )
-        ),
-      ];
-
-      const uniqueInvalidIgcs = [
-        ...igcFiles.invalidIgcs,
-        ...igcFilesResponse.invalidIgcs.filter(
-          (newFile) =>
-            !igcFiles.invalidIgcs.some(
-              (existingFile) => existingFile.name === newFile.name
-            )
-        ),
-      ];
-
-      setIgcFiles({
-        validIgcs: uniqueValidIgcs,
-        invalidIgcs: uniqueInvalidIgcs,
-      });
-    } catch (error) {
-      console.error("Error fetching Xcontest IGCs:", error);
     }
+    setProgress({
+      visible: true,
+      percent: 99,
+    });
+    await listIGCs();
+
+    setProgress({
+      visible: false,
+      percent: 0,
+    });
   };
 
   console.log("ALL", igcFiles);
   const listIGCs = async () => {
     try {
+      if (isListingDirectory) {
+        console.warn("Already listing directory...");
+        return;
+      }
+      setIsListingDirectory(true);
       const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
+      setIsListingDirectory(false);
       setIgcFiles(igcFilesResponse);
     } catch (error) {
+      setIsListingDirectory(false);
       console.error("Error listing IGCs:", error);
     }
   };
@@ -135,6 +138,8 @@ const Home: React.FC = () => {
     try {
       const directory = await window.tracks.selectDirectory();
       setSelectedFolder(directory);
+
+      await listIGCs();
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
@@ -226,7 +231,7 @@ const Home: React.FC = () => {
     ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
     ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
   ];
-  console.log("COMBINED", combinedIgcFiles);
+
   return (
     <div id="application" className={theme}>
       <Configuration />
@@ -272,6 +277,9 @@ const Home: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/*<ProgressLine percent={90} />*/}
+      {progress.visible && <ProgressLine percent={progress.percent} />}
 
       {pilots.length > 0 ? (
         <div className="flex flex-col gap-8">

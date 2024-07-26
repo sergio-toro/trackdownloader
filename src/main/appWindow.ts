@@ -31,8 +31,10 @@ function registerMainIPC() {
 export function createAppWindow(): BrowserWindow {
   // Create new window instance
   appWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
+    minWidth: 800,
+    minHeight: 600,
     backgroundColor: "#202020",
     show: false,
     autoHideMenuBar: true,
@@ -46,8 +48,13 @@ export function createAppWindow(): BrowserWindow {
       nodeIntegrationInSubFrames: false,
       preload: APP_WINDOW_PRELOAD_WEBPACK_ENTRY,
       sandbox: false,
+      devTools: true,
     },
   });
+
+  appWindow.maximize();
+
+  appWindow.webContents.openDevTools();
 
   // Load the index.html of the app window.
   appWindow.loadURL(APP_WINDOW_WEBPACK_ENTRY);
