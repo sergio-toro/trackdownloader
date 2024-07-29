@@ -112,60 +112,62 @@ export default function PilotsForm() {
 
   return (
     <Card title="Pilots" className="PilotsForm bg-bgCard">
-      <DataSheet
-        className="w-full"
-        data={data}
-        valueRenderer={(cell) => cell.value}
-        attributesRenderer={(cell) =>
-          cell.className ? { className: cell.className } : {}
-        }
-        onSelect={({ start, end }) => {
-          const startRow = end.i < start.i ? end.i : start.i;
-          const endRow = start.i > end.i ? start.i : end.i;
+      <div className="max-h-[23rem] overflow-y-auto border border-gray-300 rounded-lg">
+        <DataSheet
+          className="w-full"
+          data={data}
+          valueRenderer={(cell) => cell.value}
+          attributesRenderer={(cell) =>
+            cell.className ? { className: cell.className } : {}
+          }
+          onSelect={({ start, end }) => {
+            const startRow = end.i < start.i ? end.i : start.i;
+            const endRow = start.i > end.i ? start.i : end.i;
 
-          if (startRow === endRow) {
-            setRowsRangeContextMenu({
-              ...rowsRangeContextMenu,
-              isOpen: false,
-            });
-          } else {
-            setRowsRangeContextMenu({
+            if (startRow === endRow) {
+              setRowsRangeContextMenu({
+                ...rowsRangeContextMenu,
+                isOpen: false,
+              });
+            } else {
+              setRowsRangeContextMenu({
+                isOpen: true,
+                x: cursorPosition.x,
+                y: cursorPosition.y,
+                start: startRow,
+                end: endRow,
+              });
+            }
+          }}
+          onContextMenu={(e, cell, i, j) => {
+            e.preventDefault();
+            setCellContextMenu({
               isOpen: true,
-              x: cursorPosition.x,
-              y: cursorPosition.y,
-              start: startRow,
-              end: endRow,
+              x: e.pageX,
+              y: e.pageY,
+              cell,
+              row: i,
+              col: j,
             });
-          }
-        }}
-        onContextMenu={(e, cell, i, j) => {
-          e.preventDefault();
-          setCellContextMenu({
-            isOpen: true,
-            x: e.pageX,
-            y: e.pageY,
-            cell,
-            row: i,
-            col: j,
-          });
-        }}
-        onCellsChanged={(changes, additions) => {
-          const grid = data.map((row) => [...row]);
-          changes.forEach(({ /*cell,*/ row, col, value }) => {
-            grid[row][col] = { ...grid[row][col], value: value.toString() };
-          });
-          if (additions) {
-            additions.forEach(({ row, col, value }) => {
-              if (!grid[row]) {
-                grid[row] = [];
-              }
-              grid[row][col] = { value: value.toString() };
+          }}
+          onCellsChanged={(changes, additions) => {
+            const grid = data.map((row) => [...row]);
+            changes.forEach(({ row, col, value }) => {
+              grid[row][col] = { ...grid[row][col], value: value.toString() };
             });
-          }
+            if (additions) {
+              additions.forEach(({ row, col, value }) => {
+                if (!grid[row]) {
+                  grid[row] = [];
+                }
+                grid[row][col] = { value: value.toString() };
+              });
+            }
 
-          setData(grid);
-        }}
-      />
+            setData(grid);
+          }}
+        />
+      </div>
 
       <ContextMenu
         isOpen={cellContextMenu.isOpen}

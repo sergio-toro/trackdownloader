@@ -60,7 +60,7 @@ export default function FlymasterGroupSelector() {
       )}
       {isFlymasterConfigured && flymaster.groups?.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="max-w-[50rem] ">
+          <table className="max-w-[35rem] ">
             <thead>
               <tr>
                 <th className=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

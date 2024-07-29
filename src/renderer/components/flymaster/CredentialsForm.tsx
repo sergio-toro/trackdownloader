@@ -24,7 +24,7 @@ export default function FlymasterCredentialsForm() {
   };
 
   return (
-    <Card title="Flymaster authentication">
+    <Card title="Flymaster">
       <Input
         id="flymaster-username"
         name="flymasterUsername"
