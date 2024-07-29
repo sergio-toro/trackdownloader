@@ -1,9 +1,7 @@
-import { app, BrowserWindow } from "electron";
-import puppeteer from "puppeteer-core";
-import pie from "puppeteer-in-electron";
 import { getXcontestIGCs } from "./getXcontestIGCs";
 import { downloadFile } from "@main/tracks/downloadFile";
 import { parse } from "date-fns";
+import { getWindowAndPage } from "@main/scrappers/window";
 
 export default async function xcontestScraper(
   username: string,
@@ -18,26 +16,10 @@ export default async function xcontestScraper(
     console.error(`XContest ID is required, "${xcontestId}" provided`);
     throw new Error("XContest ID is required");
   }
-  // eslint-disable-next-line
-  // @ts-ignore
-  const browser = await pie.connect(app, puppeteer);
+  const url = "https://www.xcontest.org/world/es/";
+  const [window, page] = await getWindowAndPage(url);
 
-  const window = new BrowserWindow({
-    width: 400,
-    height: 200,
-    focusable: false,
-    opacity: 0.8,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-  });
   try {
-    const url = "https://www.xcontest.org/world/es/";
-    await window.loadURL(url);
-
-    const page = await pie.getPage(browser, window);
-
     console.log(`Navigating to ${url}...`);
 
     const isLoggedIn = await page.$('input[name="logout"]');

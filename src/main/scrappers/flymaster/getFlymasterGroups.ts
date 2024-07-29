@@ -2,6 +2,7 @@ import pie from "puppeteer-in-electron";
 import { app, BrowserWindow } from "electron";
 import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
+import { SCRAPPER_WINDOW_SETTINGS } from "@main/scrappers/window";
 
 export interface SelectedGroup {
   id: string;
@@ -17,11 +18,13 @@ export default async function getFlymasterGroups(
     // @ts-ignore
     const browser = await pie.connect(app, puppeteer);
 
-    const window = new BrowserWindow();
+    const window = new BrowserWindow(SCRAPPER_WINDOW_SETTINGS);
     const url = "https://lt.flymaster.net/#";
     await window.loadURL(url);
 
     const page = await pie.getPage(browser, window);
+
+    await page.waitForNetworkIdle();
 
     console.log(`Navigating to ${url}...`);
     await doLoginAndTableSearch(username, password, page);

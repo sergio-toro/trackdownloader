@@ -20,47 +20,44 @@ export const getXcontestIGCs = async (
 
     for (const row of rows) {
       const dateElement = await row.$("td[title*='submitted'] div.full");
-      if (dateElement) {
-        const dateValue = await page.evaluate(
-          (el) => el.textContent.trim(),
-          dateElement
-        );
-        const [scrapedDate, scrapedTime] = dateValue.split(" ");
-
-        if (date === scrapedDate) {
-          const durationElement = await row.$("td.dur strong span.d1");
-          const duration = durationElement
-            ? await page.evaluate(
-                (el) => el.textContent.trim(),
-                durationElement
-              )
-            : null;
-
-          const detailsLinkElement = (await row.$(
-            "a.detail[title='flight detail']"
-          )) as ElementHandle<HTMLAnchorElement>;
-          if (detailsLinkElement) {
-            const detailsLink = await page.evaluate(
-              (el) => el.href,
-              detailsLinkElement
-            );
-
-            const igcUrl = await getIGCUrl(detailsLink);
-
-            pilotIGCs.push({
-              pilotId,
-              igcUrl,
-              date: scrapedDate,
-              startTime: extractTime(scrapedTime),
-              duration: duration,
-            });
-          } else {
-            console.error("Details link not found");
-          }
-        }
-      } else {
-        console.error("Date element not found");
+      if (!dateElement) {
+        continue;
       }
+      const dateValue = await page.evaluate(
+        (el) => el.textContent.trim(),
+        dateElement
+      );
+      const [scrapedDate, scrapedTime] = dateValue.split(" ");
+
+      if (date !== scrapedDate) {
+        continue;
+      }
+      const durationElement = await row.$("td.dur strong span.d1");
+      const duration = durationElement
+        ? await page.evaluate((el) => el.textContent.trim(), durationElement)
+        : null;
+
+      const detailsLinkElement = (await row.$(
+        "a.detail[title='flight detail']"
+      )) as ElementHandle<HTMLAnchorElement>;
+      if (!detailsLinkElement) {
+        console.error("Details link not found");
+        continue;
+      }
+      const detailsLink = await page.evaluate(
+        (el) => el.href,
+        detailsLinkElement
+      );
+
+      const igcUrl = await getIGCUrl(detailsLink);
+
+      pilotIGCs.push({
+        pilotId,
+        igcUrl,
+        date: scrapedDate,
+        startTime: extractTime(scrapedTime),
+        duration: duration,
+      });
     }
 
     return pilotIGCs;

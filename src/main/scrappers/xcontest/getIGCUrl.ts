@@ -1,20 +1,9 @@
-import { app, BrowserWindow } from "electron";
-import pie from "puppeteer-in-electron";
-import puppeteer, { ElementHandle } from "puppeteer-core";
+import { ElementHandle } from "puppeteer-core";
+import { getWindowAndPage } from "@main/scrappers/window";
 
 export default async function getIGCUrl(detailsLink: string) {
-  // eslint-disable-next-line
-  // @ts-ignore
-  const browser = await pie.connect(app, puppeteer);
-
-  const window = new BrowserWindow();
-
   const url = detailsLink;
-  await window.loadURL(url);
-
-  const page = await pie.getPage(browser, window);
-
-  // console.log(`Navigating to ${url}...`);
+  const [window, page] = await getWindowAndPage(url);
 
   await page.waitForSelector("a[title='download tracklog in IGC format']", {
     timeout: 10000,
