@@ -310,45 +310,71 @@ const Home: React.FC = () => {
       <Configuration />
 
       <Card className="w-full" title="Download Tracks">
-        <div className="flex flex-row gap-6">
-          <Input
-            mode="inline"
-            type="date"
-            label="Select a date"
-            id="date"
-            name="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          <div className="flex gap-2 items-center">
-            <button
-              onClick={selectFolder}
-              className="border-gray-300 font-semibold"
-            >
-              {!selectedFolder ? "Select Folder" : "Change Folder"}
-            </button>
-            {selectedFolder && (
-              <span className="text-sm text-gray-700 font-medium">
-                {selectedFolder}
-              </span>
-            )}
+        <div className="flex flex-row justify-between ">
+          <div className=" flex flex-col gap-2 border-r-black">
+            <Input
+              mode="inline"
+              type="date"
+              label="Select a date"
+              id="date"
+              name="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={selectFolder}
+                className="border-gray-300 font-semibold"
+              >
+                {!selectedFolder ? "Select Folder" : "Change Folder"}
+              </button>
+              {selectedFolder && (
+                <span className="text-sm text-gray-700 font-medium">
+                  {selectedFolder}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2 grow justify-end">
-            <button onClick={listIGCs}>List IGCs</button>
-            <button onClick={fetchFlyMasterIGCs}>Get Flymaster IGCs</button>
-            <button onClick={() => fetchXcontestIGCs()}>
-              Get Xcontest IGCs
-            </button>
-            <button onClick={() => fetchVolandooIGCs()}>
-              Get Volandoo IGCs
-            </button>
+          <div className="flex flex-row gap-4">
+            <div className="flex flex-col gap-2">
+              <h2>Get IGCS:</h2>
+              <div className="flex flex-row gap-2">
+                <button
+                  className=" text-sm bg-gradient-to-br from-blue-500 via-blue-600 to-blue-900 text-white px-2 py-1 rounded-md shadow-md  "
+                  onClick={fetchFlyMasterIGCs}
+                >
+                  FLYMASTER
+                </button>
+
+                <button
+                  className="text-sm bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white px-2 py-1 rounded-md "
+                  onClick={() => fetchXcontestIGCs()}
+                >
+                  XCONTEST
+                </button>
+
+                <button
+                  className=" text-sm bg-gradient-to-br from-purple-600 via-purple-800 to-[#342467] text-white px-2 py-1 rounded-md  "
+                  onClick={() => fetchVolandooIGCs()}
+                >
+                  VOLANDOO
+                </button>
+                <button
+                  className="text-sm bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 text-white px-2 py-1 rounded-md  "
+                  onClick={listIGCs}
+                >
+                  List IGCs
+                </button>
+              </div>
+            </div>
           </div>
+
+          {errorMessage && (
+            <div className="bg-red-200 text-red-700 p-2 rounded-md mb-4 mt-6 ">
+              {errorMessage}
+            </div>
+          )}
         </div>
-        {errorMessage && (
-          <div className="bg-red-200 text-red-700 p-2 rounded-md mb-4 mt-6 ">
-            {errorMessage}
-          </div>
-        )}
       </Card>
 
       {flymasterProgress.visible && (
@@ -374,16 +400,25 @@ const Home: React.FC = () => {
       {pilots.length > 0 ? (
         <div className="flex flex-col gap-8">
           <div>
-            <div className="flex  gap-4 ">
-              <h2 className="bg-green-100 p-2 rounded font-semibold">
-                Valid tracks: {igcFiles.validIgcs.length}
-              </h2>
-              <h2
-                className={`p-2 rounded font-semibold ${igcFiles.invalidIgcs.length > 0 ? "bg-red-100" : ""}`}
-              >
-                Invalid tracks: {igcFiles.invalidIgcs.length}
-              </h2>
+            <div className="flex  gap-4 mb-4 items-center justify-between">
+              <div className="flex gap-2">
+                <h2 className="bg-green-200 p-2 rounded font-semibold">
+                  Valid tracks: {igcFiles.validIgcs.length}
+                </h2>
+                <h2
+                  className={`p-2 rounded font-semibold ${igcFiles.invalidIgcs.length > 0 ? "bg-red-200" : ""}`}
+                >
+                  Invalid tracks: {igcFiles.invalidIgcs.length}
+                </h2>
+              </div>
+
+              <div className="">
+                <button className="bg-red-900 p-1 rounded-md text-white">
+                  Delete selected
+                </button>
+              </div>
             </div>
+
             <table>
               <thead>
                 <tr>
@@ -395,6 +430,7 @@ const Home: React.FC = () => {
                   <th>Status</th>
                   <th>Scrap</th>
                   <th>Links</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -526,13 +562,13 @@ const Home: React.FC = () => {
                         <div className="flex flex-col gap-1">
                           <button
                             onClick={() => fetchXcontestIGCs(pilot)}
-                            className="bg-orange-800 text-white p-1 rounded-md "
+                            className=" border-orange-600  border-2   rounded-md  "
                           >
                             XContest
                           </button>
                           <button
                             onClick={() => fetchVolandooIGCs(pilot)}
-                            className="bg-purple-800 text-white p-1 rounded-md "
+                            className="border-[#342467] border-2 rounded-md "
                           >
                             Volandoo
                           </button>
@@ -557,6 +593,9 @@ const Home: React.FC = () => {
                             Volandoo
                           </a>
                         </div>
+                      </td>
+                      <td>
+                        <input type="checkbox" />
                       </td>
                     </tr>
                   );

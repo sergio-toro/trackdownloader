@@ -91,3 +91,8 @@ th {
   background-color: #050430;
   color: white;
 }
+
+button,
+a {
+  cursor: pointer;
+}
