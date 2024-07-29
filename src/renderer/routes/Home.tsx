@@ -337,8 +337,17 @@ const Home: React.FC = () => {
 
       {pilots.length > 0 ? (
         <div className="flex flex-col gap-8">
-          <div className="Home mt-8">
-            <h2>Extracted Files and Tracker Numbers:</h2>
+          <div>
+            <div className="flex  gap-4 ">
+              <h2 className="bg-green-100 p-2 rounded font-semibold">
+                Valid tracks: {igcFiles.validIgcs.length}
+              </h2>
+              <h2
+                className={`p-2 rounded font-semibold ${igcFiles.invalidIgcs.length > 0 ? "bg-red-100" : ""}`}
+              >
+                Invalid tracks: {igcFiles.invalidIgcs.length}
+              </h2>
+            </div>
             <table>
               <thead>
                 <tr>
@@ -496,7 +505,7 @@ const Home: React.FC = () => {
                       <td>
                         <div className="flex flex-col gap-3">
                           <a
-                            href={`https://www.xcontest.org/world/en/pilots/detail/${pilot.xctrack}`}
+                            href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xctrack}`}
                             className=" font-bold underline  "
                             target="_blank"
                             rel="noopener noreferrer"
