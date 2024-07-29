@@ -11,26 +11,24 @@ export default async function doLoginAndTableSearch(
   page: Page
 ) {
   try {
-    await page.waitForNetworkIdle();
-
     const isLoggedIn = await page.$("#accountMenu");
 
     if (!isLoggedIn) {
       const loginLink = await page.waitForSelector('#liLogin a[href="#"]', {
-        timeout: 60000,
+        timeout: 10000,
       });
       console.log("Login link found. Clicking...");
       await loginLink.click();
       await page.waitForNetworkIdle();
 
       const emailInput = await page.waitForSelector("#log_email", {
-        timeout: 60000,
+        timeout: 10000,
       });
       console.log("Email input found. Typing email...");
       await emailInput.type(username);
 
       const passwordInput = await page.waitForSelector("#log_password", {
-        timeout: 60000,
+        timeout: 10000,
       });
       console.log("Password input found. Typing password...");
       await passwordInput.type(password);
@@ -47,7 +45,7 @@ export default async function doLoginAndTableSearch(
 
     await page.click("#accountMenu");
     await page.click("#liMyGroups");
-    await page.waitForSelector("#groupstable tbody tr", { timeout: 60000 });
+    await page.waitForSelector("#groupstable tbody tr", { timeout: 10000 });
 
     console.log("Table loaded successfully.");
   } catch (e) {
