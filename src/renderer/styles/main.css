@@ -14,30 +14,6 @@
   --input-text: 26, 32, 44;
 }
 
-.dark {
-  --background: 18, 18, 18; /* Dark blue background */
-  --text-color: 229, 231, 235; /* Light text */
-  --accent-color: 90, 185, 234; /* Accent blue */
-  --input-background: 38, 44, 60, 0.85; /* Dark blue input background */
-  --config-background: 40, 40, 40; /* Dark blue config card background */
-  --button-background: 90, 185, 234; /* Accent blue for buttons */
-  --card-background: 63, 63, 63; /* Dark blue card background */
-  --card-border: 58, 60, 80; /* Dark gray border for cards */
-  --input-text: 26, 32, 44;
-}
-
-.light {
-  --background: 248, 250, 252; /* Light background */
-  --text-color: 29, 39, 54; /* Dark text */
-  --accent-color: 66, 153, 225; /* Accent blue */
-  --input-background: 255, 255, 255, 0.85; /* Light input background */
-  --config-background: 245, 247, 250; /* Light config card background */
-  --button-background: 66, 153, 225; /* Accent blue for buttons */
-  --card-background: 255, 255, 255; /* White card background */
-  --card-border: 229, 231, 235; /* Light gray border for cards */
-  --input-text: 26, 32, 44;
-}
-
 body,
 #application {
   background-color: rgba(var(--background));
@@ -70,7 +46,7 @@ body,
   padding: 1rem;
 }
 table {
-  width: 60rem;
+  width: 80rem;
   border-collapse: collapse;
   font-size: 0.8rem;
   cursor: pointer;

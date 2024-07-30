@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import Configuration from "@components/Configuration";
-import { PilotsState, useSettings } from "@renderer/context/settingsContext";
-import { format, intervalToDuration, parseISO } from "date-fns";
-import Card from "@components/layout/Card";
-import Input from "@components/forms/Input";
+import { useSettings } from "@renderer/context/settingsContext";
+import { format, intervalToDuration } from "date-fns";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import ProgressLine from "@components/layout/ProgressLine";
-import { chunkArray } from "@renderer/utils/array";
+import Downloader from "@components/Downloader";
 
-interface ProgressState {
+export interface ProgressState {
   visible: boolean;
   percent: number;
   detail: string | null;
@@ -17,17 +15,9 @@ interface ProgressState {
 
 const Home: React.FC = () => {
   const {
-    settings: { theme, flymaster, xcontest, pilots },
+    settings: { pilots },
   } = useSettings();
-  const {
-    selectedDate,
-    selectedFolder,
-    igcFiles,
-    setIgcFiles,
-    setSelectedDate,
-    setSelectedFolder,
-  } = useTableTracks();
-  const [isListingDirectory, setIsListingDirectory] = useState(false);
+  const { selectedFolder, igcFiles, setIgcFiles } = useTableTracks();
   const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
     visible: false,
     percent: 0,
@@ -43,236 +33,13 @@ const Home: React.FC = () => {
     percent: 0,
     detail: null,
   });
-  const [errorMessage, setErrorMessage] = useState("");
+  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
+    new Set()
+  );
 
-  useEffect(() => {
-    if (selectedFolder) {
-      listIGCs();
-    }
-  }, []);
+  const tableRef = useRef<HTMLTableElement>(null);
 
-  const validateInputs = () => {
-    if (!selectedDate || !selectedFolder) {
-      setErrorMessage("Please select a date and a folder.");
-      return false;
-    }
-    setErrorMessage("");
-    return true;
-  };
-
-  const fetchFlyMasterIGCs = async () => {
-    if (!validateInputs() || flymasterProgress.visible) return;
-    try {
-      setFlymasterProgress({
-        visible: true,
-        percent: 5,
-        detail: "Flymaster: Creating IGCs ZIP...",
-      });
-      // console.log("SELECTED GROUP FRONT", flymaster.selectedGroup);
-      const zipURL = await window.scrappers.flymasterIGCs(
-        flymaster.selectedGroup?.id,
-        selectedDate,
-        flymaster?.username,
-        flymaster?.password
-      );
-      setFlymasterProgress({
-        visible: true,
-        percent: 35,
-        detail: "Flymaster: Downloading IGCs ZIP...",
-      });
-      const fileName = "flymaster.zip";
-      const filePath = `${selectedFolder}/${fileName}`;
-
-      const zipPath = await window.tracks.downloadFile(zipURL, filePath);
-      setFlymasterProgress({
-        visible: true,
-        percent: 75,
-        detail: "Flymaster: Decompressing IGCs ZIP...",
-      });
-      await window.tracks.unzipFile(zipPath, selectedFolder);
-
-      setFlymasterProgress({
-        visible: true,
-        percent: 90,
-        detail: "Flymaster: Listing IGCs...",
-      });
-      await listIGCs();
-
-      setFlymasterProgress({
-        visible: false,
-        percent: 0,
-        detail: null,
-      });
-    } catch (error) {
-      setFlymasterProgress({
-        visible: false,
-        percent: 0,
-        detail: null,
-      });
-      console.error("Error fetching Flymaster IGCS:", error);
-    }
-  };
-
-  const fetchXcontestIGCs = async (specificPilot?: PilotsState) => {
-    if (!validateInputs() || xcontestProgress.visible) return;
-
-    let pilotsToFetch;
-
-    if (specificPilot) {
-      pilotsToFetch = [specificPilot];
-    } else {
-      const pilotsWithTracksIds = new Set([
-        ...igcFiles.validIgcs.map((track) => track.pilotId),
-        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
-      ]);
-      const pilotsWithoutTrack = pilots.filter(
-        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
-      );
-
-      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.xctrack)
-      );
-    }
-
-    const pilotChunks = chunkArray(pilotsToFetch, 2);
-    for (const [chunkIndex, chunk] of pilotChunks.entries()) {
-      const pilotUsernames = chunk.map((pilot) => pilot.xctrack).join(", ");
-      setXcontestProgress({
-        visible: true,
-        percent: Math.floor((chunkIndex / pilotChunks.length) * 100),
-        detail: `XContest: Downloading "${pilotUsernames}" IGCs track...`,
-      });
-      try {
-        await Promise.allSettled(
-          chunk.map(async (pilot) =>
-            window.scrappers.xcontestIGCs(
-              xcontest?.username,
-              xcontest?.password,
-              selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-              pilot.xctrack!,
-              pilot.id,
-              pilot.name,
-              selectedFolder
-            )
-          )
-        );
-      } catch (error) {
-        console.error(`Error processing pilots ${pilotUsernames}:`, error);
-      }
-    }
-    setXcontestProgress({
-      visible: true,
-      percent: 99,
-      detail: "Listing IGCs...",
-    });
-    await listIGCs();
-
-    setXcontestProgress({
-      visible: false,
-      percent: 0,
-      detail: null,
-    });
-  };
-
-  const listIGCs = async () => {
-    try {
-      if (isListingDirectory) {
-        console.warn("Already listing directory...");
-        return;
-      }
-      setIsListingDirectory(true);
-      const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
-      setIsListingDirectory(false);
-      setIgcFiles(igcFilesResponse);
-    } catch (error) {
-      setIsListingDirectory(false);
-      console.error("Error listing IGCs:", error);
-    }
-  };
-
-  const selectFolder = async () => {
-    try {
-      const directory = await window.tracks.selectDirectory();
-      setSelectedFolder(directory);
-
-      await listIGCs();
-    } catch (error) {
-      console.error("Error selecting folder:", error);
-    }
-  };
-
-  const fetchVolandooIGCs = async (specificPilot?: PilotsState) => {
-    if (!validateInputs() || volandooProgress.visible) return;
-    let pilotsToFetch;
-
-    if (specificPilot) {
-      pilotsToFetch = [specificPilot];
-    } else {
-      const pilotsWithTracksIds = new Set([
-        ...igcFiles.validIgcs.map((track) => track.pilotId),
-        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
-      ]);
-      const pilotsWithoutTrack = pilots.filter(
-        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
-      );
-
-      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.volandoo)
-      );
-    }
-
-    try {
-      for (const [index, pilot] of pilotsToFetch.entries()) {
-        setVolandooProgress({
-          visible: true,
-          percent: Math.floor((index / pilotsToFetch.length) * 100),
-          detail: `Volandoo: Downloading "${pilot.volandoo}" IGCs tracks...`,
-        });
-
-        const parsedDate = parseISO(selectedDate);
-        const formattedDate = format(parsedDate, "M/d/yyyy");
-        const pilotIGCs = await window.scrappers.volandooIGCs(
-          formattedDate,
-          pilot.volandoo
-        );
-        console.log("PILOT USERNAME", pilot.volandoo);
-        console.log("VOLANDOO IGCS", pilotIGCs);
-
-        for (const track of pilotIGCs) {
-          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${track.date}${track.startTime}.${pilot.id}.igc`;
-          try {
-            await window.tracks.downloadFile(track.igcUrl, filePath);
-          } catch (downloadError) {
-            console.error(
-              `Error downloading file: ${track.igcUrl} ${filePath}`,
-              downloadError
-            );
-          }
-        }
-      }
-      setVolandooProgress({
-        visible: true,
-        percent: 99,
-        detail: "Volandoo: Listing IGCs...",
-      });
-
-      await listIGCs();
-
-      setVolandooProgress({
-        visible: false,
-        percent: 0,
-        detail: null,
-      });
-    } catch (error) {
-      setVolandooProgress({
-        visible: false,
-        percent: 0,
-        detail: null,
-      });
-      console.error("Error fetching Volandoo IGCS:", error);
-    }
-  };
-
+  console.log("PILOTS LENGHT", pilots.length);
   const deleteFlight = async (fileName: string, pilotName: string) => {
     try {
       if (
@@ -300,82 +67,52 @@ const Home: React.FC = () => {
       console.error("Error deleting flight:", error);
     }
   };
+
+  console.log("valid", igcFiles.validIgcs);
   const combinedIgcFiles = [
     ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
     ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
   ];
+  const handlePilotClick = (pilotId: number) => {
+    setSelectedPilotIds((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (newSelected.has(pilotId)) {
+        newSelected.delete(pilotId);
+      } else {
+        newSelected.add(pilotId);
+      }
+      return newSelected;
+    });
+  };
+  const sortedPilots = pilots.sort((a, b) => {
+    const aSelected = selectedPilotIds.has(a.id);
+    const bSelected = selectedPilotIds.has(b.id);
 
+    if (aSelected && !bSelected) return 1;
+    if (!aSelected && bSelected) return -1;
+
+    return a.name.localeCompare(b.name);
+  });
+
+  const handleNoAssistedClick = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  };
+
+  console.log("SELECTED FLIGHTS", selectedPilotIds);
   return (
-    <div id="application" className={theme}>
+    <div id="application">
       <Configuration />
 
-      <Card className="w-full" title="Download Tracks">
-        <div className="flex flex-row justify-between ">
-          <div className=" flex flex-col gap-2 border-r-black">
-            <Input
-              mode="inline"
-              type="date"
-              label="Select a date"
-              id="date"
-              name="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={selectFolder}
-                className="border-gray-300 font-semibold"
-              >
-                {!selectedFolder ? "Select Folder" : "Change Folder"}
-              </button>
-              {selectedFolder && (
-                <span className="text-sm text-gray-700 font-medium">
-                  {selectedFolder}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-row gap-4">
-            <div className="flex flex-col gap-2">
-              <h2>Get IGCS:</h2>
-              <div className="flex flex-row gap-2">
-                <button
-                  className=" text-sm bg-gradient-to-br from-blue-500 via-blue-600 to-blue-900 text-white px-2 py-1 rounded-md shadow-md  "
-                  onClick={fetchFlyMasterIGCs}
-                >
-                  FLYMASTER
-                </button>
-
-                <button
-                  className="text-sm bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white px-2 py-1 rounded-md "
-                  onClick={() => fetchXcontestIGCs()}
-                >
-                  XCONTEST
-                </button>
-
-                <button
-                  className=" text-sm bg-gradient-to-br from-purple-600 via-purple-800 to-[#342467] text-white px-2 py-1 rounded-md  "
-                  onClick={() => fetchVolandooIGCs()}
-                >
-                  VOLANDOO
-                </button>
-                <button
-                  className="text-sm bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 text-white px-2 py-1 rounded-md  "
-                  onClick={listIGCs}
-                >
-                  List IGCs
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {errorMessage && (
-            <div className="bg-red-200 text-red-700 p-2 rounded-md mb-4 mt-6 ">
-              {errorMessage}
-            </div>
-          )}
-        </div>
-      </Card>
+      <Downloader
+        flymasterProgress={flymasterProgress}
+        xcontestProgress={xcontestProgress}
+        volandooProgress={volandooProgress}
+        setFlymasterProgress={setFlymasterProgress}
+        setXcontestProgress={setXcontestProgress}
+        setVolandooProgress={setVolandooProgress}
+      />
 
       {flymasterProgress.visible && (
         <ProgressLine
@@ -397,11 +134,11 @@ const Home: React.FC = () => {
         />
       )}
 
-      {pilots.length > 0 ? (
+      {sortedPilots.length > 0 ? (
         <div className="flex flex-col gap-8">
           <div>
-            <div className="flex  gap-4 mb-4 items-center justify-between">
-              <div className="flex gap-2">
+            <div className="mb-4 flex justify-between ">
+              <div className="flex gap-2 ">
                 <h2 className="bg-green-200 p-2 rounded font-semibold">
                   Valid tracks: {igcFiles.validIgcs.length}
                 </h2>
@@ -411,17 +148,24 @@ const Home: React.FC = () => {
                   Invalid tracks: {igcFiles.invalidIgcs.length}
                 </h2>
               </div>
-
-              <div className="">
-                <button className="bg-red-900 p-1 rounded-md text-white">
-                  Delete selected
+              <div className=" flex gap-2">
+                <h2 className="bg-zinc-200 p-2 rounded font-semibold">
+                  Asisted: {pilots.length - selectedPilotIds.size}
+                </h2>
+                <button
+                  className="bg-zinc-200 p-2 rounded font-semibold"
+                  onClick={handleNoAssistedClick}
+                >
+                  No asisted: {selectedPilotIds.size}
                 </button>
               </div>
             </div>
 
-            <table>
+            <table ref={tableRef}>
               <thead>
                 <tr>
+                  <th></th>
+
                   <th>ID</th>
                   <th>Pilot Name</th>
                   <th>Source</th>
@@ -430,7 +174,7 @@ const Home: React.FC = () => {
                   <th>Status</th>
                   <th>Scrap</th>
                   <th>Links</th>
-                  <th></th>
+                  <th>Asisted</th>
                 </tr>
               </thead>
               <tbody>
@@ -443,7 +187,7 @@ const Home: React.FC = () => {
                   const isInvalid = pilotTracks.some(
                     (track) => track.isValid === false
                   );
-
+                  const isSelected = selectedPilotIds.has(pilot.id);
                   const hasMoreThanOneFlight = pilotTracks.length > 1;
 
                   return (
@@ -454,9 +198,20 @@ const Home: React.FC = () => {
                           ? "bg-red-200"
                           : hasMoreThanOneFlight
                             ? "bg-yellow-100"
-                            : ""
+                            : isSelected
+                              ? "opacity-60 bg-gray-200"
+                              : ""
                       }
                     >
+                      <td>
+                        <input
+                          type="checkbox"
+                          value={pilot.id}
+                          name="pilotId"
+                          checked={isSelected}
+                          onChange={() => handlePilotClick(Number(pilot.id))}
+                        />
+                      </td>
                       <td>{pilot.id}</td>
                       <td>{pilot.name}</td>
 
@@ -522,9 +277,8 @@ const Home: React.FC = () => {
                                     Duration:{" "}
                                     <span className="font-normal">
                                       {trackDuration.hours > 0 && (
-                                        <>{trackDuration.hours} h</>
-                                      )}
-
+                                        <>{trackDuration.hours}h</>
+                                      )}{" "}
                                       {trackDuration.minutes > 0 && (
                                         <>{trackDuration.minutes} min</>
                                       )}
@@ -561,13 +315,13 @@ const Home: React.FC = () => {
                       <td>
                         <div className="flex flex-col gap-1">
                           <button
-                            onClick={() => fetchXcontestIGCs(pilot)}
+                            // onClick={() => fetchXcontestIGCs(pilot)}
                             className=" border-orange-600  border-2   rounded-md  "
                           >
                             XContest
                           </button>
                           <button
-                            onClick={() => fetchVolandooIGCs(pilot)}
+                            // onClick={() => fetchVolandooIGCs(pilot)}
                             className="border-[#342467] border-2 rounded-md "
                           >
                             Volandoo
@@ -594,9 +348,7 @@ const Home: React.FC = () => {
                           </a>
                         </div>
                       </td>
-                      <td>
-                        <input type="checkbox" />
-                      </td>
+                      <td>{isSelected ? "❌" : "✅"}</td>
                     </tr>
                   );
                 })}

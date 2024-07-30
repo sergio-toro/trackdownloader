@@ -59,7 +59,7 @@ export default function FlymasterGroupSelector() {
         </Alert>
       )}
       {isFlymasterConfigured && flymaster.groups?.length > 0 ? (
-        <div className="overflow-x-auto">
+        <div>
           <table className="max-w-[35rem] ">
             <thead>
               <tr>
@@ -85,11 +85,13 @@ export default function FlymasterGroupSelector() {
                     }`}
                     onClick={() => handleGroupClick(group)}
                   >
-                    <td className=" px-6 py-4 whitespace-nowrap">{group.id}</td>
-                    <td className=" px-6 py-4 whitespace-nowrap">
+                    <td className=" px-6 py-4 whitespace-nowrap text-left">
+                      {group.id}
+                    </td>
+                    <td className=" px-6 py-4 whitespace-nowrap text-left">
                       {group.name}
                     </td>
-                    <td className=" px-6 py-4 whitespace-nowrap">
+                    <td className=" px-6 py-4 whitespace-nowrap text-left">
                       <input
                         type="checkbox"
                         value={group.id}
