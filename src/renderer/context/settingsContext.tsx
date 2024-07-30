@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface FlymasterGroup {
   id: string;
@@ -61,13 +61,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       : initialContext.settings;
   });
 
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
+  }, [settings]);
+
   const contextValue = {
     settings,
     setSettings,
     setPilots: (pilots: PilotsState[] | null) => {
       setSettings((prevSettings) => ({ ...prevSettings, pilots }));
     },
-
     setFlymaster: (flymaster: SettingsState["flymaster"]) => {
       setSettings((prevSettings) => ({
         ...prevSettings,
