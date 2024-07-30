@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { md5 } from "js-md5";
+
 import { format, parseISO } from "date-fns";
 import { chunkArray } from "@renderer/utils/array";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
@@ -210,6 +212,7 @@ const useFetchIGCs = (): IgcFilesState => {
     let pilotsToFetch;
 
     if (specificPilot) {
+      console.log("VOLANDOO PILOT", specificPilot);
       pilotsToFetch = [specificPilot];
     } else {
       const pilotsWithTracksIds = new Set([
@@ -234,16 +237,24 @@ const useFetchIGCs = (): IgcFilesState => {
         });
 
         const parsedDate = parseISO(selectedDate);
-        const formattedDate = format(parsedDate, "M/d/yyyy");
-        const pilotIGCs = await window.scrappers.volandooIGCs(
-          formattedDate,
-          pilot.volandoo
-        );
-        console.log("PILOT USERNAME", pilot.volandoo);
-        console.log("VOLANDOO IGCS", pilotIGCs);
+        const formattedDate = format(parsedDate, "MM/dd/yyyy");
+
+        console.log("Volandoo Settings", {
+          date: formattedDate,
+          volandooId: pilot.volandoo,
+          debug,
+        });
+
+        const pilotIGCs = await window.scrappers.volandooIGCs({
+          date: formattedDate,
+          volandooId: pilot.volandoo,
+          debug,
+        });
+
+        console.log("Volandoo PILOT IGCs", pilotIGCs);
 
         for (const track of pilotIGCs) {
-          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${track.date}${track.startTime}.${pilot.id}.igc`;
+          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
           try {
             await window.tracks.downloadFile(track.igcUrl, filePath);
           } catch (downloadError) {

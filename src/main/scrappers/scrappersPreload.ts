@@ -17,7 +17,6 @@ type VolandooIGCsResponse = Array<{
   pilotId: string;
   igcUrl: string;
   date: string;
-  startTime: string;
   duration: string;
 }>;
 
@@ -52,8 +51,10 @@ export interface ScrapperMethods {
     }
   ) => Promise<XcontestIGCsResponse>;
   volandooIGCs: (
-    date: string,
-    pilotUsername: string
+    options: BaseOptions & {
+      date: string;
+      volandooId: string;
+    }
   ) => Promise<VolandooIGCsResponse>;
 }
 
@@ -64,8 +65,8 @@ const scrappers: ScrapperMethods = {
     ipcRenderer.invoke("get-flymaster-igcs-zip", options),
   xcontestIGCs: async (options) =>
     ipcRenderer.invoke("get-xcontest-igcs-zip", options),
-  volandooIGCs: async (date: string, pilotUsername: string) =>
-    ipcRenderer.invoke("get-volandoo-igcs", date, pilotUsername),
+  volandooIGCs: async (options) =>
+    ipcRenderer.invoke("get-volandoo-igcs", options),
 };
 
 contextBridge.exposeInMainWorld("scrappers", scrappers);

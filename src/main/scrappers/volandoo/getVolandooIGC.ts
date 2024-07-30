@@ -1,14 +1,24 @@
 import { TimeoutError } from "puppeteer-core";
 import { getWindowAndPage } from "@main/scrappers/window";
 
-export const getVolandooIGCs = async (date: string, volandooId: string) => {
+type Options = {
+  date: string;
+  volandooId: string;
+  debug?: boolean;
+};
+
+export const getVolandooIGCs = async ({ date, volandooId, debug }: Options) => {
   if (!volandooId) {
     console.error(`Volandoo ID is required, "${volandooId}" provided`);
     throw new Error("Volandoo ID is required");
   }
 
+  console.log("SERVER getVolandooIGCs", { date, volandooId, debug });
+
   const url = `https://volandoo.com/pilots/${volandooId}`;
-  const [window, page] = await getWindowAndPage(url);
+  const [window, page] = await getWindowAndPage(url, {
+    show: debug,
+  });
 
   try {
     try {
@@ -47,7 +57,9 @@ export const getVolandooIGCs = async (date: string, volandooId: string) => {
       );
       const detailsUrl = await row.evaluate((el) => el.href);
 
-      const [rowWindow, rowPage] = await getWindowAndPage(detailsUrl);
+      const [rowWindow, rowPage] = await getWindowAndPage(detailsUrl, {
+        show: debug,
+      });
 
       await rowPage.waitForSelector("div.MuiStack-root > a");
       const downloadLinkElement = await rowPage.$("div.MuiStack-root > a");

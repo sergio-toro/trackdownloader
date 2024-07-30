@@ -17,7 +17,7 @@ export default function registerScrappersIpc() {
     return await xcontestScraper(options);
   });
 
-  ipcMain.handle("get-volandoo-igcs", async (_, date, pilotUsername) => {
-    return await getVolandooIGCs(date, pilotUsername);
+  ipcMain.handle("get-volandoo-igcs", async (_, options) => {
+    return await getVolandooIGCs(options);
   });
 }
