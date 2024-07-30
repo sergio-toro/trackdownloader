@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { chunkArray } from "@renderer/utils/array";
-import { ProgressState } from "@renderer/routes/Home";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
+export interface ProgressState {
+  visible: boolean;
+  percent: number;
+  detail: string | null;
+}
 
 const useFetchIGCs = () => {
   const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
@@ -21,9 +25,6 @@ const useFetchIGCs = () => {
     percent: 0,
     detail: null,
   });
-  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
-    new Set()
-  );
 
   const [isListingDirectory, setIsListingDirectory] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -55,6 +56,8 @@ const useFetchIGCs = () => {
         percent: 5,
         detail: "Flymaster: Creating IGCs ZIP...",
       });
+      console.log("flymaster visible", flymasterProgress);
+
       const zipURL = await window.scrappers.flymasterIGCs(
         flymaster.selectedGroup?.id,
         selectedDate,
@@ -66,6 +69,8 @@ const useFetchIGCs = () => {
         percent: 35,
         detail: "Flymaster: Downloading IGCs ZIP...",
       });
+      console.log("flymaster visible", flymasterProgress);
+
       const fileName = "flymaster.zip";
       const filePath = `${selectedFolder}/${fileName}`;
 
@@ -75,6 +80,7 @@ const useFetchIGCs = () => {
         percent: 75,
         detail: "Flymaster: Decompressing IGCs ZIP...",
       });
+
       await window.tracks.unzipFile(zipPath, selectedFolder);
 
       setFlymasterProgress({
@@ -82,6 +88,7 @@ const useFetchIGCs = () => {
         percent: 90,
         detail: "Flymaster: Listing IGCs...",
       });
+
       await listIGCs();
 
       setFlymasterProgress({
@@ -257,6 +264,7 @@ const useFetchIGCs = () => {
       console.error("Error fetching Volandoo IGCS:", error);
     }
   };
+  console.log("flymaster in hook", flymasterProgress);
 
   return {
     fetchFlyMasterIGCs,
@@ -267,10 +275,8 @@ const useFetchIGCs = () => {
     flymasterProgress,
     volandooProgress,
     xcontestProgress,
-    selectedPilotIds,
     errorMessage,
     setErrorMessage,
-    setSelectedPilotIds,
   };
 };
 

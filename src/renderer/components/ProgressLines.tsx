@@ -6,9 +6,10 @@ const ProgressLines: React.FC = () => {
   const { flymasterProgress, xcontestProgress, volandooProgress } =
     useFetchIGCs();
 
+  console.log("flymaster progress", flymasterProgress);
   return (
     <>
-      {flymasterProgress.visible && (
+      {(flymasterProgress.visible || true) && (
         <ProgressLine
           detail={flymasterProgress.detail}
           percent={flymasterProgress.percent}

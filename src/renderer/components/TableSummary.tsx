@@ -1,17 +1,18 @@
 import { useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
-import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
-import React, { RefObject } from "react";
+import React, { RefObject, SetStateAction, Dispatch } from "react";
 
 export interface TableProps {
   tableRef: RefObject<HTMLTableElement>;
+  selectedPilotIds: Set<number>;
+  setSelectedPilotIds?: Dispatch<SetStateAction<Set<number>>>;
 }
-const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
+const TableSummary: React.FC<TableProps> = ({ tableRef, selectedPilotIds }) => {
   const {
     settings: { pilots },
   } = useSettings();
   const { igcFiles } = useTableTracks();
-  const { selectedPilotIds } = useFetchIGCs();
+
   const handleNoAssistedClick = () => {
     if (tableRef.current) {
       tableRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -21,12 +22,12 @@ const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
     <div className="mb-4 flex justify-between ">
       <div className="flex gap-2 ">
         <h2 className="bg-green-200 p-2 rounded font-semibold">
-          Valid tracks: {igcFiles.validIgcs.length}
+          Valid tracks: {igcFiles?.validIgcs.length}
         </h2>
         <h2
           className={`p-2 rounded font-semibold ${igcFiles.invalidIgcs.length > 0 ? "bg-red-200" : ""}`}
         >
-          Invalid tracks: {igcFiles.invalidIgcs.length}
+          Invalid tracks: {igcFiles?.invalidIgcs.length}
         </h2>
       </div>
       <div className=" flex gap-2">

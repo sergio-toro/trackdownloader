@@ -77,13 +77,12 @@ const Downloader = () => {
             </div>
           </div>
         </div>
-
-        {errorMessage && (
-          <div className="bg-red-200 text-red-700 p-2 rounded-md mb-4 mt-6 ">
-            {errorMessage}
-          </div>
-        )}
       </div>
+      {errorMessage && (
+        <div className="bg-red-200 text-red-700 p-2 rounded-md mb-2 mt-2 ">
+          {errorMessage}
+        </div>
+      )}
     </Card>
   );
 };

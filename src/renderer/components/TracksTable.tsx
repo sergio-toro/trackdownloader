@@ -1,22 +1,23 @@
 import React from "react";
 import { TableProps } from "./TableSummary";
 import { format, intervalToDuration } from "date-fns";
-import { useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
+import { useSettings } from "@renderer/context/settingsContext";
 
-const TracksTable: React.FC<TableProps> = ({ tableRef }) => {
+const TracksTable: React.FC<TableProps> = ({
+  tableRef,
+  selectedPilotIds,
+  setSelectedPilotIds,
+}) => {
+  const { selectedFolder, igcFiles, setIgcFiles } = useTableTracks();
+  const { fetchXcontestIGCs, fetchVolandooIGCs } = useFetchIGCs();
+
   const {
     settings: { pilots },
   } = useSettings();
-  const { selectedFolder, igcFiles, setIgcFiles } = useTableTracks();
-  const {
-    setSelectedPilotIds,
-    selectedPilotIds,
-    fetchXcontestIGCs,
-    fetchVolandooIGCs,
-  } = useFetchIGCs();
+
   const deleteFlight = async (fileName: string, pilotName: string) => {
     try {
       if (
@@ -61,6 +62,16 @@ const TracksTable: React.FC<TableProps> = ({ tableRef }) => {
       return newSelected;
     });
   };
+
+  const sortedPilots = (pilots || []).sort((a, b) => {
+    const aSelected = selectedPilotIds.has(a.id);
+    const bSelected = selectedPilotIds.has(b.id);
+
+    if (aSelected && !bSelected) return 1;
+    if (!aSelected && bSelected) return -1;
+
+    return a.name.localeCompare(b.name);
+  });
   return (
     <table ref={tableRef}>
       <thead>
@@ -77,7 +88,7 @@ const TracksTable: React.FC<TableProps> = ({ tableRef }) => {
         </tr>
       </thead>
       <tbody>
-        {pilots.map((pilot, index) => {
+        {sortedPilots.map((pilot, index) => {
           const pilotTracks = combinedIgcFiles.filter(
             (track) => track.pilotId === Number(pilot.id)
           );
