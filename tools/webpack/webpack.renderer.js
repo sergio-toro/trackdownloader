@@ -1,5 +1,6 @@
-const rules = require('./webpack.rules');
-const plugins = require('./webpack.plugins');
+/* eslint-disable @typescript-eslint/no-var-requires */
+const rules = require("./webpack.rules");
+const plugins = require("./webpack.plugins");
 
 module.exports = {
   module: {
@@ -7,16 +8,16 @@ module.exports = {
   },
   plugins: plugins,
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
+    extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],
     alias: {
       // Custom Aliases
-      ...require('./webpack.aliases'),
+      ...require("./webpack.aliases"),
     },
   },
-  stats: 'minimal',
+  stats: "minimal",
   /**
    * Fix: Enable inline-source-map to fix following:
    * Dev tools: unable to load source maps over custom protocol
    */
-  devtool: 'inline-source-map',
+  devtool: "inline-source-map",
 };

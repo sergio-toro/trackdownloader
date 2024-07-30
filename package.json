@@ -1,8 +1,9 @@
 {
   "name": "trackdownloader",
   "productName": "Track Downloader",
-  "version": "0.1.0",
-  "description": "Robust project for developing Desktop Application with Electron, React, Webpack & TypeScript.",
+  "version": "1.0.0",
+  "author": "Mireia Garcia, Sergio Toro",
+  "description": "Track Downloader is an application to download IGC tracks from Flymaster XContest and Volandoo",
   "main": ".webpack/main",
   "scripts": {
     "start": "cross-env NODE_ENV=development electron-forge start",
@@ -14,25 +15,14 @@
     "test": "echo 'TODO: Tests are not configured yet.' && exit 0;",
     "prepare": "husky"
   },
-  "keywords": [
-    "electron boilerplate",
-    "minimal",
-    "electron-webpack",
-    "electron-react",
-    "electron-typescript",
-    "hmr",
-    "boilerplate",
-    "2024",
-    "ERWT"
-  ],
-  "author": {
-    "name": "codesbiome",
-    "url": "https://github.com/codesbiome"
-  },
   "contributors": [
     {
-      "name": "guasam",
-      "url": "https://github.com/guasam"
+      "name": "mireia22",
+      "url": "https://github.com/mireia22"
+    },
+    {
+      "name": "sergio-toro",
+      "url": "https://github.com/sergio-toro"
     }
   ],
   "repository": {
