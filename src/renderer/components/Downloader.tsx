@@ -4,19 +4,25 @@ import Card from "./layout/Card";
 import Input from "./forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import ScrapButton from "./buttons/ScrapButton";
-import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
 
-const Downloader = () => {
+type Props = {
+  fetchFlyMasterIGCs: () => void;
+  fetchXcontestIGCs: () => void;
+  fetchVolandooIGCs: () => void;
+  selectFolder: () => void;
+  listIGCs: () => void;
+  errorMessage: string;
+};
+
+const Downloader: React.FC<Props> = ({
+  fetchFlyMasterIGCs,
+  fetchXcontestIGCs,
+  fetchVolandooIGCs,
+  selectFolder,
+  listIGCs,
+  errorMessage,
+}) => {
   const { selectedDate, selectedFolder, setSelectedDate } = useTableTracks();
-
-  const {
-    fetchFlyMasterIGCs,
-    fetchXcontestIGCs,
-    fetchVolandooIGCs,
-    selectFolder,
-    listIGCs,
-    errorMessage,
-  } = useFetchIGCs();
   useEffect(() => {
     if (selectedFolder) {
       listIGCs();
@@ -39,9 +45,9 @@ const Downloader = () => {
           <div className="flex flex-col px-8 items-start border-l-2 border-l-zinc-300  ">
             <button
               onClick={selectFolder}
-              className="border-gray-300 font-semibold text-sm"
+              className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
             >
-              {!selectedFolder ? "Select Folder:" : "Change Folder:"}
+              {!selectedFolder ? "Select Folder" : "Change Folder"}
             </button>
             {selectedFolder && (
               <span className="text-sm py-3 text-gray-700 ">

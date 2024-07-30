@@ -3,13 +3,27 @@ import { format, parseISO } from "date-fns";
 import { chunkArray } from "@renderer/utils/array";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
+
 export interface ProgressState {
   visible: boolean;
   percent: number;
   detail: string | null;
 }
 
-const useFetchIGCs = () => {
+export interface IgcFilesState {
+  setErrorMessage: (value: ((prevState: string) => string) | string) => void;
+  listIGCs: () => Promise<void>;
+  flymasterProgress: ProgressState;
+  xcontestProgress: ProgressState;
+  volandooProgress: ProgressState;
+  selectFolder: () => Promise<void>;
+  errorMessage: string;
+  fetchFlyMasterIGCs: () => Promise<void>;
+  fetchXcontestIGCs: (specificPilot?: PilotsState) => Promise<void>;
+  fetchVolandooIGCs: (specificPilot?: PilotsState) => Promise<void>;
+}
+
+const useFetchIGCs = (): IgcFilesState => {
   const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
     visible: false,
     percent: 0,

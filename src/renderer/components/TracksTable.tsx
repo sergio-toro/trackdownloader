@@ -1,18 +1,30 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { TableProps } from "./TableSummary";
 import { format, intervalToDuration } from "date-fns";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
-import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
-import { useSettings } from "@renderer/context/settingsContext";
+import { PilotsState, useSettings } from "@renderer/context/settingsContext";
+import cx from "classnames";
 
-const TracksTable: React.FC<TableProps> = ({
+type Props = TableProps & {
+  setSelectedPilotIds?: Dispatch<SetStateAction<Set<number>>>;
+  listIGCs: () => void;
+  fetchXcontestIGCs: (pilot: PilotsState) => void;
+  fetchVolandooIGCs: (pilot: PilotsState) => void;
+};
+
+const styles = {
+  deleteButton: "bg-red-500 text-white p-1 px-2 rounded-md hover:bg-red-600",
+};
+
+const TracksTable: React.FC<Props> = ({
   tableRef,
   selectedPilotIds,
   setSelectedPilotIds,
+  fetchXcontestIGCs,
+  fetchVolandooIGCs,
 }) => {
   const { selectedFolder, igcFiles, setIgcFiles } = useTableTracks();
-  const { fetchXcontestIGCs, fetchVolandooIGCs } = useFetchIGCs();
 
   const {
     settings: { pilots },
@@ -84,7 +96,7 @@ const TracksTable: React.FC<TableProps> = ({
           <th>Status</th>
           <th>Scrap</th>
           <th>Links</th>
-          <th>Asisted</th>
+          <th>Attended?</th>
         </tr>
       </thead>
       <tbody>
@@ -92,8 +104,6 @@ const TracksTable: React.FC<TableProps> = ({
           const pilotTracks = combinedIgcFiles.filter(
             (track) => track.pilotId === Number(pilot.id)
           );
-          // console.log("PILOT TRACKS", pilotTracks);
-
           const isInvalid = pilotTracks.some(
             (track) => track.isValid === false
           );
@@ -103,15 +113,12 @@ const TracksTable: React.FC<TableProps> = ({
           return (
             <tr
               key={index}
-              className={
-                isInvalid
-                  ? "bg-red-200"
-                  : hasMoreThanOneFlight
-                    ? "bg-yellow-100"
-                    : isSelected
-                      ? "opacity-60 bg-gray-200"
-                      : ""
-              }
+              className={cx({
+                "bg-red-200": isInvalid,
+                "bg-yellow-100": !isInvalid && hasMoreThanOneFlight,
+                "opacity-60": isSelected,
+                "bg-gray-200": !isInvalid && isSelected,
+              })}
             >
               <td>{pilot.id}</td>
               <td>{pilot.name}</td>
@@ -145,7 +152,7 @@ const TracksTable: React.FC<TableProps> = ({
                         >
                           <p>Error: {track.errorMessage}</p>
                           <button
-                            className="bg-red-800 text-white p-1 rounded-md "
+                            className={styles.deleteButton}
                             onClick={() =>
                               deleteFlight(track.name, String(track.pilotId))
                             }
@@ -185,7 +192,7 @@ const TracksTable: React.FC<TableProps> = ({
                         </div>
 
                         <button
-                          className="bg-red-800 text-white p-1 rounded-md "
+                          className={styles.deleteButton}
                           onClick={() =>
                             deleteFlight(track.name, track.pilotName)
                           }
@@ -209,18 +216,22 @@ const TracksTable: React.FC<TableProps> = ({
               </td>
               <td>
                 <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => fetchXcontestIGCs(pilot)}
-                    className=" border-orange-600  border-2   rounded-md  "
-                  >
-                    XContest
-                  </button>
-                  <button
-                    onClick={() => fetchVolandooIGCs(pilot)}
-                    className="border-[#342467] border-2 rounded-md "
-                  >
-                    Volandoo
-                  </button>
+                  {pilot.xcontest && (
+                    <button
+                      onClick={() => fetchXcontestIGCs(pilot)}
+                      className="border-orange-600 border-2 rounded-md bg-orange-100 hover:bg-orange-50"
+                    >
+                      XContest
+                    </button>
+                  )}
+                  {pilot.volandoo && (
+                    <button
+                      onClick={() => fetchVolandooIGCs(pilot)}
+                      className="border-[#342467] border-2 rounded-md bg-[#342467]/10 hover:bg-[#342467]/20"
+                    >
+                      Volandoo
+                    </button>
+                  )}
                 </div>
               </td>
               <td>

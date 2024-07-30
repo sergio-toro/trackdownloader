@@ -1,12 +1,12 @@
 import { useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
-import React, { RefObject, SetStateAction, Dispatch } from "react";
+import React, { RefObject } from "react";
 
 export interface TableProps {
   tableRef: RefObject<HTMLTableElement>;
   selectedPilotIds: Set<number>;
-  setSelectedPilotIds?: Dispatch<SetStateAction<Set<number>>>;
 }
+
 const TableSummary: React.FC<TableProps> = ({ tableRef, selectedPilotIds }) => {
   const {
     settings: { pilots },
@@ -36,13 +36,13 @@ const TableSummary: React.FC<TableProps> = ({ tableRef, selectedPilotIds }) => {
       </div>
       <div className=" flex gap-2">
         <h2 className="bg-zinc-200 p-2 rounded font-semibold">
-          Asisted: {pilots.length - selectedPilotIds.size}
+          Attended: {pilots.length - selectedPilotIds.size}
         </h2>
         <button
           className="bg-zinc-200 p-2 rounded font-semibold"
           onClick={handleNoAssistedClick}
         >
-          No asisted: {selectedPilotIds.size}
+          Not attended: {selectedPilotIds.size}
         </button>
       </div>
     </div>

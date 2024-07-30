@@ -57,7 +57,7 @@ export default function FlymasterGroupSelector() {
       titleActions={
         isFlymasterConfigured && (
           <button
-            className="border border-gray-300 px-2 py-1 rounded-md"
+            className="border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-100"
             onClick={fetchFlymasterGroups}
           >
             {isLoading
