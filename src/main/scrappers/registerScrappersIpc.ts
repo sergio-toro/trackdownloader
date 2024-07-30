@@ -13,29 +13,9 @@ export default function registerScrappersIpc() {
     return await getFlymasterIGCs(options);
   });
 
-  ipcMain.handle(
-    "get-xcontest-igcs-zip",
-    async (
-      _,
-      username,
-      password,
-      date,
-      xcontestId,
-      pilotId,
-      pilotName,
-      selectedFolder
-    ) => {
-      return await xcontestScraper(
-        username,
-        password,
-        date,
-        xcontestId,
-        pilotId,
-        pilotName,
-        selectedFolder
-      );
-    }
-  );
+  ipcMain.handle("get-xcontest-igcs-zip", async (_, options) => {
+    return await xcontestScraper(options);
+  });
 
   ipcMain.handle("get-volandoo-igcs", async (_, date, pilotUsername) => {
     return await getVolandooIGCs(date, pilotUsername);

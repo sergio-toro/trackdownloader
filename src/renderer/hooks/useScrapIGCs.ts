@@ -133,15 +133,18 @@ const useFetchIGCs = () => {
       try {
         await Promise.allSettled(
           chunk.map(async (pilot) =>
-            window.scrappers.xcontestIGCs(
-              xcontest?.username,
-              xcontest?.password,
-              selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-              pilot.xcontest!,
-              pilot.id,
-              pilot.name,
-              selectedFolder
-            )
+            window.scrappers.xcontestIGCs({
+              username: xcontest?.username,
+              password: xcontest?.password,
+              date: selectedDate
+                ? format(new Date(selectedDate), "dd.MM.yy")
+                : "",
+              xcontestId: pilot.xcontest!,
+              pilotId: pilot.id,
+              pilotName: pilot.name,
+              selectedFolder: selectedFolder,
+              debug,
+            })
           )
         );
       } catch (error) {

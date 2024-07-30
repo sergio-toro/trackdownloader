@@ -5,11 +5,18 @@ const extractTime = (timeString: string) => {
   return timeString.split("=")[0];
 };
 
-export const getXcontestIGCs = async (
-  page: Page,
-  date: string,
-  pilotId: string
-) => {
+type Options = {
+  page: Page;
+  date: string;
+  xcontestId: string;
+  debug?: boolean;
+};
+export const getXcontestIGCs = async ({
+  page,
+  date,
+  xcontestId,
+  debug,
+}: Options) => {
   try {
     await page.waitForSelector("div.XCslotPilotFlights table.XClist tr", {
       timeout: 7500,
@@ -49,10 +56,10 @@ export const getXcontestIGCs = async (
         detailsLinkElement
       );
 
-      const igcUrl = await getIGCUrl(detailsLink);
+      const igcUrl = await getIGCUrl({ detailsLink, debug });
 
       pilotIGCs.push({
-        pilotId,
+        pilotId: xcontestId,
         igcUrl,
         date: scrapedDate,
         startTime: extractTime(scrapedTime),

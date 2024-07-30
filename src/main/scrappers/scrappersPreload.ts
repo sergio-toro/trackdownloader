@@ -41,13 +41,15 @@ export interface ScrapperMethods {
     }
   ) => Promise<string>;
   xcontestIGCs: (
-    username: string,
-    password: string,
-    date: string,
-    xcontestId: string,
-    pilotId: number,
-    pilotName: string,
-    selectedFolder: string
+    options: BaseOptions & {
+      username: string;
+      password: string;
+      date: string;
+      xcontestId: string;
+      pilotId: number;
+      pilotName: string;
+      selectedFolder: string;
+    }
   ) => Promise<XcontestIGCsResponse>;
   volandooIGCs: (
     date: string,
@@ -60,25 +62,8 @@ const scrappers: ScrapperMethods = {
     ipcRenderer.invoke("scrapper-flymaster-groups", options),
   flymasterIGCs: async (options) =>
     ipcRenderer.invoke("get-flymaster-igcs-zip", options),
-  xcontestIGCs: async (
-    username: string,
-    password: string,
-    date: string,
-    xcontestId: string,
-    pilotId: number,
-    pilotName: string,
-    selectedFolder: string
-  ) =>
-    ipcRenderer.invoke(
-      "get-xcontest-igcs-zip",
-      username,
-      password,
-      date,
-      xcontestId,
-      pilotId,
-      pilotName,
-      selectedFolder
-    ),
+  xcontestIGCs: async (options) =>
+    ipcRenderer.invoke("get-xcontest-igcs-zip", options),
   volandooIGCs: async (date: string, pilotUsername: string) =>
     ipcRenderer.invoke("get-volandoo-igcs", date, pilotUsername),
 };

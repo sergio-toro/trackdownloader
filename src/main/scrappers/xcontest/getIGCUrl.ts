@@ -1,9 +1,13 @@
 import { ElementHandle } from "puppeteer-core";
 import { getWindowAndPage } from "@main/scrappers/window";
 
-export default async function getIGCUrl(detailsLink: string) {
+type Options = {
+  detailsLink: string;
+  debug?: boolean;
+};
+export default async function getIGCUrl({ detailsLink, debug }: Options) {
   const url = detailsLink;
-  const [window, page] = await getWindowAndPage(url);
+  const [window, page] = await getWindowAndPage(url, { show: debug });
 
   await page.waitForSelector("a[title='download tracklog in IGC format']", {
     timeout: 10000,
