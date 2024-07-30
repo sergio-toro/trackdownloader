@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import Card from "./layout/Card";
 import Input from "./forms/Input";
@@ -23,11 +23,6 @@ const Downloader: React.FC<Props> = ({
   errorMessage,
 }) => {
   const { selectedDate, selectedFolder, setSelectedDate } = useTableTracks();
-  useEffect(() => {
-    if (selectedFolder) {
-      listIGCs();
-    }
-  }, []);
 
   return (
     <Card className="w-full" title="Download Tracks">
