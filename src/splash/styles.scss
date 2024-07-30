@@ -1,0 +1,40 @@
+body {
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+#container {
+  position: relative;
+  overflow: hidden;
+}
+
+img.landing {
+  width: 100%;
+  height: auto;
+}
+
+p.title {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 15px;
+  /*background: rgba(0, 0, 0, 0.5);*/
+  font-size: 1.9em;
+  font-weight: 500;
+  color: #000;
+  font-family: Arial, sans-serif;
+}
+
+p.copy {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 0.9em;
+  color: white;
+  font-family: Arial, sans-serif;
+}

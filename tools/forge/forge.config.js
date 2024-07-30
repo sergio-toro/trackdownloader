@@ -10,9 +10,9 @@ module.exports = {
     // Set executable name
     executableName: 'TrackDownloader',
     // Set application copyright
-    appCopyright: '© 2024 Sergio Toro, Mireia Garcia',
+    appCopyright: '© 2024 Mireia Garcia, Sergio Toro',
     // Set application icon
-    icon: path.resolve('assets/images/appIcon.ico'),
+    icon: path.resolve('assets/images/app'),
   },
   // Forge Makers
   makers: [
@@ -21,7 +21,9 @@ module.exports = {
       // Windows applications and is therefore the most user friendly you can get.
       name: '@electron-forge/maker-squirrel',
       config: {
-        name: 'electron-react-typescript-webpack-2022',
+        name: 'TrackDownloader',
+        authors: 'Mireia Garcia, Sergio Toro',
+        description: 'Track Downloader is an application to download IGC tracks from Flymaster XContest and Volandoo',
       },
     },
     {
@@ -76,6 +78,12 @@ module.exports = {
               preload: {
                 js: path.join(rootDir, 'src/renderer/appPreload.tsx'),
               },
+            },
+            {
+              name: 'splash_window',
+              rhmr: 'react-hot-loader/patch',
+              html: path.join(rootDir, 'src/splash/index.html'),
+              js: path.join(rootDir, 'src/splash/appRenderer.tsx'),
             },
           ],
         },
