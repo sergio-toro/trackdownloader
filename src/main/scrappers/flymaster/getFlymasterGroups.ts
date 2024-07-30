@@ -1,8 +1,5 @@
-import pie from "puppeteer-in-electron";
-import { app, BrowserWindow } from "electron";
-import puppeteer from "puppeteer-core";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
-import { SCRAPPER_WINDOW_SETTINGS } from "@main/scrappers/window";
+import { getWindowAndPage } from "@main/scrappers/window";
 
 export interface SelectedGroup {
   id: string;
@@ -14,15 +11,13 @@ export default async function getFlymasterGroups(
   password: string
 ) {
   try {
-    // eslint-disable-next-line
-    // @ts-ignore
-    const browser = await pie.connect(app, puppeteer);
-
-    const window = new BrowserWindow(SCRAPPER_WINDOW_SETTINGS);
     const url = "https://lt.flymaster.net/#";
-    await window.loadURL(url);
 
-    const page = await pie.getPage(browser, window);
+    const [window, page] = await getWindowAndPage(url, {
+      width: 800,
+      height: 600,
+    });
+    await window.loadURL(url);
 
     await page.waitForNetworkIdle();
 
