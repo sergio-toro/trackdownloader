@@ -17,12 +17,12 @@ export default async function getFlymasterGroups(
       width: 800,
       height: 600,
     });
-    await window.loadURL(url);
 
     await page.waitForNetworkIdle();
 
     console.log(`Navigating to ${url}...`);
     await doLoginAndTableSearch(username, password, page);
+    await page.waitForNetworkIdle();
 
     const groups = await page.$$("#groupstable tbody tr");
     const groupsToSelect: SelectedGroup[] = [];
