@@ -21,7 +21,7 @@ export default function Configuration() {
   };
 
   return (
-    <div className="min-w-full bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md">
+    <div className="min-w-full bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6">
       <div className="flex flex-row gap-3 justify-start items-center px-4 py-2">
         <div className="flex-grow">
           <button

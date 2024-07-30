@@ -1,5 +1,11 @@
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 export interface TracksState {
   igcFiles: ListIGCsResponse;
@@ -7,6 +13,8 @@ export interface TracksState {
   selectedDate: string;
   selectedFolder: string;
   igcsInDirectory: string;
+  selectedPilotIds: Set<number>;
+  setSelectedPilotIds: React.Dispatch<SetStateAction<Set<number>>>;
   setIgcFiles: React.Dispatch<React.SetStateAction<ListIGCsResponse>>;
   setParsedIgcIds: React.Dispatch<React.SetStateAction<string[]>>;
   setSelectedDate: React.Dispatch<React.SetStateAction<string>>;
@@ -20,11 +28,13 @@ const initialContext: TracksState = {
   selectedDate: "",
   selectedFolder: "",
   igcsInDirectory: "",
+  selectedPilotIds: new Set(),
   setIgcFiles: () => {},
   setParsedIgcIds: () => {},
   setSelectedDate: () => {},
   setSelectedFolder: () => {},
   setIgcsInDirectory: () => {},
+  setSelectedPilotIds: () => {},
 };
 
 const TracksContext = createContext<TracksState>(initialContext);
@@ -52,6 +62,9 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
   const [igcsInDirectory, setIgcsInDirectory] = useState<string>(
     initialContext.igcsInDirectory
   );
+  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
+    initialContext.selectedPilotIds
+  );
 
   useEffect(() => {
     const storedTracks = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -62,6 +75,7 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
       setSelectedDate(parsedTracks.selectedDate || "");
       setSelectedFolder(parsedTracks.selectedFolder || "");
       setIgcsInDirectory(parsedTracks.igcsInDirectory || "");
+      setSelectedPilotIds(new Set(parsedTracks.selectedPilotIds || []));
     }
   }, []);
 
@@ -74,9 +88,17 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
         selectedDate,
         selectedFolder,
         igcsInDirectory,
+        selectedPilotIds: Array.from(selectedPilotIds),
       })
     );
-  }, [igcFiles, parsedIgcIds, selectedDate, selectedFolder, igcsInDirectory]);
+  }, [
+    igcFiles,
+    parsedIgcIds,
+    selectedDate,
+    selectedFolder,
+    igcsInDirectory,
+    selectedPilotIds,
+  ]);
 
   return (
     <TracksContext.Provider
@@ -86,11 +108,13 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
         selectedDate,
         selectedFolder,
         igcsInDirectory,
+        selectedPilotIds,
         setIgcFiles,
         setParsedIgcIds,
         setSelectedDate,
         setSelectedFolder,
         setIgcsInDirectory,
+        setSelectedPilotIds,
       }}
     >
       {children}

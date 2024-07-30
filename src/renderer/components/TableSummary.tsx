@@ -4,14 +4,13 @@ import React, { RefObject } from "react";
 
 export interface TableProps {
   tableRef: RefObject<HTMLTableElement>;
-  selectedPilotIds: Set<number>;
 }
 
-const TableSummary: React.FC<TableProps> = ({ tableRef, selectedPilotIds }) => {
+const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
   const {
     settings: { pilots },
   } = useSettings();
-  const { igcFiles } = useTableTracks();
+  const { igcFiles, selectedPilotIds } = useTableTracks();
 
   const handleNoAssistedClick = () => {
     if (tableRef.current) {
