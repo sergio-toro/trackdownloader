@@ -7,7 +7,7 @@ import "react-datasheet/lib/react-datasheet.css";
 
 const Application: React.FC = () => {
   return (
-    <div className="dark">
+    <div>
       <HashRouter>
         <Routes>
           <Route path="/" element={<Home />} />
