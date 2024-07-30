@@ -29,7 +29,7 @@ const useFetchIGCs = () => {
   const [isListingDirectory, setIsListingDirectory] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const {
-    settings: { flymaster, xcontest, pilots },
+    settings: { flymaster, xcontest, pilots, debug },
   } = useSettings();
   const {
     selectedDate,
@@ -56,21 +56,18 @@ const useFetchIGCs = () => {
         percent: 5,
         detail: "Flymaster: Creating IGCs ZIP...",
       });
-      console.log("flymaster visible", flymasterProgress);
-
-      const zipURL = await window.scrappers.flymasterIGCs(
-        flymaster.selectedGroup?.id,
-        selectedDate,
-        flymaster?.username,
-        flymaster?.password
-      );
+      const zipURL = await window.scrappers.flymasterIGCs({
+        selectedGroup: flymaster.selectedGroup?.id,
+        date: selectedDate,
+        username: flymaster?.username,
+        password: flymaster?.password,
+        debug,
+      });
       setFlymasterProgress({
         visible: true,
         percent: 35,
         detail: "Flymaster: Downloading IGCs ZIP...",
       });
-      console.log("flymaster visible", flymasterProgress);
-
       const fileName = "flymaster.zip";
       const filePath = `${selectedFolder}/${fileName}`;
 
@@ -80,7 +77,6 @@ const useFetchIGCs = () => {
         percent: 75,
         detail: "Flymaster: Decompressing IGCs ZIP...",
       });
-
       await window.tracks.unzipFile(zipPath, selectedFolder);
 
       setFlymasterProgress({
@@ -88,7 +84,6 @@ const useFetchIGCs = () => {
         percent: 90,
         detail: "Flymaster: Listing IGCs...",
       });
-
       await listIGCs();
 
       setFlymasterProgress({
@@ -264,7 +259,6 @@ const useFetchIGCs = () => {
       console.error("Error fetching Volandoo IGCS:", error);
     }
   };
-  console.log("flymaster in hook", flymasterProgress);
 
   return {
     fetchFlyMasterIGCs,

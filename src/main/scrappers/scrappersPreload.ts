@@ -21,16 +21,24 @@ type VolandooIGCsResponse = Array<{
   duration: string;
 }>;
 
+type BaseOptions = {
+  debug?: boolean;
+};
+
 export interface ScrapperMethods {
-  flymasterGroups: (options: {
-    username: string;
-    password: string;
-  }) => Promise<FlymasterGroupsResponse>;
+  flymasterGroups: (
+    options: BaseOptions & {
+      username: string;
+      password: string;
+    }
+  ) => Promise<FlymasterGroupsResponse>;
   flymasterIGCs: (
-    selectedGroup: string,
-    date: string,
-    username: string,
-    password: string
+    options: BaseOptions & {
+      selectedGroup: string;
+      date: string;
+      username: string;
+      password: string;
+    }
   ) => Promise<string>;
   xcontestIGCs: (
     username: string,
@@ -50,19 +58,8 @@ export interface ScrapperMethods {
 const scrappers: ScrapperMethods = {
   flymasterGroups: async (options) =>
     ipcRenderer.invoke("scrapper-flymaster-groups", options),
-  flymasterIGCs: async (
-    selectedGroup: string,
-    date: string,
-    username: string,
-    password: string
-  ) =>
-    ipcRenderer.invoke(
-      "get-flymaster-igcs-zip",
-      selectedGroup,
-      date,
-      username,
-      password
-    ),
+  flymasterIGCs: async (options) =>
+    ipcRenderer.invoke("get-flymaster-igcs-zip", options),
   xcontestIGCs: async (
     username: string,
     password: string,

@@ -6,20 +6,12 @@ import xcontestScraper from "./xcontest/xcontestScraper";
 import { getVolandooIGCs } from "./volandoo/getVolandooIGC";
 
 export default function registerScrappersIpc() {
-  ipcMain.handle(
-    "scrapper-flymaster-groups",
-    async (_, { username, password }) => {
-      console.log("running cli", _, username);
-
-      return await getFlymasterGroups({ username, password });
-    }
-  );
-  ipcMain.handle(
-    "get-flymaster-igcs-zip",
-    async (_, selectedGroup, date, username, password) => {
-      return await getFlymasterIGCs(selectedGroup, date, username, password);
-    }
-  );
+  ipcMain.handle("scrapper-flymaster-groups", async (_, options) => {
+    return await getFlymasterGroups(options);
+  });
+  ipcMain.handle("get-flymaster-igcs-zip", async (_, options) => {
+    return await getFlymasterIGCs(options);
+  });
 
   ipcMain.handle(
     "get-xcontest-igcs-zip",
