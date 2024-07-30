@@ -62,7 +62,7 @@ export default function PilotsForm() {
       { value: "Name", readOnly: true },
 
       {
-        value: "XCTrack",
+        value: "XContest",
         readOnly: true,
         className: "cell read-only w-[125px]",
       },
@@ -77,14 +77,14 @@ export default function PilotsForm() {
         {
           id: null,
           name: null,
-          xctrack: null,
+          xcontest: null,
           volandoo: null,
         },
       ]
     ).map((pilot) => [
       { value: String(pilot.id) },
       { value: pilot.name },
-      { value: pilot.xctrack },
+      { value: pilot.xcontest },
       { value: pilot.volandoo },
     ]),
   ]);
@@ -103,7 +103,7 @@ export default function PilotsForm() {
     const pilotsData = debouncedData.slice(1).map((row) => ({
       id: Number(row[0].value),
       name: row[1].value,
-      xctrack: row[2].value,
+      xcontest: row[2].value,
       volandoo: row[3].value,
     }));
 

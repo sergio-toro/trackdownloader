@@ -123,13 +123,13 @@ const useFetchIGCs = () => {
       );
 
       pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.xctrack)
+        Boolean(pilot.xcontest)
       );
     }
 
     const pilotChunks = chunkArray(pilotsToFetch, 2);
     for (const [chunkIndex, chunk] of pilotChunks.entries()) {
-      const pilotUsernames = chunk.map((pilot) => pilot.xctrack).join(", ");
+      const pilotUsernames = chunk.map((pilot) => pilot.xcontest).join(", ");
       setXcontestProgress({
         visible: true,
         percent: Math.floor((chunkIndex / pilotChunks.length) * 100),
@@ -142,7 +142,7 @@ const useFetchIGCs = () => {
               xcontest?.username,
               xcontest?.password,
               selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-              pilot.xctrack!,
+              pilot.xcontest!,
               pilot.id,
               pilot.name,
               selectedFolder

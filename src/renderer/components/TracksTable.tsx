@@ -226,7 +226,7 @@ const TracksTable: React.FC<TableProps> = ({
               <td>
                 <div className="flex flex-col gap-3">
                   <a
-                    href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xctrack}`}
+                    href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xcontest}`}
                     className=" font-bold underline  "
                     target="_blank"
                     rel="noopener noreferrer"
