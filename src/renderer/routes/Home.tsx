@@ -1,49 +1,62 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Configuration from "@components/Configuration";
 import { useSettings } from "@renderer/context/settingsContext";
 import Downloader from "@components/Downloader";
-import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
 import TableSummary from "@components/TableSummary";
 import TracksTable from "@components/TracksTable";
+import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
 import ProgressLines from "@components/ProgressLines";
 
-export interface ProgressState {
-  visible: boolean;
-  percent: number;
-  detail: string | null;
-}
-
 const Home: React.FC = () => {
+  const tableRef = useRef<HTMLTableElement>(null);
   const {
     settings: { pilots },
   } = useSettings();
-
-  const { selectedPilotIds } = useFetchIGCs();
-
-  const tableRef = useRef<HTMLTableElement>(null);
-
-  const sortedPilots = (pilots || []).sort((a, b) => {
-    const aSelected = selectedPilotIds.has(a.id);
-    const bSelected = selectedPilotIds.has(b.id);
-
-    if (aSelected && !bSelected) return 1;
-    if (!aSelected && bSelected) return -1;
-
-    return a.name.localeCompare(b.name);
-  });
-
+  const {
+    fetchFlyMasterIGCs,
+    fetchXcontestIGCs,
+    fetchVolandooIGCs,
+    selectFolder,
+    listIGCs,
+    errorMessage,
+    flymasterProgress,
+    xcontestProgress,
+    volandooProgress,
+  } = useFetchIGCs();
+  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
+    new Set()
+  );
   return (
     <div id="application">
       <Configuration />
-      <Downloader />
-      <ProgressLines />
+      <Downloader
+        fetchFlyMasterIGCs={fetchFlyMasterIGCs}
+        fetchXcontestIGCs={fetchXcontestIGCs}
+        fetchVolandooIGCs={fetchVolandooIGCs}
+        selectFolder={selectFolder}
+        listIGCs={listIGCs}
+        errorMessage={errorMessage}
+      />
+      <ProgressLines
+        flymasterProgress={flymasterProgress}
+        xcontestProgress={xcontestProgress}
+        volandooProgress={volandooProgress}
+      />
 
-      {sortedPilots.length > 0 ? (
-        <div className="flex flex-col gap-8">
-          <div>
-            <TableSummary tableRef={tableRef} />
-            <TracksTable tableRef={tableRef} />
-          </div>
+      {pilots.length > 0 ? (
+        <div className="w-full">
+          <TableSummary
+            tableRef={tableRef}
+            selectedPilotIds={selectedPilotIds}
+          />
+          <TracksTable
+            tableRef={tableRef}
+            listIGCs={listIGCs}
+            selectedPilotIds={selectedPilotIds}
+            setSelectedPilotIds={setSelectedPilotIds}
+            fetchXcontestIGCs={fetchXcontestIGCs}
+            fetchVolandooIGCs={fetchVolandooIGCs}
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center">

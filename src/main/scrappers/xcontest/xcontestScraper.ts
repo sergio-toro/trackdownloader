@@ -3,21 +3,34 @@ import { downloadFile } from "@main/tracks/downloadFile";
 import { parse } from "date-fns";
 import { getWindowAndPage } from "@main/scrappers/window";
 
-export default async function xcontestScraper(
-  username: string,
-  password: string,
-  date: string,
-  xcontestId: string,
-  pilotId: number,
-  pilotName: string,
-  selectedFolder: string
-) {
+type Options = {
+  username: string;
+  password: string;
+  date: string;
+  xcontestId: string;
+  pilotId: number;
+  pilotName: string;
+  selectedFolder: string;
+  debug?: boolean;
+};
+export default async function xcontestScraper({
+  username,
+  password,
+  date,
+  xcontestId,
+  pilotId,
+  pilotName,
+  selectedFolder,
+  debug = false,
+}: Options) {
   if (!xcontestId) {
     console.error(`XContest ID is required, "${xcontestId}" provided`);
     throw new Error("XContest ID is required");
   }
   const url = "https://www.xcontest.org/world/es/";
-  const [window, page] = await getWindowAndPage(url);
+  const [window, page] = await getWindowAndPage(url, {
+    show: debug,
+  });
 
   try {
     console.log(`Navigating to ${url}...`);
@@ -62,7 +75,12 @@ export default async function xcontestScraper(
       throw new Error("Pilot not found");
     }
 
-    const flightDetails = await getXcontestIGCs(page, date, xcontestId);
+    const flightDetails = await getXcontestIGCs({
+      page,
+      date,
+      xcontestId,
+      debug,
+    });
     allXContestFlights.push(...flightDetails);
 
     // Get cookies of the page

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface FlymasterGroup {
   id: string;
@@ -15,7 +15,7 @@ interface FlymasterState {
 export interface PilotsState {
   id: number;
   name: string;
-  xctrack: string | null;
+  xcontest: string | null;
   volandoo: string | null;
 }
 
@@ -23,11 +23,13 @@ export interface SettingsState {
   flymaster: null | FlymasterState;
   pilots: null | PilotsState[];
   xcontest: null | { username: string; password: string };
+  debug: boolean;
 }
 
 interface SettingsContextProps {
   settings: SettingsState;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
+  setDebug: (debug: boolean) => void;
   setPilots: (pilots: PilotsState[] | null) => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
@@ -38,7 +40,9 @@ const initialContext: SettingsContextProps = {
     flymaster: null,
     xcontest: null,
     pilots: null,
+    debug: false,
   },
+  setDebug: () => {},
   setSettings: () => {},
   setPilots: () => {},
   setFlymaster: () => {},
@@ -68,6 +72,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   const contextValue = {
     settings,
     setSettings,
+    setDebug: (debug: boolean) => {
+      setSettings((prevSettings) => ({ ...prevSettings, debug }));
+    },
     setPilots: (pilots: PilotsState[] | null) => {
       setSettings((prevSettings) => ({ ...prevSettings, pilots }));
     },

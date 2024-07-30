@@ -23,6 +23,7 @@ body,
 input {
   color: rgba(var(--input-text));
 }
+
 html,
 body,
 #app {
@@ -45,11 +46,11 @@ body,
   gap: 2rem;
   padding: 1rem;
 }
+
 table {
-  width: 84rem;
+  width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
-  cursor: pointer;
   background-color: rgba(255, 255, 255, 0.89);
   border-collapse: collapse;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);

@@ -1,17 +1,26 @@
 import { format, isValid, parse } from "date-fns";
-import { SelectedGroup } from "./getFlymasterGroups";
+import { FlymasterGroup } from "./getFlymasterGroups";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
 import { getWindowAndPage } from "@main/scrappers/window";
 
-export const getFlymasterIGCs = async (
-  selectedGroup: SelectedGroup,
-  date: string,
-  username: string,
-  password: string
-): Promise<string> => {
+type Options = {
+  selectedGroup: FlymasterGroup;
+  date: string;
+  username: string;
+  password: string;
+  debug?: boolean;
+};
+export const getFlymasterIGCs = async ({
+  selectedGroup,
+  date,
+  username,
+  password,
+  debug = false,
+}: Options): Promise<string> => {
   try {
     const url = "https://lt.flymaster.net/#";
     const [window, page] = await getWindowAndPage(url, {
+      show: debug,
       width: 800,
       height: 600,
     });

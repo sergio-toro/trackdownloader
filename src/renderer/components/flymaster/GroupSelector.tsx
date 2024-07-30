@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSettings } from "@renderer/context/settingsContext";
 import Card from "@components/layout/Card";
 import Alert from "@components/layout/Alert";
@@ -10,25 +10,35 @@ interface Groups {
 
 export default function FlymasterGroupSelector() {
   const {
-    settings: { flymaster },
+    settings: { flymaster, debug },
     setFlymaster,
   } = useSettings();
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const isFlymasterConfigured = flymaster?.username && flymaster?.password;
 
   const fetchFlymasterGroups = async () => {
+    if (isLoading) return;
     try {
-      const groups = await window.scrappers.flymasterGroups(
-        flymaster?.username,
-        flymaster?.password
-      );
+      setIsLoading(true);
+      setFlymaster({
+        ...flymaster,
+        groups: [],
+        selectedGroup: null,
+      });
+      const groups = await window.scrappers.flymasterGroups({
+        username: flymaster?.username,
+        password: flymaster?.password,
+        debug,
+      });
       setFlymaster({
         ...flymaster,
         groups,
-        selectedGroup: null,
       });
-      // setGroups(groups);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error("Error fetching Flymaster groups:", error);
     }
   };
@@ -46,8 +56,15 @@ export default function FlymasterGroupSelector() {
       title="Flymaster groups"
       titleActions={
         isFlymasterConfigured && (
-          <button onClick={fetchFlymasterGroups}>
-            {flymaster.groups?.length > 0 ? "Reload groups" : "Load groups"}
+          <button
+            className="border border-gray-300 px-2 py-1 rounded-md hover:bg-gray-100"
+            onClick={fetchFlymasterGroups}
+          >
+            {isLoading
+              ? "Loading..."
+              : flymaster.groups?.length > 0
+                ? "Reload groups"
+                : "Load groups"}
           </button>
         )
       }
@@ -96,7 +113,7 @@ export default function FlymasterGroupSelector() {
                         type="checkbox"
                         value={group.id}
                         readOnly={true}
-                        defaultChecked={isSelected}
+                        checked={isSelected}
                       />
                     </td>
                   </tr>
@@ -107,7 +124,9 @@ export default function FlymasterGroupSelector() {
         </div>
       ) : (
         isFlymasterConfigured && (
-          <p className=" text-center">No groups to render.</p>
+          <p className=" text-center">
+            {isLoading ? "Loading groups..." : "No groups to render."}
+          </p>
         )
       )}
     </Card>

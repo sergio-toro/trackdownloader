@@ -1,11 +1,31 @@
 import { useState } from "react";
+import { md5 } from "js-md5";
+
 import { format, parseISO } from "date-fns";
 import { chunkArray } from "@renderer/utils/array";
-import { ProgressState } from "@renderer/routes/Home";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 
-const useFetchIGCs = () => {
+export interface ProgressState {
+  visible: boolean;
+  percent: number;
+  detail: string | null;
+}
+
+export interface IgcFilesState {
+  setErrorMessage: (value: ((prevState: string) => string) | string) => void;
+  listIGCs: () => Promise<void>;
+  flymasterProgress: ProgressState;
+  xcontestProgress: ProgressState;
+  volandooProgress: ProgressState;
+  selectFolder: () => Promise<void>;
+  errorMessage: string;
+  fetchFlyMasterIGCs: () => Promise<void>;
+  fetchXcontestIGCs: (specificPilot?: PilotsState) => Promise<void>;
+  fetchVolandooIGCs: (specificPilot?: PilotsState) => Promise<void>;
+}
+
+const useFetchIGCs = (): IgcFilesState => {
   const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
     visible: false,
     percent: 0,
@@ -21,14 +41,11 @@ const useFetchIGCs = () => {
     percent: 0,
     detail: null,
   });
-  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
-    new Set()
-  );
 
   const [isListingDirectory, setIsListingDirectory] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const {
-    settings: { flymaster, xcontest, pilots },
+    settings: { flymaster, xcontest, pilots, debug },
   } = useSettings();
   const {
     selectedDate,
@@ -55,12 +72,13 @@ const useFetchIGCs = () => {
         percent: 5,
         detail: "Flymaster: Creating IGCs ZIP...",
       });
-      const zipURL = await window.scrappers.flymasterIGCs(
-        flymaster.selectedGroup?.id,
-        selectedDate,
-        flymaster?.username,
-        flymaster?.password
-      );
+      const zipURL = await window.scrappers.flymasterIGCs({
+        selectedGroup: flymaster.selectedGroup?.id,
+        date: selectedDate,
+        username: flymaster?.username,
+        password: flymaster?.password,
+        debug,
+      });
       setFlymasterProgress({
         visible: true,
         percent: 35,
@@ -116,13 +134,13 @@ const useFetchIGCs = () => {
       );
 
       pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.xctrack)
+        Boolean(pilot.xcontest)
       );
     }
 
     const pilotChunks = chunkArray(pilotsToFetch, 2);
     for (const [chunkIndex, chunk] of pilotChunks.entries()) {
-      const pilotUsernames = chunk.map((pilot) => pilot.xctrack).join(", ");
+      const pilotUsernames = chunk.map((pilot) => pilot.xcontest).join(", ");
       setXcontestProgress({
         visible: true,
         percent: Math.floor((chunkIndex / pilotChunks.length) * 100),
@@ -131,15 +149,18 @@ const useFetchIGCs = () => {
       try {
         await Promise.allSettled(
           chunk.map(async (pilot) =>
-            window.scrappers.xcontestIGCs(
-              xcontest?.username,
-              xcontest?.password,
-              selectedDate ? format(new Date(selectedDate), "dd.MM.yy") : "",
-              pilot.xctrack!,
-              pilot.id,
-              pilot.name,
-              selectedFolder
-            )
+            window.scrappers.xcontestIGCs({
+              username: xcontest?.username,
+              password: xcontest?.password,
+              date: selectedDate
+                ? format(new Date(selectedDate), "dd.MM.yy")
+                : "",
+              xcontestId: pilot.xcontest!,
+              pilotId: pilot.id,
+              pilotName: pilot.name,
+              selectedFolder: selectedFolder,
+              debug,
+            })
           )
         );
       } catch (error) {
@@ -191,6 +212,7 @@ const useFetchIGCs = () => {
     let pilotsToFetch;
 
     if (specificPilot) {
+      console.log("VOLANDOO PILOT", specificPilot);
       pilotsToFetch = [specificPilot];
     } else {
       const pilotsWithTracksIds = new Set([
@@ -215,16 +237,24 @@ const useFetchIGCs = () => {
         });
 
         const parsedDate = parseISO(selectedDate);
-        const formattedDate = format(parsedDate, "M/d/yyyy");
-        const pilotIGCs = await window.scrappers.volandooIGCs(
-          formattedDate,
-          pilot.volandoo
-        );
-        console.log("PILOT USERNAME", pilot.volandoo);
-        console.log("VOLANDOO IGCS", pilotIGCs);
+        const formattedDate = format(parsedDate, "MM/dd/yyyy");
+
+        console.log("Volandoo Settings", {
+          date: formattedDate,
+          volandooId: pilot.volandoo,
+          debug,
+        });
+
+        const pilotIGCs = await window.scrappers.volandooIGCs({
+          date: formattedDate,
+          volandooId: pilot.volandoo,
+          debug,
+        });
+
+        console.log("Volandoo PILOT IGCs", pilotIGCs);
 
         for (const track of pilotIGCs) {
-          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${track.date}${track.startTime}.${pilot.id}.igc`;
+          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
           try {
             await window.tracks.downloadFile(track.igcUrl, filePath);
           } catch (downloadError) {
@@ -267,10 +297,8 @@ const useFetchIGCs = () => {
     flymasterProgress,
     volandooProgress,
     xcontestProgress,
-    selectedPilotIds,
     errorMessage,
     setErrorMessage,
-    setSelectedPilotIds,
   };
 };
 

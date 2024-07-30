@@ -3,17 +3,11 @@ import puppeteer, { Page } from "puppeteer-core";
 import pie from "puppeteer-in-electron";
 
 export const SCRAPPER_WINDOW_SETTINGS: BrowserWindowConstructorOptions = {
-  width: 400,
-  height: 200,
-  // width: 800,
-  // height: 600,
-  focusable: false,
-  alwaysOnTop: false,
-  opacity: 0.8,
-  // webPreferences: {
-  //   nodeIntegration: true,
-  //   contextIsolation: false,
-  // },
+  width: 800,
+  height: 600,
+  focusable: true,
+  alwaysOnTop: true,
+  opacity: 1,
 };
 
 interface ScrapperWindowSettings extends BrowserWindowConstructorOptions {

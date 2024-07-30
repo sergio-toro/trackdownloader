@@ -1,11 +1,18 @@
 import React from "react";
-import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
+import { ProgressState } from "@renderer/hooks/useScrapIGCs";
 import ProgressLine from "./layout/ProgressLine";
 
-const ProgressLines: React.FC = () => {
-  const { flymasterProgress, xcontestProgress, volandooProgress } =
-    useFetchIGCs();
+type Props = {
+  flymasterProgress: ProgressState;
+  xcontestProgress: ProgressState;
+  volandooProgress: ProgressState;
+};
 
+const ProgressLines: React.FC<Props> = ({
+  flymasterProgress,
+  xcontestProgress,
+  volandooProgress,
+}) => {
   return (
     <>
       {flymasterProgress.visible && (

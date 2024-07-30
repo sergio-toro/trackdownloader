@@ -17,76 +17,56 @@ type VolandooIGCsResponse = Array<{
   pilotId: string;
   igcUrl: string;
   date: string;
-  startTime: string;
   duration: string;
 }>;
 
+type BaseOptions = {
+  debug?: boolean;
+};
+
 export interface ScrapperMethods {
-  test: (username: string) => Promise<void>;
   flymasterGroups: (
-    username: string,
-    password: string
+    options: BaseOptions & {
+      username: string;
+      password: string;
+    }
   ) => Promise<FlymasterGroupsResponse>;
   flymasterIGCs: (
-    selectedGroup: string,
-    date: string,
-    username: string,
-    password: string
+    options: BaseOptions & {
+      selectedGroup: string;
+      date: string;
+      username: string;
+      password: string;
+    }
   ) => Promise<string>;
   xcontestIGCs: (
-    username: string,
-    password: string,
-    date: string,
-    xcontestId: string,
-    pilotId: number,
-    pilotName: string,
-    selectedFolder: string
+    options: BaseOptions & {
+      username: string;
+      password: string;
+      date: string;
+      xcontestId: string;
+      pilotId: number;
+      pilotName: string;
+      selectedFolder: string;
+    }
   ) => Promise<XcontestIGCsResponse>;
   volandooIGCs: (
-    date: string,
-    pilotUsername: string
+    options: BaseOptions & {
+      date: string;
+      volandooId: string;
+    }
   ) => Promise<VolandooIGCsResponse>;
 }
 
 const scrappers: ScrapperMethods = {
-  test: async (username: string) =>
-    ipcRenderer.invoke("scrapper-test", username),
-  flymasterGroups: async (username: string, password: string) =>
-    ipcRenderer.invoke("scrapper-flymaster-groups", username, password),
-  flymasterIGCs: async (
-    selectedGroup: string,
-    date: string,
-    username: string,
-    password: string
-  ) =>
-    ipcRenderer.invoke(
-      "get-flymaster-igcs-zip",
-      selectedGroup,
-      date,
-      username,
-      password
-    ),
-  xcontestIGCs: async (
-    username: string,
-    password: string,
-    date: string,
-    xcontestId: string,
-    pilotId: number,
-    pilotName: string,
-    selectedFolder: string
-  ) =>
-    ipcRenderer.invoke(
-      "get-xcontest-igcs-zip",
-      username,
-      password,
-      date,
-      xcontestId,
-      pilotId,
-      pilotName,
-      selectedFolder
-    ),
-  volandooIGCs: async (date: string, pilotUsername: string) =>
-    ipcRenderer.invoke("get-volandoo-igcs", date, pilotUsername),
+  flymasterGroups: async (options) =>
+    ipcRenderer.invoke("scrapper-flymaster-groups", options),
+  flymasterIGCs: async (options) =>
+    ipcRenderer.invoke("get-flymaster-igcs-zip", options),
+  xcontestIGCs: async (options) =>
+    ipcRenderer.invoke("get-xcontest-igcs-zip", options),
+  volandooIGCs: async (options) =>
+    ipcRenderer.invoke("get-volandoo-igcs", options),
 };
 
 contextBridge.exposeInMainWorld("scrappers", scrappers);
