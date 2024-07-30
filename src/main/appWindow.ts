@@ -53,7 +53,8 @@ export async function createAppWindow(): Promise<BrowserWindow> {
     },
   });
 
-  appWindow.webContents.openDevTools();
+  // README: Uncomment the line below to open dev tools
+  // appWindow.webContents.openDevTools();
 
   const splash = new BrowserWindow({
     width: 500,
