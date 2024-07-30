@@ -1,5 +1,6 @@
 import fs from "fs";
-import IGCParser from "igc-parser";
+// import IGCParser from "igc-parser";
+import IGCParser from "@main/lib/igc-parser";
 import { formatDuration, intervalToDuration } from "date-fns";
 
 const FILENAME_REGEX = /(XContest|LiveTrack|Volandoo)\s([^-]*)\s-.*$/;
