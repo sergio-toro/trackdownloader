@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { md5 } from "js-md5";
 
 import { format, parseISO } from "date-fns";
@@ -20,6 +20,7 @@ export interface IgcFilesState {
   volandooProgress: ProgressState;
   selectFolder: () => Promise<void>;
   errorMessage: string;
+  isListingDirectory: boolean;
   fetchFlyMasterIGCs: () => Promise<void>;
   fetchXcontestIGCs: (specificPilot?: PilotsState) => Promise<void>;
   fetchVolandooIGCs: (specificPilot?: PilotsState) => Promise<void>;
@@ -54,6 +55,15 @@ const useFetchIGCs = (): IgcFilesState => {
     setIgcFiles,
     setSelectedFolder,
   } = useTableTracks();
+
+  useEffect(() => {
+    if (selectedFolder) {
+      console.log("Listing IGCs...", selectedFolder);
+      listIGCs();
+    } else {
+      console.log("No folder selected...");
+    }
+  }, [selectedFolder]);
 
   const validateInputs = () => {
     if (!selectedDate || !selectedFolder) {
@@ -201,7 +211,6 @@ const useFetchIGCs = (): IgcFilesState => {
     try {
       const directory = await window.tracks.selectDirectory();
       setSelectedFolder(directory);
-      await listIGCs();
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
@@ -294,6 +303,7 @@ const useFetchIGCs = (): IgcFilesState => {
     fetchVolandooIGCs,
     selectFolder,
     listIGCs,
+    isListingDirectory,
     flymasterProgress,
     volandooProgress,
     xcontestProgress,

@@ -2,7 +2,6 @@ import React from "react";
 import { TableProps } from "./TableSummary";
 import { format, intervalToDuration } from "date-fns";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
-import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import cx from "classnames";
 
@@ -18,16 +17,12 @@ const styles = {
 
 const TracksTable: React.FC<Props> = ({
   tableRef,
+  listIGCs,
   fetchXcontestIGCs,
   fetchVolandooIGCs,
 }) => {
-  const {
-    selectedFolder,
-    igcFiles,
-    selectedPilotIds,
-    setIgcFiles,
-    setSelectedPilotIds,
-  } = useTableTracks();
+  const { selectedFolder, igcFiles, selectedPilotIds, setSelectedPilotIds } =
+    useTableTracks();
 
   const {
     settings: { pilots },
@@ -41,31 +36,20 @@ const TracksTable: React.FC<Props> = ({
         )
       ) {
         await window.tracks.deleteIGCs(`${selectedFolder}/${fileName}`);
-
-        setIgcFiles((prevIgcFiles: ListIGCsResponse) => {
-          const updatedValidIgcs = prevIgcFiles.validIgcs.filter(
-            (file) => file.name !== fileName
-          );
-          const updatedInvalidIgcs = prevIgcFiles.invalidIgcs.filter(
-            (file) => file.name !== fileName
-          );
-
-          return {
-            validIgcs: updatedValidIgcs,
-            invalidIgcs: updatedInvalidIgcs,
-          };
-        });
+        listIGCs();
       }
     } catch (error) {
       console.error("Error deleting flight:", error);
     }
   };
 
-  console.log("valid", igcFiles.validIgcs);
-  const combinedIgcFiles = [
-    ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
-    ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
-  ];
+  const combinedIgcFiles =
+    igcFiles?.validIgcs && igcFiles?.invalidIgcs
+      ? [
+          ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
+          ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
+        ]
+      : [];
   const handlePilotClick = (pilotId: number) => {
     setSelectedPilotIds((prevSelected) => {
       const newSelected = new Set(prevSelected);
@@ -239,22 +223,26 @@ const TracksTable: React.FC<Props> = ({
               </td>
               <td>
                 <div className="flex flex-col gap-3">
-                  <a
-                    href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xcontest}`}
-                    className=" font-bold underline  "
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    XContest
-                  </a>
-                  <a
-                    href={`https://volandoo.com/pilots/${pilot.volandoo}`}
-                    className=" font-bold underline "
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Volandoo
-                  </a>
+                  {pilot.xcontest && (
+                    <a
+                      href={`https://www.xcontest.org/world/en/pilots/detail:${pilot.xcontest}`}
+                      className=" font-bold underline  "
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      XContest
+                    </a>
+                  )}
+                  {pilot.volandoo && (
+                    <a
+                      href={`https://volandoo.com/pilots/${pilot.volandoo}`}
+                      className=" font-bold underline "
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Volandoo
+                    </a>
+                  )}
                 </div>
               </td>
               <td>

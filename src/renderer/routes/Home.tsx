@@ -18,6 +18,7 @@ const Home: React.FC = () => {
     fetchVolandooIGCs,
     selectFolder,
     listIGCs,
+    isListingDirectory,
     errorMessage,
     flymasterProgress,
     xcontestProgress,
@@ -35,6 +36,16 @@ const Home: React.FC = () => {
         listIGCs={listIGCs}
         errorMessage={errorMessage}
       />
+      {isListingDirectory &&
+        !flymasterProgress.visible &&
+        !xcontestProgress.visible &&
+        !volandooProgress.visible && (
+          <div className="w-full mt-4">
+            <div className="text-sm text-gray-500">
+              Reading IGC tracks in directory...
+            </div>
+          </div>
+        )}
       <ProgressLines
         flymasterProgress={flymasterProgress}
         xcontestProgress={xcontestProgress}

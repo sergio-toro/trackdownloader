@@ -72,17 +72,18 @@ export default function PilotsForm() {
         className: "cell read-only w-[125px]",
       },
     ],
-    ...(
-      pilots || [
-        {
-          id: null,
-          name: null,
-          xcontest: null,
-          volandoo: null,
-        },
-      ]
+    ...(pilots?.length > 0
+      ? pilots
+      : [
+          {
+            id: null,
+            name: null,
+            xcontest: null,
+            volandoo: null,
+          },
+        ]
     ).map((pilot) => [
-      { value: String(pilot.id) },
+      { value: pilot.id ? String(pilot.id) : undefined },
       { value: pilot.name },
       { value: pilot.xcontest },
       { value: pilot.volandoo },
@@ -97,15 +98,18 @@ export default function PilotsForm() {
     return () => {
       document.removeEventListener("mousemove", () => {});
     };
-  }, [data]);
+  }, []);
 
   useEffect(() => {
-    const pilotsData = debouncedData.slice(1).map((row) => ({
-      id: Number(row[0].value),
-      name: row[1].value,
-      xcontest: row[2].value,
-      volandoo: row[3].value,
-    }));
+    const pilotsData = debouncedData
+      .slice(1)
+      .filter((row) => row[0].value)
+      .map((row) => ({
+        id: Number(row[0].value),
+        name: row[1].value,
+        xcontest: row[2].value,
+        volandoo: row[3].value,
+      }));
 
     setPilots(pilotsData);
   }, [debouncedData]);
