@@ -17,7 +17,7 @@ const Card: React.FC<CardProps> = ({
   return (
     <div
       className={cx(
-        "w-full rounded overflow-hidden shadow-md border border-slate-200 bg-cardBg",
+        "w-full rounded overflow-hidden shadow-md border border-slate-200 bg-white",
         className
       )}
     >

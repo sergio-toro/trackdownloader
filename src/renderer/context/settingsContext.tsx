@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 interface FlymasterGroup {
   id: string;
@@ -20,7 +20,6 @@ export interface PilotsState {
 }
 
 export interface SettingsState {
-  theme: "dark" | "light";
   flymaster: null | FlymasterState;
   pilots: null | PilotsState[];
   xcontest: null | { username: string; password: string };
@@ -30,21 +29,18 @@ interface SettingsContextProps {
   settings: SettingsState;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
   setPilots: (pilots: PilotsState[] | null) => void;
-  setTheme: (theme: "dark" | "light") => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
 }
 
 const initialContext: SettingsContextProps = {
   settings: {
-    theme: "dark",
     flymaster: null,
     xcontest: null,
     pilots: null,
   },
   setSettings: () => {},
   setPilots: () => {},
-  setTheme: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
 };
@@ -71,9 +67,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     setPilots: (pilots: PilotsState[] | null) => {
       setSettings((prevSettings) => ({ ...prevSettings, pilots }));
     },
-    setTheme: (theme: "dark" | "light") => {
-      setSettings((prevSettings) => ({ ...prevSettings, theme }));
-    },
+
     setFlymaster: (flymaster: SettingsState["flymaster"]) => {
       setSettings((prevSettings) => ({
         ...prevSettings,
@@ -84,17 +78,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       setSettings((prevSettings) => ({ ...prevSettings, xcontest }));
     },
   };
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
-    if (settings.theme === "dark") {
-      document.body.classList.add("dark");
-      document.body.classList.remove("light");
-    } else {
-      document.body.classList.add("light");
-      document.body.classList.remove("dark");
-    }
-  }, [settings]);
 
   return (
     <SettingsContext.Provider value={contextValue}>
