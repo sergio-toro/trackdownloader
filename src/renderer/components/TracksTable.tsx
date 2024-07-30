@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React from "react";
 import { TableProps } from "./TableSummary";
 import { format, intervalToDuration } from "date-fns";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
@@ -7,7 +7,6 @@ import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import cx from "classnames";
 
 type Props = TableProps & {
-  setSelectedPilotIds?: Dispatch<SetStateAction<Set<number>>>;
   listIGCs: () => void;
   fetchXcontestIGCs: (pilot: PilotsState) => void;
   fetchVolandooIGCs: (pilot: PilotsState) => void;
@@ -19,12 +18,16 @@ const styles = {
 
 const TracksTable: React.FC<Props> = ({
   tableRef,
-  selectedPilotIds,
-  setSelectedPilotIds,
   fetchXcontestIGCs,
   fetchVolandooIGCs,
 }) => {
-  const { selectedFolder, igcFiles, setIgcFiles } = useTableTracks();
+  const {
+    selectedFolder,
+    igcFiles,
+    selectedPilotIds,
+    setIgcFiles,
+    setSelectedPilotIds,
+  } = useTableTracks();
 
   const {
     settings: { pilots },
@@ -219,7 +222,7 @@ const TracksTable: React.FC<Props> = ({
                   {pilot.xcontest && (
                     <button
                       onClick={() => fetchXcontestIGCs(pilot)}
-                      className="border-orange-600 border-2 rounded-md bg-orange-100 hover:bg-orange-50"
+                      className="border-orange-600 border-2 rounded-md bg-orange-100 hover:bg-orange-50 px-1"
                     >
                       XContest
                     </button>
@@ -227,7 +230,7 @@ const TracksTable: React.FC<Props> = ({
                   {pilot.volandoo && (
                     <button
                       onClick={() => fetchVolandooIGCs(pilot)}
-                      className="border-[#342467] border-2 rounded-md bg-[#342467]/10 hover:bg-[#342467]/20"
+                      className="border-[#342467] border-2 rounded-md bg-[#342467]/10 hover:bg-[#342467]/20 px-1"
                     >
                       Volandoo
                     </button>

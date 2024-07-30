@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import Configuration from "@components/Configuration";
 import { useSettings } from "@renderer/context/settingsContext";
 import Downloader from "@components/Downloader";
@@ -23,9 +23,7 @@ const Home: React.FC = () => {
     xcontestProgress,
     volandooProgress,
   } = useFetchIGCs();
-  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
-    new Set()
-  );
+
   return (
     <div id="application">
       <Configuration />
@@ -43,17 +41,12 @@ const Home: React.FC = () => {
         volandooProgress={volandooProgress}
       />
 
-      {pilots.length > 0 ? (
+      {pilots?.length > 0 ? (
         <div className="w-full">
-          <TableSummary
-            tableRef={tableRef}
-            selectedPilotIds={selectedPilotIds}
-          />
+          <TableSummary tableRef={tableRef} />
           <TracksTable
             tableRef={tableRef}
             listIGCs={listIGCs}
-            selectedPilotIds={selectedPilotIds}
-            setSelectedPilotIds={setSelectedPilotIds}
             fetchXcontestIGCs={fetchXcontestIGCs}
             fetchVolandooIGCs={fetchVolandooIGCs}
           />

@@ -80,10 +80,10 @@ export default function FlymasterGroupSelector() {
           <table className="max-w-[35rem] ">
             <thead>
               <tr>
-                <th className=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className=" px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   ID
                 </th>
-                <th className=" px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className=" px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Name
                 </th>
                 <th className=" tracking-wider"></th>
