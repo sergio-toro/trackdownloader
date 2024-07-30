@@ -1,10 +1,10 @@
 import { format, isValid, parse } from "date-fns";
-import { SelectedGroup } from "./getFlymasterGroups";
+import { FlymasterGroup } from "./getFlymasterGroups";
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
 import { getWindowAndPage } from "@main/scrappers/window";
 
 export const getFlymasterIGCs = async (
-  selectedGroup: SelectedGroup,
+  selectedGroup: FlymasterGroup,
   date: string,
   username: string,
   password: string

@@ -18,10 +18,10 @@ export default function FlymasterGroupSelector() {
 
   const fetchFlymasterGroups = async () => {
     try {
-      const groups = await window.scrappers.flymasterGroups(
-        flymaster?.username,
-        flymaster?.password
-      );
+      const groups = await window.scrappers.flymasterGroups({
+        username: flymaster?.username,
+        password: flymaster?.password,
+      });
       setFlymaster({
         ...flymaster,
         groups,

@@ -1,19 +1,27 @@
 import doLoginAndTableSearch from "./doLoginAndTableSearch";
 import { getWindowAndPage } from "@main/scrappers/window";
 
-export interface SelectedGroup {
+export interface FlymasterGroup {
   id: string;
   name: string;
 }
 
-export default async function getFlymasterGroups(
-  username: string,
-  password: string
-) {
+type Options = {
+  username: string;
+  password: string;
+  debug?: boolean;
+};
+
+export default async function getFlymasterGroups({
+  username,
+  password,
+  debug = false,
+}: Options): Promise<FlymasterGroup[]> {
   try {
     const url = "https://lt.flymaster.net/#";
 
     const [window, page] = await getWindowAndPage(url, {
+      show: debug,
       width: 800,
       height: 600,
     });
@@ -25,7 +33,7 @@ export default async function getFlymasterGroups(
     await page.waitForNetworkIdle();
 
     const groups = await page.$$("#groupstable tbody tr");
-    const groupsToSelect: SelectedGroup[] = [];
+    const flymasterGroups: FlymasterGroup[] = [];
     await page.waitForNetworkIdle();
 
     for (const group of groups) {
@@ -42,13 +50,13 @@ export default async function getFlymasterGroups(
           nameElement
         );
 
-        groupsToSelect.push({ id, name });
+        flymasterGroups.push({ id, name });
       }
     }
-    console.log("Groups to select", groupsToSelect);
+    console.log("Groups to select", flymasterGroups);
 
     window.close();
-    return groupsToSelect;
+    return flymasterGroups;
   } catch (e) {
     console.log("getFlymasterGroups error:", e);
     throw e;

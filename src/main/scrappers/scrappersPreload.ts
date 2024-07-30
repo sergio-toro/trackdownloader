@@ -22,11 +22,10 @@ type VolandooIGCsResponse = Array<{
 }>;
 
 export interface ScrapperMethods {
-  test: (username: string) => Promise<void>;
-  flymasterGroups: (
-    username: string,
-    password: string
-  ) => Promise<FlymasterGroupsResponse>;
+  flymasterGroups: (options: {
+    username: string;
+    password: string;
+  }) => Promise<FlymasterGroupsResponse>;
   flymasterIGCs: (
     selectedGroup: string,
     date: string,
@@ -49,10 +48,8 @@ export interface ScrapperMethods {
 }
 
 const scrappers: ScrapperMethods = {
-  test: async (username: string) =>
-    ipcRenderer.invoke("scrapper-test", username),
-  flymasterGroups: async (username: string, password: string) =>
-    ipcRenderer.invoke("scrapper-flymaster-groups", username, password),
+  flymasterGroups: async (options) =>
+    ipcRenderer.invoke("scrapper-flymaster-groups", options),
   flymasterIGCs: async (
     selectedGroup: string,
     date: string,

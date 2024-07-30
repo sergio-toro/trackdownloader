@@ -7,7 +7,7 @@ export const SCRAPPER_WINDOW_SETTINGS: BrowserWindowConstructorOptions = {
   height: 200,
   // width: 800,
   // height: 600,
-  focusable: false,
+  focusable: true,
   alwaysOnTop: false,
   opacity: 0.8,
   // webPreferences: {
