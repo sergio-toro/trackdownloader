@@ -71,6 +71,11 @@ export default function PilotsForm() {
         readOnly: true,
         className: "cell read-only w-[125px]",
       },
+      {
+        value: "League",
+        readOnly: true,
+        className: "cell read-only w-[125px]",
+      },
     ],
     ...(pilots?.length > 0
       ? pilots
@@ -80,6 +85,7 @@ export default function PilotsForm() {
             name: null,
             xcontest: null,
             volandoo: null,
+            league: null,
           },
         ]
     ).map((pilot) => [
@@ -87,6 +93,7 @@ export default function PilotsForm() {
       { value: pilot.name },
       { value: pilot.xcontest },
       { value: pilot.volandoo },
+      { value: pilot.league },
     ]),
   ]);
   const debouncedData = useDebounce(data, 250);
@@ -109,6 +116,7 @@ export default function PilotsForm() {
         name: row[1].value,
         xcontest: row[2].value,
         volandoo: row[3].value,
+        league: row[4].value,
       }));
 
     setPilots(pilotsData);

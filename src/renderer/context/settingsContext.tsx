@@ -17,6 +17,7 @@ export interface PilotsState {
   name: string;
   xcontest: string | null;
   volandoo: string | null;
+  league: string | null;
 }
 
 export interface SettingsState {

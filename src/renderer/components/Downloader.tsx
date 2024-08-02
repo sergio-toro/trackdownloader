@@ -18,11 +18,10 @@ const Downloader: React.FC<Props> = ({
   fetchFlyMasterIGCs,
   fetchXcontestIGCs,
   fetchVolandooIGCs,
-  selectFolder,
   listIGCs,
   errorMessage,
 }) => {
-  const { selectedDate, selectedFolder, setSelectedDate } = useTableTracks();
+  const { selectedDate, setSelectedDate } = useTableTracks();
 
   return (
     <Card className="w-full" title="Download Tracks">
@@ -37,19 +36,6 @@ const Downloader: React.FC<Props> = ({
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           />
-          <div className="flex flex-col px-8 items-start border-l-2 border-l-zinc-300  ">
-            <button
-              onClick={selectFolder}
-              className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
-            >
-              {!selectedFolder ? "Select Folder" : "Change Folder"}
-            </button>
-            {selectedFolder && (
-              <span className="text-sm py-3 text-gray-700 ">
-                {selectedFolder}
-              </span>
-            )}
-          </div>
         </div>
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-2">
