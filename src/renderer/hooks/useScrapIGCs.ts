@@ -51,6 +51,7 @@ const useFetchIGCs = (): IgcFilesState => {
   const {
     selectedDate,
     selectedFolder,
+    selectedPilotIds,
     igcFiles,
     setIgcFiles,
     setSelectedFolder,
@@ -139,13 +140,22 @@ const useFetchIGCs = (): IgcFilesState => {
         ...igcFiles.validIgcs.map((track) => track.pilotId),
         ...igcFiles.invalidIgcs.map((track) => track.pilotId),
       ]);
-      const pilotsWithoutTrack = pilots.filter(
-        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
+
+      const notAttendedPilotIds = new Set(
+        pilots
+          .filter((pilot) => selectedPilotIds.has(Number(pilot.id)))
+          .map((pilot) => pilot.id)
       );
 
-      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.xcontest)
-      );
+      pilotsToFetch = pilots
+        .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
+        .filter(
+          (pilot) =>
+            Boolean(pilot.xcontest) &&
+            !notAttendedPilotIds.has(Number(pilot.id))
+        );
+
+      console.log("PILOTS TO FETCH", pilotsToFetch);
     }
 
     const pilotChunks = chunkArray(pilotsToFetch, 2);
@@ -221,20 +231,27 @@ const useFetchIGCs = (): IgcFilesState => {
     let pilotsToFetch;
 
     if (specificPilot) {
-      console.log("VOLANDOO PILOT", specificPilot);
       pilotsToFetch = [specificPilot];
     } else {
       const pilotsWithTracksIds = new Set([
         ...igcFiles.validIgcs.map((track) => track.pilotId),
         ...igcFiles.invalidIgcs.map((track) => track.pilotId),
       ]);
-      const pilotsWithoutTrack = pilots.filter(
-        (pilot) => !pilotsWithTracksIds.has(Number(pilot.id))
+      const notAttendedPilotIds = new Set(
+        pilots
+          .filter((pilot) => selectedPilotIds.has(Number(pilot.id)))
+          .map((pilot) => pilot.id)
       );
 
-      pilotsToFetch = pilotsWithoutTrack.filter((pilot) =>
-        Boolean(pilot.volandoo)
-      );
+      pilotsToFetch = pilots
+        .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
+        .filter(
+          (pilot) =>
+            Boolean(pilot.volandoo) &&
+            !notAttendedPilotIds.has(Number(pilot.id))
+        );
+
+      console.log("PILOTS TO FETCH", pilotsToFetch);
     }
 
     try {
