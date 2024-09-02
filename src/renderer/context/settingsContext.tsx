@@ -25,6 +25,8 @@ export interface SettingsState {
   pilots: null | PilotsState[];
   xcontest: null | { username: string; password: string };
   debug: boolean;
+  leagues: string[];
+  temporalFolder: string;
 }
 
 interface SettingsContextProps {
@@ -34,6 +36,7 @@ interface SettingsContextProps {
   setPilots: (pilots: PilotsState[] | null) => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
+  setTemporalFolder: (temporalFolder: string) => void;
 }
 
 const initialContext: SettingsContextProps = {
@@ -42,12 +45,15 @@ const initialContext: SettingsContextProps = {
     xcontest: null,
     pilots: null,
     debug: false,
+    leagues: [],
+    temporalFolder: null,
   },
   setDebug: () => {},
   setSettings: () => {},
   setPilots: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
+  setTemporalFolder: () => {},
 };
 
 const SettingsContext = createContext<SettingsContextProps>(initialContext);
@@ -70,6 +76,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
   }, [settings]);
 
+  useEffect(() => {
+    if (settings.pilots) {
+      const leagues = Array.from(
+        new Set(settings.pilots.map((pilot) => pilot.league).filter(Boolean))
+      ) as string[];
+      setSettings((prevSettings) => ({ ...prevSettings, leagues }));
+    }
+  }, [settings.pilots]);
+
   const contextValue = {
     settings,
     setSettings,
@@ -87,6 +102,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     setXContest: (xcontest: SettingsState["xcontest"]) => {
       setSettings((prevSettings) => ({ ...prevSettings, xcontest }));
+    },
+    setTemporalFolder: (temporalFolder: SettingsState["temporalFolder"]) => {
+      setSettings((prevSettings) => ({ ...prevSettings, temporalFolder }));
     },
   };
 

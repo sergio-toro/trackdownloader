@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { md5 } from "js-md5";
-
 import { format, parseISO } from "date-fns";
 import { chunkArray } from "@renderer/utils/array";
 import { PilotsState, useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
+import { ListIGCsResponse } from "@main/tracks/listIGCs";
 
 export interface ProgressState {
   visible: boolean;
@@ -14,11 +14,11 @@ export interface ProgressState {
 
 export interface IgcFilesState {
   setErrorMessage: (value: ((prevState: string) => string) | string) => void;
-  listIGCs: () => Promise<void>;
+  listIGCs: (folder: string) => Promise<void>;
   flymasterProgress: ProgressState;
   xcontestProgress: ProgressState;
   volandooProgress: ProgressState;
-  selectFolder: () => Promise<void>;
+  selectFolder: (league: string) => Promise<void>;
   errorMessage: string;
   isListingDirectory: boolean;
   fetchFlyMasterIGCs: () => Promise<void>;
@@ -26,7 +26,7 @@ export interface IgcFilesState {
   fetchVolandooIGCs: (specificPilot?: PilotsState) => Promise<void>;
 }
 
-const useFetchIGCs = (): IgcFilesState => {
+const useFetchIGCs = () => {
   const [flymasterProgress, setFlymasterProgress] = useState<ProgressState>({
     visible: false,
     percent: 0,
@@ -46,29 +46,109 @@ const useFetchIGCs = (): IgcFilesState => {
   const [isListingDirectory, setIsListingDirectory] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const {
-    settings: { flymaster, xcontest, pilots, debug },
+    settings: { flymaster, xcontest, pilots, debug, leagues, temporalFolder },
   } = useSettings();
   const {
     selectedDate,
-    selectedFolder,
+    selectedFolders,
     selectedPilotIds,
     igcFiles,
     setIgcFiles,
-    setSelectedFolder,
+    setSelectedFolders,
   } = useTableTracks();
 
   useEffect(() => {
-    if (selectedFolder) {
-      console.log("Listing IGCs...", selectedFolder);
-      listIGCs();
-    } else {
-      console.log("No folder selected...");
-    }
-  }, [selectedFolder]);
+    const listAllIGCs = async () => {
+      try {
+        for (const league of leagues) {
+          const selectedFolder = selectedFolders[league];
+          if (selectedFolder) {
+            console.log(`Listing IGCs for league ${league}...`, selectedFolder);
+            await listIGCs();
+          } else {
+            console.log(`No folder selected for league ${league}...`);
+          }
+        }
+      } catch (error) {
+        console.error("Error listing IGCs for all leagues:", error);
+      } finally {
+        setIsListingDirectory(false);
+      }
+    };
 
+    listAllIGCs();
+  }, [selectedFolders, leagues]);
+
+  const filterIgcsByLeague = async () => {
+    try {
+      if (!pilots || !temporalFolder) {
+        console.error("Pilots or temporalFolder is not set.");
+        return;
+      }
+
+      const igcFiles = await window.tracks.listIGCs(temporalFolder);
+      console.log("IGC FILES IN TEMPORAL FOLDER", igcFiles);
+      for (const igcFile of igcFiles.validIgcs) {
+        const [pilotIdStr] = igcFile.name.match(/(\d+)\.igc$/) || [];
+        const pilotId = parseInt(pilotIdStr, 10);
+
+        const pilot = pilots.find((p) => p.id === pilotId);
+        if (!pilot) {
+          console.warn(`No pilot found with id ${pilotId}`);
+          continue;
+        }
+
+        const league = pilot.league;
+        if (!league || !leagues.includes(league)) {
+          console.warn(
+            `No league found for pilot ${pilot.name} or league not in the list.`
+          );
+          continue;
+        }
+
+        const leagueFolder = selectedFolders[league];
+        console.log("LF", leagueFolder);
+        if (!leagueFolder) {
+          console.warn(`No folder selected for league ${league}`);
+          continue;
+        }
+
+        const sourcePath = `${temporalFolder}/${igcFile.name}`;
+        const destinationPath = `${leagueFolder}/${igcFile.name}`;
+
+        await window.tracks.moveFile(sourcePath, destinationPath);
+
+        console.log(`Moved ${igcFile.name} to ${leagueFolder}`);
+      }
+    } catch (error) {
+      console.error("Error filtering IGCs by league:", error);
+    }
+  };
+
+  const listIGCsForSelectedFolders = async () => {
+    try {
+      const allIgcFiles: Record<string, ListIGCsResponse> = {};
+      for (const [league, folder] of Object.entries(selectedFolders)) {
+        const igcsInFolder = await window.tracks.listIGCs(folder);
+        console.log(
+          `!!!!!!!!IGCs in folder for league ${league}:!`,
+          igcsInFolder
+        );
+
+        allIgcFiles[league] = igcsInFolder;
+      }
+
+      setIgcFiles((prevIgcFiles) => ({
+        ...prevIgcFiles,
+        ...allIgcFiles,
+      }));
+    } catch (error) {
+      console.error("Error listing IGCs in selected folders:", error);
+    }
+  };
   const validateInputs = () => {
-    if (!selectedDate || !selectedFolder) {
-      setErrorMessage("Please select a date and a folder.");
+    if (!selectedDate || !Object.keys(selectedFolders).length) {
+      setErrorMessage("Please select a date and at least one folder.");
       return false;
     }
     setErrorMessage("");
@@ -83,6 +163,7 @@ const useFetchIGCs = (): IgcFilesState => {
         percent: 5,
         detail: "Flymaster: Creating IGCs ZIP...",
       });
+
       const zipURL = await window.scrappers.flymasterIGCs({
         selectedGroup: flymaster.selectedGroup?.id,
         date: selectedDate,
@@ -90,28 +171,25 @@ const useFetchIGCs = (): IgcFilesState => {
         password: flymaster?.password,
         debug,
       });
-      setFlymasterProgress({
-        visible: true,
-        percent: 35,
-        detail: "Flymaster: Downloading IGCs ZIP...",
-      });
       const fileName = "flymaster.zip";
-      const filePath = `${selectedFolder}/${fileName}`;
+      const filePath = `${temporalFolder}/${fileName}`;
 
       const zipPath = await window.tracks.downloadFile(zipURL, filePath);
       setFlymasterProgress({
         visible: true,
         percent: 75,
-        detail: "Flymaster: Decompressing IGCs ZIP...",
+        detail: `Flymaster: Decompressing IGCs ZIP for temporal folder ${temporalFolder}...`,
       });
-      await window.tracks.unzipFile(zipPath, selectedFolder);
+      await window.tracks.unzipFile(zipPath, temporalFolder);
 
       setFlymasterProgress({
         visible: true,
         percent: 90,
-        detail: "Flymaster: Listing IGCs...",
+        detail: "Flymaster: Classifying IGCs by league ...",
       });
+      await filterIgcsByLeague();
       await listIGCs();
+      await listIGCsForSelectedFolders();
 
       setFlymasterProgress({
         visible: false,
@@ -167,22 +245,27 @@ const useFetchIGCs = (): IgcFilesState => {
         detail: `XContest: Downloading "${pilotUsernames}" IGCs track...`,
       });
       try {
-        await Promise.allSettled(
-          chunk.map(async (pilot) =>
-            window.scrappers.xcontestIGCs({
-              username: xcontest?.username,
-              password: xcontest?.password,
-              date: selectedDate
-                ? format(new Date(selectedDate), "dd.MM.yy")
-                : "",
-              xcontestId: pilot.xcontest!,
-              pilotId: pilot.id,
-              pilotName: pilot.name,
-              selectedFolder: selectedFolder,
-              debug,
-            })
-          )
-        );
+        for (const league of leagues) {
+          const selectedFolder = selectedFolders[league];
+          if (!selectedFolder) continue;
+
+          await Promise.allSettled(
+            chunk.map(async (pilot) =>
+              window.scrappers.xcontestIGCs({
+                username: xcontest?.username,
+                password: xcontest?.password,
+                date: selectedDate
+                  ? format(new Date(selectedDate), "dd.MM.yy")
+                  : "",
+                xcontestId: pilot.xcontest!,
+                pilotId: pilot.id,
+                pilotName: pilot.name,
+                selectedFolder: selectedFolder,
+                debug,
+              })
+            )
+          );
+        }
       } catch (error) {
         console.error(`Error processing pilots ${pilotUsernames}:`, error);
       }
@@ -192,7 +275,16 @@ const useFetchIGCs = (): IgcFilesState => {
       percent: 99,
       detail: "Listing IGCs...",
     });
-    await listIGCs();
+    try {
+      for (const league of leagues) {
+        const selectedFolder = selectedFolders[league];
+        if (!selectedFolder) continue;
+
+        await listIGCs();
+      }
+    } catch (error) {
+      console.error("Error listing IGCs for all leagues:", error);
+    }
 
     setXcontestProgress({
       visible: false,
@@ -208,19 +300,28 @@ const useFetchIGCs = (): IgcFilesState => {
         return;
       }
       setIsListingDirectory(true);
-      const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
-      setIsListingDirectory(false);
-      setIgcFiles(igcFilesResponse);
+      for (const league of leagues) {
+        const selectedFolder = selectedFolders[league];
+        if (selectedFolder) {
+          console.log(`Listing IGCs for league ${league}...`, selectedFolder);
+          const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
+          setIgcFiles(igcFilesResponse);
+        }
+      }
     } catch (error) {
+      console.error("Error listing IGCs for all leagues:", error);
+    } finally {
       setIsListingDirectory(false);
-      console.error("Error listing IGCs:", error);
     }
   };
 
-  const selectFolder = async () => {
+  const selectFolder = async (league: string) => {
     try {
       const directory = await window.tracks.selectDirectory();
-      setSelectedFolder(directory);
+      setSelectedFolders((folders) => ({
+        ...folders,
+        [league]: directory,
+      }));
     } catch (error) {
       console.error("Error selecting folder:", error);
     }
@@ -280,14 +381,19 @@ const useFetchIGCs = (): IgcFilesState => {
         console.log("Volandoo PILOT IGCs", pilotIGCs);
 
         for (const track of pilotIGCs) {
-          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
-          try {
-            await window.tracks.downloadFile(track.igcUrl, filePath);
-          } catch (downloadError) {
-            console.error(
-              `Error downloading file: ${track.igcUrl} ${filePath}`,
-              downloadError
-            );
+          for (const league of leagues) {
+            const selectedFolder = selectedFolders[league];
+            if (!selectedFolder) continue;
+
+            const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
+            try {
+              await window.tracks.downloadFile(track.igcUrl, filePath);
+            } catch (downloadError) {
+              console.error(
+                `Error downloading file: ${track.igcUrl} ${filePath}`,
+                downloadError
+              );
+            }
           }
         }
       }

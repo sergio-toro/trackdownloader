@@ -1,24 +1,26 @@
-import { ListIGCsResponse } from "@main/tracks/listIGCs";
 import React, {
-  SetStateAction,
   createContext,
   useContext,
   useEffect,
   useState,
+  ReactNode,
 } from "react";
+import { ListIGCsResponse } from "@main/tracks/listIGCs";
 
 export interface TracksState {
   igcFiles: ListIGCsResponse;
   parsedIgcIds: string[];
   selectedDate: string;
-  selectedFolder: string;
+  selectedFolders: Record<string, string>;
   igcsInDirectory: string;
   selectedPilotIds: Set<number>;
-  setSelectedPilotIds: React.Dispatch<SetStateAction<Set<number>>>;
+  setSelectedPilotIds: React.Dispatch<Set<number>>;
   setIgcFiles: React.Dispatch<React.SetStateAction<ListIGCsResponse>>;
   setParsedIgcIds: React.Dispatch<React.SetStateAction<string[]>>;
   setSelectedDate: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedFolder: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedFolders: React.Dispatch<
+    React.SetStateAction<Record<string, string>>
+  >;
   setIgcsInDirectory: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -26,44 +28,48 @@ const initialContext: TracksState = {
   igcFiles: { validIgcs: [], invalidIgcs: [] },
   parsedIgcIds: [],
   selectedDate: "",
-  selectedFolder: "",
+  selectedFolders: {},
   igcsInDirectory: "",
   selectedPilotIds: new Set(),
   setIgcFiles: () => {},
   setParsedIgcIds: () => {},
   setSelectedDate: () => {},
-  setSelectedFolder: () => {},
+  setSelectedFolders: () => {},
   setIgcsInDirectory: () => {},
   setSelectedPilotIds: () => {},
 };
 
 const TracksContext = createContext<TracksState>(initialContext);
 
-export const useTableTracks = () => useContext(TracksContext);
+export const useTableTracks = () => {
+  const { selectedFolders, selectedDate, setSelectedDate, ...contextValue } =
+    useContext(TracksContext);
+  return {
+    ...contextValue,
+    selectedFolders,
+    selectedDate,
+    setSelectedDate,
+  };
+};
 
 const LOCAL_STORAGE_KEY = "tracks";
 
-export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
+export const TracksProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [igcFiles, setIgcFiles] = useState<ListIGCsResponse>({
     validIgcs: [],
     invalidIgcs: [],
   });
-  const [parsedIgcIds, setParsedIgcIds] = useState<string[]>(
-    initialContext.parsedIgcIds
-  );
-  const [selectedDate, setSelectedDate] = useState<string>(
-    initialContext.selectedDate
-  );
-  const [selectedFolder, setSelectedFolder] = useState<string>(
-    initialContext.selectedFolder
-  );
-  const [igcsInDirectory, setIgcsInDirectory] = useState<string>(
-    initialContext.igcsInDirectory
-  );
+  const [parsedIgcIds, setParsedIgcIds] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedFolders, setSelectedFolders] = useState<
+    Record<string, string>
+  >({});
+  const [igcsInDirectory, setIgcsInDirectory] = useState<string>("");
+
   const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
-    initialContext.selectedPilotIds
+    new Set()
   );
 
   useEffect(() => {
@@ -73,7 +79,7 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
       setIgcFiles(parsedTracks.igcFiles || { validIgcs: [], invalidIgcs: [] });
       setParsedIgcIds(parsedTracks.parsedIgcIds || []);
       setSelectedDate(parsedTracks.selectedDate || "");
-      setSelectedFolder(parsedTracks.selectedFolder || "");
+      setSelectedFolders(parsedTracks.selectedFolders || {});
       setIgcsInDirectory(parsedTracks.igcsInDirectory || "");
       setSelectedPilotIds(new Set(parsedTracks.selectedPilotIds || []));
     }
@@ -86,7 +92,7 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
         igcFiles,
         parsedIgcIds,
         selectedDate,
-        selectedFolder,
+        selectedFolders,
         igcsInDirectory,
         selectedPilotIds: Array.from(selectedPilotIds),
       })
@@ -95,24 +101,23 @@ export const TracksProvider: React.FC<{ children: React.ReactNode }> = ({
     igcFiles,
     parsedIgcIds,
     selectedDate,
-    selectedFolder,
+    selectedFolders,
     igcsInDirectory,
     selectedPilotIds,
   ]);
-
   return (
     <TracksContext.Provider
       value={{
         igcFiles,
         parsedIgcIds,
         selectedDate,
-        selectedFolder,
+        selectedFolders,
         igcsInDirectory,
         selectedPilotIds,
         setIgcFiles,
         setParsedIgcIds,
         setSelectedDate,
-        setSelectedFolder,
+        setSelectedFolders,
         setIgcsInDirectory,
         setSelectedPilotIds,
       }}

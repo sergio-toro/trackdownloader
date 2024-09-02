@@ -31,8 +31,6 @@ export const getFlymasterIGCs = async ({
     await doLoginAndTableSearch(username, password, page);
     await page.waitForNetworkIdle();
 
-    console.log("SELECTED GROUP BACK", selectedGroup);
-    console.log("SELECTED DATE BACK", date);
     await page.waitForSelector("#groupstable", { timeout: 60000 });
 
     const rowSelector = `#groupstable tbody tr[id="${selectedGroup}"]`;

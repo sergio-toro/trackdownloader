@@ -73,3 +73,20 @@ button,
 a {
   cursor: pointer;
 }
+
+.tabs .tab {
+  padding: 1rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.tabs .tab.active {
+  border-bottom-color: #3b82f6;
+}
+
+.tabs .tab-panel {
+  padding: 1rem;
+}

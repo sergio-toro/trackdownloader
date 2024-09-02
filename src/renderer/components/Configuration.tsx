@@ -8,18 +8,26 @@ import DropDownButton from "./buttons/DropDownButton";
 
 const Configuration: React.FC = () => {
   const {
-    settings: { debug },
+    settings: { debug, temporalFolder },
     setDebug,
+    setTemporalFolder,
   } = useSettings();
 
   const handleToggleDebug = () => {
     setDebug(!debug);
   };
-
+  const selectFolder = async () => {
+    try {
+      const directory = await window.tracks.selectDirectory();
+      setTemporalFolder(directory);
+    } catch (error) {
+      console.error("Error selecting folder:", error);
+    }
+  };
   return (
     <div className="min-w-full relative bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6">
       <button
-        className="border border-gray-400 rounded-md text-xs px-2 py-1 absolute right-2 top-2 "
+        className="border border-gray-400 rounded-md text-xs px-2 py-1 absolute right-2 top-2 cursor-pointer"
         onClick={handleToggleDebug}
       >
         Debug: {debug ? "ON" : "OFF"}
@@ -34,7 +42,22 @@ const Configuration: React.FC = () => {
               </div>
               <FlymasterGroupSelector />
             </div>
-            <div>
+            <div className="flex flex-col gap-10">
+              <div className="flex  items-center justify-center gap-4 ">
+                <button
+                  onClick={() => selectFolder()}
+                  className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
+                >
+                  {!temporalFolder
+                    ? "Select Temporal Folder"
+                    : "Change Temporal Folder"}
+                </button>
+                {temporalFolder && (
+                  <span className="text-sm py-3 text-gray-700 ">
+                    {temporalFolder}
+                  </span>
+                )}
+              </div>
               <PilotsForm />
             </div>
           </div>
