@@ -1,5 +1,6 @@
 import { TimeoutError } from "puppeteer-core";
 import { getWindowAndPage } from "@main/scrappers/window";
+import { format, parse } from "date-fns";
 
 type Options = {
   date: string;
@@ -37,6 +38,9 @@ export const getVolandooIGCs = async ({ date, volandooId, debug }: Options) => {
 
     const pilotIGCs = [];
 
+    const parsedDate = parse(date, "MM/dd/yyyy", new Date());
+    const shortDate = format(parsedDate, "M/d/yyyy");
+
     for (const row of flightsItems) {
       const dateElement = await row.$("td > p > span");
       if (!dateElement) {
@@ -47,7 +51,7 @@ export const getVolandooIGCs = async ({ date, volandooId, debug }: Options) => {
         el.textContent.trim()
       );
 
-      if (date !== scrappedDate) {
+      if (date !== scrappedDate && shortDate !== scrappedDate) {
         continue;
       }
 

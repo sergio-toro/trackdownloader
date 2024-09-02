@@ -1,5 +1,4 @@
 import fs from "fs";
-// import IGCParser from "igc-parser";
 import IGCParser from "@main/lib/igc-parser";
 import { formatDuration, intervalToDuration } from "date-fns";
 
@@ -60,7 +59,6 @@ export async function listIGCs(directory: string): Promise<ListIGCsResponse> {
         console.error("IGC File not matched to a pilot id.", file);
         continue;
       }
-      // console.log("PARSING IGC FILE...", file);
 
       const matchDetails = file.match(FILENAME_REGEX);
       const pilotId = Number(matchId[1]);

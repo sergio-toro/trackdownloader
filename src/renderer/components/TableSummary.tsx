@@ -10,6 +10,7 @@ const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
   const {
     settings: { pilots },
   } = useSettings();
+
   const { igcFiles, selectedPilotIds } = useTableTracks();
 
   const handleNoAssistedClick = () => {

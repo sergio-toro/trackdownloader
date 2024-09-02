@@ -1,5 +1,4 @@
 import React from "react";
-
 import Card from "./layout/Card";
 import Input from "./forms/Input";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
@@ -9,25 +8,24 @@ type Props = {
   fetchFlyMasterIGCs: () => void;
   fetchXcontestIGCs: () => void;
   fetchVolandooIGCs: () => void;
-  selectFolder: () => void;
   listIGCs: () => void;
   errorMessage: string;
+  leagues: string[];
 };
 
 const Downloader: React.FC<Props> = ({
   fetchFlyMasterIGCs,
   fetchXcontestIGCs,
   fetchVolandooIGCs,
-  selectFolder,
   listIGCs,
   errorMessage,
 }) => {
-  const { selectedDate, selectedFolder, setSelectedDate } = useTableTracks();
+  const { selectedDate, setSelectedDate } = useTableTracks();
 
   return (
     <Card className="w-full" title="Download Tracks">
       <div className="flex flex-row justify-between ">
-        <div className=" flex gap-12 items-center ">
+        <div className="flex gap-12 items-center ">
           <Input
             mode="vertical"
             type="date"
@@ -37,19 +35,6 @@ const Downloader: React.FC<Props> = ({
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           />
-          <div className="flex flex-col px-8 items-start border-l-2 border-l-zinc-300  ">
-            <button
-              onClick={selectFolder}
-              className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
-            >
-              {!selectedFolder ? "Select Folder" : "Change Folder"}
-            </button>
-            {selectedFolder && (
-              <span className="text-sm py-3 text-gray-700 ">
-                {selectedFolder}
-              </span>
-            )}
-          </div>
         </div>
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-2">
@@ -72,15 +57,16 @@ const Downloader: React.FC<Props> = ({
               />
               <ScrapButton
                 label="List IGCs"
-                onClick={listIGCs}
+                onClick={() => listIGCs()}
                 gradientClass="bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800"
               />
             </div>
           </div>
         </div>
       </div>
+
       {errorMessage && (
-        <div className="bg-red-200 text-red-700 p-2 rounded-md mb-2 mt-2 ">
+        <div className="bg-red-200 text-red-700 p-2 rounded-md mb-2 mt-2">
           {errorMessage}
         </div>
       )}

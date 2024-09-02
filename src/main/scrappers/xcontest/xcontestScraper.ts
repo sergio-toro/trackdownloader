@@ -104,7 +104,6 @@ export default async function xcontestScraper({
           "dd.MM.yy HH:mm",
           new Date()
         );
-        // console.log("Parsed Date:", parsedDate);
 
         if (isNaN(parsedDate.getTime())) {
           throw new Error("Parsed date is invalid");

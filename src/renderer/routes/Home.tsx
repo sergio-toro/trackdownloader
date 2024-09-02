@@ -2,15 +2,17 @@ import React, { useRef } from "react";
 import Configuration from "@components/Configuration";
 import { useSettings } from "@renderer/context/settingsContext";
 import Downloader from "@components/Downloader";
-import TableSummary from "@components/TableSummary";
-import TracksTable from "@components/TracksTable";
+// import TableSummary from "@components/TableSummary";
 import useFetchIGCs from "@renderer/hooks/useScrapIGCs";
 import ProgressLines from "@components/ProgressLines";
+import LeagueTable from "@components/LeagueTable";
+import { Tabs } from "@components/layout/Tabs";
+import { Tab } from "@components/layout/Tab";
 
 const Home: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const {
-    settings: { pilots },
+    settings: { pilots, leagues },
   } = useSettings();
   const {
     fetchFlyMasterIGCs,
@@ -28,14 +30,7 @@ const Home: React.FC = () => {
   return (
     <div id="application">
       <Configuration />
-      <Downloader
-        fetchFlyMasterIGCs={fetchFlyMasterIGCs}
-        fetchXcontestIGCs={fetchXcontestIGCs}
-        fetchVolandooIGCs={fetchVolandooIGCs}
-        selectFolder={selectFolder}
-        listIGCs={listIGCs}
-        errorMessage={errorMessage}
-      />
+
       {isListingDirectory &&
         !flymasterProgress.visible &&
         !xcontestProgress.visible &&
@@ -51,16 +46,41 @@ const Home: React.FC = () => {
         xcontestProgress={xcontestProgress}
         volandooProgress={volandooProgress}
       />
+      <Downloader
+        leagues={leagues}
+        fetchFlyMasterIGCs={fetchFlyMasterIGCs}
+        fetchXcontestIGCs={fetchXcontestIGCs}
+        fetchVolandooIGCs={fetchVolandooIGCs}
+        listIGCs={listIGCs}
+        errorMessage={errorMessage}
+      />
 
       {pilots?.length > 0 ? (
         <div className="w-full">
-          <TableSummary tableRef={tableRef} />
-          <TracksTable
-            tableRef={tableRef}
-            listIGCs={listIGCs}
-            fetchXcontestIGCs={fetchXcontestIGCs}
-            fetchVolandooIGCs={fetchVolandooIGCs}
-          />
+          <Tabs>
+            {leagues.map((league) => {
+              const pilotsInLeague = pilots.filter(
+                (pilot) => pilot.league === league
+              );
+              return (
+                <Tab key={league} label={`League ${league}`}>
+                  {/* <TableSummary tableRef={tableRef} /> */}
+
+                  <LeagueTable
+                    league={league}
+                    pilots={pilotsInLeague}
+                    tableRef={tableRef}
+                    listIGCs={listIGCs}
+                    fetchXcontestIGCs={fetchXcontestIGCs}
+                    fetchVolandooIGCs={fetchVolandooIGCs}
+                    fetchFlyMasterIGCs={fetchFlyMasterIGCs}
+                    selectFolder={selectFolder}
+                    errorMessage={errorMessage}
+                  />
+                </Tab>
+              );
+            })}
+          </Tabs>
         </div>
       ) : (
         <div className="flex flex-col items-center">

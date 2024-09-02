@@ -18,7 +18,6 @@ export default async function getIGCUrl({ detailsLink, debug }: Options) {
   )) as ElementHandle<HTMLAnchorElement>;
   if (igcLinkElement) {
     const igcUrl = await page.evaluate((el) => el.href, igcLinkElement);
-    // console.log(`Found IGC download link: ${igcUrl}`);
     window.close();
 
     return igcUrl;
