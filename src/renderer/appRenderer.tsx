@@ -1,9 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import WindowFrame from "@renderer/window/WindowFrame";
+import ErrorBoundary from "@components/ErrorBoundary";
 import Application from "@renderer/Application";
 import { SettingsProvider } from "@renderer/context/settingsContext";
-import { TracksProvider } from "./context/tableTracksContext";
+import { TracksProvider } from "@renderer/context/tableTracksContext";
 
 // Say something
 console.log("[Track Downloader]: Renderer execution started");
@@ -14,7 +15,9 @@ function MainApp() {
     <SettingsProvider>
       <TracksProvider>
         <WindowFrame title="Track Downloader">
-          <Application />
+          <ErrorBoundary>
+            <Application />
+          </ErrorBoundary>
         </WindowFrame>
       </TracksProvider>
     </SettingsProvider>

@@ -5,6 +5,7 @@ import XContestCredentialsForm from "@components/xcontest/CredentialsForm";
 import PilotsForm from "@components/PilotsForm";
 import { useSettings } from "@renderer/context/settingsContext";
 import DropDownButton from "./buttons/DropDownButton";
+import Card from "./layout/Card";
 
 const Configuration: React.FC = () => {
   const {
@@ -42,22 +43,24 @@ const Configuration: React.FC = () => {
               </div>
               <FlymasterGroupSelector />
             </div>
-            <div className="flex flex-col gap-10">
-              <div className="flex  items-center justify-center gap-4 ">
+            <div className="flex flex-col gap-2">
+              <Card title="Temporal folder" titleActions={null}>
+                <p>
+                  Stores Flymaster tracks before moving them to each league
+                  folder
+                </p>
                 <button
                   onClick={() => selectFolder()}
-                  className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
+                  className="border border-gray-300 px-2 py-1 mt-4 mr-4 font-medium text-sm rounded-md hover:bg-gray-100"
                 >
-                  {!temporalFolder
-                    ? "Select Temporal Folder"
-                    : "Change Temporal Folder"}
+                  {!temporalFolder ? "Select Folder" : "Change Folder"}
                 </button>
                 {temporalFolder && (
                   <span className="text-sm py-3 text-gray-700 ">
                     {temporalFolder}
                   </span>
                 )}
-              </div>
+              </Card>
               <PilotsForm />
             </div>
           </div>

@@ -10,6 +10,7 @@ export interface TrackMethods {
   ) => Promise<string[]>;
   listIGCs: (directory: string) => Promise<ListIGCsResponse>;
   deleteIGCs: (filePath: string) => Promise<ListIGCsResponse>;
+  clearDirectory: (directory: string) => Promise<void>;
   moveFile: (
     sourcePath: string,
     destinationPath: string
@@ -26,6 +27,8 @@ const tracks: TrackMethods = {
     ipcRenderer.invoke("track-list-igcs", directory),
   deleteIGCs: async (directory) =>
     ipcRenderer.invoke("track-delete-igcs", directory),
+  clearDirectory: async (directory) =>
+    ipcRenderer.invoke("track-clear-directory", directory),
   moveFile: async (sourcePath, destinationPath) =>
     ipcRenderer.invoke("track-move-igcs", sourcePath, destinationPath),
 };

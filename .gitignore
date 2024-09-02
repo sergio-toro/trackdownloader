@@ -13,8 +13,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .idea
 
 # Tracks folder
-tracks/*.zip
-tracks/*.igc
+tracks/*
 
 # Runtime data
 pids

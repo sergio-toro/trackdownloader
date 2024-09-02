@@ -1,42 +1,40 @@
 import React, {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useState,
-  ReactNode,
 } from "react";
 import { ListIGCsResponse } from "@main/tracks/listIGCs";
 
 export interface TracksState {
-  igcFiles: ListIGCsResponse;
+  igcFiles: Record<string, ListIGCsResponse>;
   parsedIgcIds: string[];
   selectedDate: string;
   selectedFolders: Record<string, string>;
-  igcsInDirectory: string;
-  selectedPilotIds: Set<number>;
-  setSelectedPilotIds: React.Dispatch<Set<number>>;
-  setIgcFiles: React.Dispatch<React.SetStateAction<ListIGCsResponse>>;
+  notAttendedPilotIds: Set<number>;
+  setNotAttendedPilotIds: React.Dispatch<Set<number>>;
+  setIgcFiles: React.Dispatch<
+    React.SetStateAction<Record<string, ListIGCsResponse>>
+  >;
   setParsedIgcIds: React.Dispatch<React.SetStateAction<string[]>>;
   setSelectedDate: React.Dispatch<React.SetStateAction<string>>;
   setSelectedFolders: React.Dispatch<
     React.SetStateAction<Record<string, string>>
   >;
-  setIgcsInDirectory: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const initialContext: TracksState = {
-  igcFiles: { validIgcs: [], invalidIgcs: [] },
+  igcFiles: {}, // validIgcs: [], invalidIgcs: []
   parsedIgcIds: [],
   selectedDate: "",
   selectedFolders: {},
-  igcsInDirectory: "",
-  selectedPilotIds: new Set(),
+  notAttendedPilotIds: new Set(),
   setIgcFiles: () => {},
   setParsedIgcIds: () => {},
   setSelectedDate: () => {},
   setSelectedFolders: () => {},
-  setIgcsInDirectory: () => {},
-  setSelectedPilotIds: () => {},
+  setNotAttendedPilotIds: () => {},
 };
 
 const TracksContext = createContext<TracksState>(initialContext);
@@ -57,18 +55,16 @@ const LOCAL_STORAGE_KEY = "tracks";
 export const TracksProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [igcFiles, setIgcFiles] = useState<ListIGCsResponse>({
-    validIgcs: [],
-    invalidIgcs: [],
-  });
+  const [igcFiles, setIgcFiles] = useState<Record<string, ListIGCsResponse>>(
+    {}
+  );
   const [parsedIgcIds, setParsedIgcIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedFolders, setSelectedFolders] = useState<
     Record<string, string>
   >({});
-  const [igcsInDirectory, setIgcsInDirectory] = useState<string>("");
 
-  const [selectedPilotIds, setSelectedPilotIds] = useState<Set<number>>(
+  const [notAttendedPilotIds, setNotAttendedPilotIds] = useState<Set<number>>(
     new Set()
   );
 
@@ -76,12 +72,11 @@ export const TracksProvider: React.FC<{ children: ReactNode }> = ({
     const storedTracks = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedTracks) {
       const parsedTracks = JSON.parse(storedTracks);
-      setIgcFiles(parsedTracks.igcFiles || { validIgcs: [], invalidIgcs: [] });
+      setIgcFiles(parsedTracks.igcFiles || {});
       setParsedIgcIds(parsedTracks.parsedIgcIds || []);
       setSelectedDate(parsedTracks.selectedDate || "");
       setSelectedFolders(parsedTracks.selectedFolders || {});
-      setIgcsInDirectory(parsedTracks.igcsInDirectory || "");
-      setSelectedPilotIds(new Set(parsedTracks.selectedPilotIds || []));
+      setNotAttendedPilotIds(new Set(parsedTracks.notAttendedPilotIds || []));
     }
   }, []);
 
@@ -93,8 +88,7 @@ export const TracksProvider: React.FC<{ children: ReactNode }> = ({
         parsedIgcIds,
         selectedDate,
         selectedFolders,
-        igcsInDirectory,
-        selectedPilotIds: Array.from(selectedPilotIds),
+        notAttendedPilotIds: Array.from(notAttendedPilotIds),
       })
     );
   }, [
@@ -102,8 +96,7 @@ export const TracksProvider: React.FC<{ children: ReactNode }> = ({
     parsedIgcIds,
     selectedDate,
     selectedFolders,
-    igcsInDirectory,
-    selectedPilotIds,
+    notAttendedPilotIds,
   ]);
   return (
     <TracksContext.Provider
@@ -112,14 +105,12 @@ export const TracksProvider: React.FC<{ children: ReactNode }> = ({
         parsedIgcIds,
         selectedDate,
         selectedFolders,
-        igcsInDirectory,
-        selectedPilotIds,
+        notAttendedPilotIds,
         setIgcFiles,
         setParsedIgcIds,
         setSelectedDate,
         setSelectedFolders,
-        setIgcsInDirectory,
-        setSelectedPilotIds,
+        setNotAttendedPilotIds,
       }}
     >
       {children}

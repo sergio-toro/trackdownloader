@@ -1,17 +1,26 @@
 import { useSettings } from "@renderer/context/settingsContext";
 import { useTableTracks } from "@renderer/context/tableTracksContext";
 import React, { RefObject } from "react";
+import cx from "classnames";
 
 export interface TableProps {
   tableRef: RefObject<HTMLTableElement>;
+  league: string;
 }
 
-const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
+const TableSummary: React.FC<TableProps> = ({ tableRef, league }) => {
   const {
     settings: { pilots },
   } = useSettings();
 
-  const { igcFiles, selectedPilotIds } = useTableTracks();
+  const { igcFiles, notAttendedPilotIds } = useTableTracks();
+  const validIgcs = igcFiles[league]?.validIgcs?.length || 0;
+  const invalidIgcs = igcFiles[league]?.invalidIgcs?.length || 0;
+  const pilotsInLeague = pilots.filter((pilot) => pilot.league === league);
+  const notAttendedPilots = pilotsInLeague.filter((pilot) =>
+    notAttendedPilotIds.has(pilot.id)
+  );
+  const attendedPilotsLength = pilotsInLeague.length - notAttendedPilots.length;
 
   const handleNoAssistedClick = () => {
     if (tableRef.current) {
@@ -21,28 +30,34 @@ const TableSummary: React.FC<TableProps> = ({ tableRef }) => {
   return (
     <div className="mb-4 flex justify-between ">
       <div className="flex gap-2 ">
-        {igcFiles?.validIgcs?.length > 0 && (
-          <h2 className="bg-green-200 p-2 rounded font-semibold">
-            Valid tracks: {igcFiles.validIgcs.length}
+        {validIgcs > 0 && (
+          <h2
+            className={cx("p-2 rounded font-semibold", {
+              "bg-green-200": validIgcs === attendedPilotsLength,
+              "bg-yellow-100": validIgcs > attendedPilotsLength,
+              "bg-red-200": validIgcs < attendedPilotsLength,
+            })}
+          >
+            Valid tracks: {validIgcs}
           </h2>
         )}
-        {igcFiles?.invalidIgcs?.length > 0 && (
+        {invalidIgcs > 0 && (
           <h2
-            className={`p-2 rounded font-semibold ${igcFiles.invalidIgcs.length > 0 ? "bg-red-200" : ""}`}
+            className={`p-2 rounded font-semibold ${invalidIgcs > 0 ? "bg-red-200" : ""}`}
           >
-            Invalid tracks: {igcFiles.invalidIgcs.length}
+            Invalid tracks: {invalidIgcs}
           </h2>
         )}
       </div>
       <div className=" flex gap-2">
         <h2 className="bg-zinc-200 p-2 rounded font-semibold">
-          Attended: {pilots.length - selectedPilotIds.size}
+          Attended: {pilotsInLeague.length - notAttendedPilots.length}
         </h2>
         <button
           className="bg-zinc-200 p-2 rounded font-semibold"
           onClick={handleNoAssistedClick}
         >
-          Not attended: {selectedPilotIds.size}
+          Not attended: {notAttendedPilots.length}
         </button>
       </div>
     </div>
