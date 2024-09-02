@@ -8,6 +8,7 @@ import ProgressLines from "@components/ProgressLines";
 import LeagueTable from "@components/LeagueTable";
 import { Tabs } from "@components/layout/Tabs";
 import { Tab } from "@components/layout/Tab";
+import TableSummary from "@components/TableSummary";
 
 const Home: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
@@ -31,6 +32,15 @@ const Home: React.FC = () => {
     <div id="application">
       <Configuration />
 
+      <Downloader
+        leagues={leagues}
+        fetchFlyMasterIGCs={fetchFlyMasterIGCs}
+        fetchXcontestIGCs={fetchXcontestIGCs}
+        fetchVolandooIGCs={fetchVolandooIGCs}
+        listIGCs={listIGCs}
+        errorMessage={errorMessage}
+      />
+
       {isListingDirectory &&
         !flymasterProgress.visible &&
         !xcontestProgress.visible &&
@@ -46,14 +56,6 @@ const Home: React.FC = () => {
         xcontestProgress={xcontestProgress}
         volandooProgress={volandooProgress}
       />
-      <Downloader
-        leagues={leagues}
-        fetchFlyMasterIGCs={fetchFlyMasterIGCs}
-        fetchXcontestIGCs={fetchXcontestIGCs}
-        fetchVolandooIGCs={fetchVolandooIGCs}
-        listIGCs={listIGCs}
-        errorMessage={errorMessage}
-      />
 
       {pilots?.length > 0 ? (
         <div className="w-full">
@@ -64,7 +66,7 @@ const Home: React.FC = () => {
               );
               return (
                 <Tab key={league} label={`League ${league}`}>
-                  {/* <TableSummary tableRef={tableRef} /> */}
+                  <TableSummary tableRef={tableRef} league={league} />
 
                   <LeagueTable
                     league={league}

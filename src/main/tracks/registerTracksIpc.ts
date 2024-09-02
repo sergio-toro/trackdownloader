@@ -3,6 +3,7 @@ import { downloadFile } from "@main/tracks/downloadFile";
 import { unzipFile } from "@main/tracks/unzipFile";
 import { listIGCs } from "@main/tracks/listIGCs";
 import { deleteIGCs } from "./deleteFile";
+import { clearFolder } from "./clearFolder";
 import { moveFile } from "./moveFile";
 
 export default function registerTracksIpc(appWindow: BrowserWindow) {
@@ -53,6 +54,13 @@ export default function registerTracksIpc(appWindow: BrowserWindow) {
       return await deleteIGCs(filePath);
     } catch (error) {
       console.error("Error deleting file", error);
+    }
+  });
+  ipcMain.handle("track-clear-directory", async (_, directory: string) => {
+    try {
+      return await clearFolder(directory);
+    } catch (error) {
+      console.error("Error clearing directory", error);
     }
   });
   ipcMain.handle(

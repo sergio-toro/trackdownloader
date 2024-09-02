@@ -29,13 +29,13 @@ const LeagueTable: React.FC<Props> = ({
   fetchVolandooIGCs,
   selectFolder,
 }) => {
-  const { selectedFolders, igcFiles, selectedPilotIds, igcsInDirectory } =
-    useTableTracks();
+  const {
+    selectedFolders,
+    igcFiles,
+    notAttendedPilotIds,
+    setNotAttendedPilotIds,
+  } = useTableTracks();
   const selectedFolder = selectedFolders[league] || "";
-  console.log("SELECTED FOLDER for LEAGUE", league, selectedFolder);
-  console.log("SELECTED FOLDERS", selectedFolders);
-  console.log("IGC FILES IN TABLE", igcFiles);
-  console.log("IGCS IN DIRECTORY", igcsInDirectory);
 
   const deleteFlight = async (fileName: string, pilotName: string) => {
     try {
@@ -53,18 +53,22 @@ const LeagueTable: React.FC<Props> = ({
   };
 
   const combinedIgcFiles =
-    igcFiles?.validIgcs && igcFiles?.invalidIgcs
+    igcFiles[league]?.validIgcs && igcFiles[league]?.invalidIgcs
       ? [
-          ...igcFiles.validIgcs.map((file) => ({ ...file, isValid: true })),
-          ...igcFiles.invalidIgcs.map((file) => ({ ...file, isValid: false })),
+          ...igcFiles[league].validIgcs.map((file) => ({
+            ...file,
+            isValid: true,
+          })),
+          ...igcFiles[league].invalidIgcs.map((file) => ({
+            ...file,
+            isValid: false,
+          })),
         ]
       : [];
 
-  console.log("PILOTS IN TABLE", pilots);
-  console.log("COMBINED IGC FILES", combinedIgcFiles);
   const sortedPilots = (pilots || []).sort((a, b) => {
-    const aSelected = selectedPilotIds.has(a.id);
-    const bSelected = selectedPilotIds.has(b.id);
+    const aSelected = notAttendedPilotIds.has(a.id);
+    const bSelected = notAttendedPilotIds.has(b.id);
 
     if (aSelected && !bSelected) return 1;
     if (!aSelected && bSelected) return -1;
@@ -74,7 +78,7 @@ const LeagueTable: React.FC<Props> = ({
   return (
     <div>
       <div className="flex gap-4 mb-4 items-center">
-        <div className="flex   gap-4  ">
+        <div className="flex gap-4">
           <button
             onClick={() => selectFolder(league)}
             className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
@@ -94,11 +98,11 @@ const LeagueTable: React.FC<Props> = ({
             <th>ID</th>
             <th>Pilot Name</th>
             <th>Source</th>
-            <th>Site</th>
             <th>Details</th>
             <th>Status</th>
-            <th>Scrap</th>
+            <th>Scrap Track</th>
             <th>Links</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -106,12 +110,10 @@ const LeagueTable: React.FC<Props> = ({
             const pilotTracks = combinedIgcFiles.filter(
               (track) => track.pilotId === Number(pilot.id)
             );
-            console.log("PILOT TRACKS", pilotTracks);
-
             const isInvalid = pilotTracks.some(
               (track) => track.isValid === false
             );
-            const isSelected = selectedPilotIds.has(pilot.id);
+            const isNotAttending = notAttendedPilotIds.has(pilot.id);
             const hasMoreThanOneFlight = pilotTracks.length > 1;
 
             return (
@@ -120,8 +122,8 @@ const LeagueTable: React.FC<Props> = ({
                 className={cx({
                   "bg-red-200": isInvalid,
                   "bg-yellow-100": !isInvalid && hasMoreThanOneFlight,
-                  "opacity-60": isSelected,
-                  "bg-gray-200": !isInvalid && isSelected,
+                  "opacity-60": isNotAttending,
+                  "bg-gray-200": !isInvalid && isNotAttending,
                 })}
               >
                 <td>{pilot.id}</td>
@@ -132,17 +134,6 @@ const LeagueTable: React.FC<Props> = ({
                     {pilotTracks.map((track) => (
                       <div key={track.name}>{track.source}</div>
                     ))}
-                  </div>
-                </td>
-                <td>
-                  <div className="flex flex-col justify-between gap-7">
-                    {pilotTracks.map((track) =>
-                      "site" in track ? (
-                        <div key={track.name}>{track.site}</div>
-                      ) : (
-                        <div key={track.name}>N/A</div>
-                      )
-                    )}
                   </div>
                 </td>
                 <td>
@@ -261,6 +252,28 @@ const LeagueTable: React.FC<Props> = ({
                       </a>
                     )}
                   </div>
+                </td>
+                <td>
+                  {/*attending/not attending button*/}
+                  <button
+                    className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
+                    onClick={() => {
+                      const newNotAttendedPilotIds = new Set(
+                        notAttendedPilotIds
+                      );
+
+                      if (newNotAttendedPilotIds.has(pilot.id)) {
+                        newNotAttendedPilotIds.delete(pilot.id);
+                      } else {
+                        newNotAttendedPilotIds.add(pilot.id);
+                      }
+                      setNotAttendedPilotIds(newNotAttendedPilotIds);
+                    }}
+                  >
+                    {notAttendedPilotIds.has(pilot.id)
+                      ? "Attended"
+                      : "Not Attended"}
+                  </button>
                 </td>
               </tr>
             );

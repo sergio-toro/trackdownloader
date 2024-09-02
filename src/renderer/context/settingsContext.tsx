@@ -78,9 +78,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (settings.pilots) {
-      const leagues = Array.from(
-        new Set(settings.pilots.map((pilot) => pilot.league).filter(Boolean))
-      ) as string[];
+      const leagues: string[] = [];
+      settings.pilots.forEach((pilot) => {
+        if (pilot.league && !leagues.includes(pilot.league)) {
+          leagues.push(pilot.league);
+        }
+      });
       setSettings((prevSettings) => ({ ...prevSettings, leagues }));
     }
   }, [settings.pilots]);

@@ -51,24 +51,29 @@ const useFetchIGCs = () => {
   const {
     selectedDate,
     selectedFolders,
-    selectedPilotIds,
+    notAttendedPilotIds,
     igcFiles,
     setIgcFiles,
     setSelectedFolders,
   } = useTableTracks();
 
+  const pilotsWithTracksIds = new Set();
+
+  for (const league of leagues) {
+    igcFiles[league]?.validIgcs.forEach((track) =>
+      pilotsWithTracksIds.add(track.pilotId)
+    );
+    igcFiles[league]?.invalidIgcs.forEach((track) =>
+      pilotsWithTracksIds.add(track.pilotId)
+    );
+  }
+
   useEffect(() => {
     const listAllIGCs = async () => {
       try {
-        for (const league of leagues) {
-          const selectedFolder = selectedFolders[league];
-          if (selectedFolder) {
-            console.log(`Listing IGCs for league ${league}...`, selectedFolder);
-            await listIGCs();
-          } else {
-            console.log(`No folder selected for league ${league}...`);
-          }
-        }
+        setIsListingDirectory(true);
+        await listIGCs();
+        setIsListingDirectory(false);
       } catch (error) {
         console.error("Error listing IGCs for all leagues:", error);
       } finally {
@@ -87,7 +92,6 @@ const useFetchIGCs = () => {
       }
 
       const igcFiles = await window.tracks.listIGCs(temporalFolder);
-      console.log("IGC FILES IN TEMPORAL FOLDER", igcFiles);
       for (const igcFile of igcFiles.validIgcs) {
         const [pilotIdStr] = igcFile.name.match(/(\d+)\.igc$/) || [];
         const pilotId = parseInt(pilotIdStr, 10);
@@ -107,7 +111,6 @@ const useFetchIGCs = () => {
         }
 
         const leagueFolder = selectedFolders[league];
-        console.log("LF", leagueFolder);
         if (!leagueFolder) {
           console.warn(`No folder selected for league ${league}`);
           continue;
@@ -125,27 +128,6 @@ const useFetchIGCs = () => {
     }
   };
 
-  const listIGCsForSelectedFolders = async () => {
-    try {
-      const allIgcFiles: Record<string, ListIGCsResponse> = {};
-      for (const [league, folder] of Object.entries(selectedFolders)) {
-        const igcsInFolder = await window.tracks.listIGCs(folder);
-        console.log(
-          `!!!!!!!!IGCs in folder for league ${league}:!`,
-          igcsInFolder
-        );
-
-        allIgcFiles[league] = igcsInFolder;
-      }
-
-      setIgcFiles((prevIgcFiles) => ({
-        ...prevIgcFiles,
-        ...allIgcFiles,
-      }));
-    } catch (error) {
-      console.error("Error listing IGCs in selected folders:", error);
-    }
-  };
   const validateInputs = () => {
     if (!selectedDate || !Object.keys(selectedFolders).length) {
       setErrorMessage("Please select a date and at least one folder.");
@@ -158,6 +140,13 @@ const useFetchIGCs = () => {
   const fetchFlyMasterIGCs = async () => {
     if (!validateInputs() || flymasterProgress.visible) return;
     try {
+      setFlymasterProgress({
+        visible: true,
+        percent: 2,
+        detail: "Flymaster: Clearing temporary folder...",
+      });
+      await window.tracks.clearDirectory(temporalFolder);
+
       setFlymasterProgress({
         visible: true,
         percent: 5,
@@ -189,7 +178,6 @@ const useFetchIGCs = () => {
       });
       await filterIgcsByLeague();
       await listIGCs();
-      await listIGCsForSelectedFolders();
 
       setFlymasterProgress({
         visible: false,
@@ -214,26 +202,14 @@ const useFetchIGCs = () => {
     if (specificPilot) {
       pilotsToFetch = [specificPilot];
     } else {
-      const pilotsWithTracksIds = new Set([
-        ...igcFiles.validIgcs.map((track) => track.pilotId),
-        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
-      ]);
-
-      const notAttendedPilotIds = new Set(
-        pilots
-          .filter((pilot) => selectedPilotIds.has(Number(pilot.id)))
-          .map((pilot) => pilot.id)
-      );
-
       pilotsToFetch = pilots
         .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
         .filter(
           (pilot) =>
             Boolean(pilot.xcontest) &&
+            Boolean(pilot.league) &&
             !notAttendedPilotIds.has(Number(pilot.id))
         );
-
-      console.log("PILOTS TO FETCH", pilotsToFetch);
     }
 
     const pilotChunks = chunkArray(pilotsToFetch, 2);
@@ -245,27 +221,22 @@ const useFetchIGCs = () => {
         detail: `XContest: Downloading "${pilotUsernames}" IGCs track...`,
       });
       try {
-        for (const league of leagues) {
-          const selectedFolder = selectedFolders[league];
-          if (!selectedFolder) continue;
-
-          await Promise.allSettled(
-            chunk.map(async (pilot) =>
-              window.scrappers.xcontestIGCs({
-                username: xcontest?.username,
-                password: xcontest?.password,
-                date: selectedDate
-                  ? format(new Date(selectedDate), "dd.MM.yy")
-                  : "",
-                xcontestId: pilot.xcontest!,
-                pilotId: pilot.id,
-                pilotName: pilot.name,
-                selectedFolder: selectedFolder,
-                debug,
-              })
-            )
-          );
-        }
+        await Promise.allSettled(
+          chunk.map(async (pilot) =>
+            window.scrappers.xcontestIGCs({
+              username: xcontest?.username,
+              password: xcontest?.password,
+              date: selectedDate
+                ? format(new Date(selectedDate), "dd.MM.yy")
+                : "",
+              xcontestId: pilot.xcontest!,
+              pilotId: pilot.id,
+              pilotName: pilot.name,
+              selectedFolder: selectedFolders[pilot.league],
+              debug,
+            })
+          )
+        );
       } catch (error) {
         console.error(`Error processing pilots ${pilotUsernames}:`, error);
       }
@@ -275,17 +246,7 @@ const useFetchIGCs = () => {
       percent: 99,
       detail: "Listing IGCs...",
     });
-    try {
-      for (const league of leagues) {
-        const selectedFolder = selectedFolders[league];
-        if (!selectedFolder) continue;
-
-        await listIGCs();
-      }
-    } catch (error) {
-      console.error("Error listing IGCs for all leagues:", error);
-    }
-
+    await listIGCs();
     setXcontestProgress({
       visible: false,
       percent: 0,
@@ -300,14 +261,14 @@ const useFetchIGCs = () => {
         return;
       }
       setIsListingDirectory(true);
+      const newIgcFiles: Record<string, ListIGCsResponse> = {};
       for (const league of leagues) {
         const selectedFolder = selectedFolders[league];
         if (selectedFolder) {
-          console.log(`Listing IGCs for league ${league}...`, selectedFolder);
-          const igcFilesResponse = await window.tracks.listIGCs(selectedFolder);
-          setIgcFiles(igcFilesResponse);
+          newIgcFiles[league] = await window.tracks.listIGCs(selectedFolder);
         }
       }
+      setIgcFiles(newIgcFiles);
     } catch (error) {
       console.error("Error listing IGCs for all leagues:", error);
     } finally {
@@ -334,25 +295,14 @@ const useFetchIGCs = () => {
     if (specificPilot) {
       pilotsToFetch = [specificPilot];
     } else {
-      const pilotsWithTracksIds = new Set([
-        ...igcFiles.validIgcs.map((track) => track.pilotId),
-        ...igcFiles.invalidIgcs.map((track) => track.pilotId),
-      ]);
-      const notAttendedPilotIds = new Set(
-        pilots
-          .filter((pilot) => selectedPilotIds.has(Number(pilot.id)))
-          .map((pilot) => pilot.id)
-      );
-
       pilotsToFetch = pilots
         .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
         .filter(
           (pilot) =>
             Boolean(pilot.volandoo) &&
+            Boolean(pilot.league) &&
             !notAttendedPilotIds.has(Number(pilot.id))
         );
-
-      console.log("PILOTS TO FETCH", pilotsToFetch);
     }
 
     try {
@@ -364,36 +314,30 @@ const useFetchIGCs = () => {
         });
 
         const parsedDate = parseISO(selectedDate);
-        const formattedDate = format(parsedDate, "MM/dd/yyyy");
+        const formattedDate = format(parsedDate, "dd/MM/yyyy");
 
-        console.log("Volandoo Settings", {
-          date: formattedDate,
-          volandooId: pilot.volandoo,
-          debug,
-        });
+        // console.log("Volandoo Settings", {
+        //   date: formattedDate,
+        //   volandooId: pilot.volandoo,
+        //   debug,
+        // });
 
+        const selectedFolder = selectedFolders[pilot.league];
         const pilotIGCs = await window.scrappers.volandooIGCs({
           date: formattedDate,
           volandooId: pilot.volandoo,
           debug,
         });
 
-        console.log("Volandoo PILOT IGCs", pilotIGCs);
-
         for (const track of pilotIGCs) {
-          for (const league of leagues) {
-            const selectedFolder = selectedFolders[league];
-            if (!selectedFolder) continue;
-
-            const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
-            try {
-              await window.tracks.downloadFile(track.igcUrl, filePath);
-            } catch (downloadError) {
-              console.error(
-                `Error downloading file: ${track.igcUrl} ${filePath}`,
-                downloadError
-              );
-            }
+          const filePath = `${selectedFolder}/Volandoo ${pilot.name} - ${md5(`${track.date}-${track.duration}`)}.${pilot.id}.igc`;
+          try {
+            await window.tracks.downloadFile(track.igcUrl, filePath);
+          } catch (downloadError) {
+            console.error(
+              `Error downloading file: ${track.igcUrl} ${filePath}`,
+              downloadError
+            );
           }
         }
       }

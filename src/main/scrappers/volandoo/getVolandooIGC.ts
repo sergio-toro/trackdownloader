@@ -64,14 +64,37 @@ export const getVolandooIGCs = async ({ date, volandooId, debug }: Options) => {
       const [rowWindow, rowPage] = await getWindowAndPage(detailsUrl, {
         show: debug,
       });
+      // OLD VERSION
+      // await rowPage.waitForSelector("div.MuiStack-root > a");
+      // const downloadLinkElement = await rowPage.$("div.MuiStack-root > a");
+      // const downloadLink = await downloadLinkElement.evaluate((el) => el.href);
 
-      await rowPage.waitForSelector("div.MuiStack-root > a");
-      const downloadLinkElement = await rowPage.$("div.MuiStack-root > a");
-      const downloadLink = await downloadLinkElement.evaluate((el) => el.href);
+      // get __NEXT_DATA__ from page
+      const nextData = await rowPage.evaluate(() => {
+        return JSON.parse(document.querySelector("#__NEXT_DATA__").textContent);
+      });
+
+      let trackId = null;
+      let flightId = null;
+      if (nextData.props.pageProps.flight) {
+        trackId = nextData.props.pageProps.flight.trackId;
+        flightId = nextData.props.pageProps.flight.id;
+      }
+
+      if (nextData.props.pageProps.track) {
+        trackId = nextData.props.pageProps.track.id;
+        flightId = nextData.props.pageProps.track.flights[0].id;
+      }
+
+      if (!trackId || !flightId) {
+        throw new Error(
+          "Volandoo changed the page structure, trackId or flightId not found"
+        );
+      }
 
       pilotIGCs.push({
         pilotUsername: volandooId,
-        igcUrl: downloadLink,
+        igcUrl: `https://storage.googleapis.com/volandoo-abc00.appspot.com/tracks_2/${trackId}/${flightId}.igc`,
         date: scrappedDate,
         duration,
       });
