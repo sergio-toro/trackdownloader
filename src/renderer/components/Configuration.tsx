@@ -28,7 +28,7 @@ const Configuration: React.FC = () => {
   return (
     <div className="min-w-full relative bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6">
       <button
-        className="border border-gray-400 rounded-md text-xs px-2 py-1 absolute right-2 top-2 cursor-pointer"
+        className="border border-gray-400 rounded-md text-xs px-2 py-1 absolute right-4 top-2 cursor-pointer"
         onClick={handleToggleDebug}
       >
         Debug: {debug ? "ON" : "OFF"}

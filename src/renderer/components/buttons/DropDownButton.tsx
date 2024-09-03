@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 
 interface DropDownButtonProps {
   text: string;
@@ -13,7 +13,7 @@ const DropDownButton: React.FC<DropDownButtonProps> = ({ text, children }) => {
   };
 
   return (
-    <div className="flex-grow relative pb-1">
+    <div className="flex-grow pb-1">
       <button
         className="font-bold text-xl text-black flex items-center gap-1"
         id="menu-button"
