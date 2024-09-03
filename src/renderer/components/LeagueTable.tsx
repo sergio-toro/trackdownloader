@@ -121,6 +121,7 @@ const LeagueTable: React.FC<Props> = ({
                 key={index}
                 className={cx({
                   "bg-red-200": isInvalid,
+                  "bg-red-100": !isNotAttending && pilotTracks.length === 0,
                   "bg-yellow-100": !isInvalid && hasMoreThanOneFlight,
                   "opacity-60": isNotAttending,
                   "bg-gray-200": !isInvalid && isNotAttending,
@@ -254,9 +255,8 @@ const LeagueTable: React.FC<Props> = ({
                   </div>
                 </td>
                 <td>
-                  {/*attending/not attending button*/}
                   <button
-                    className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
+                    className="border bg-white border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100"
                     onClick={() => {
                       const newNotAttendedPilotIds = new Set(
                         notAttendedPilotIds
@@ -272,7 +272,7 @@ const LeagueTable: React.FC<Props> = ({
                   >
                     {notAttendedPilotIds.has(pilot.id)
                       ? "Attended"
-                      : "Not Attended"}
+                      : "Not attended"}
                   </button>
                 </td>
               </tr>

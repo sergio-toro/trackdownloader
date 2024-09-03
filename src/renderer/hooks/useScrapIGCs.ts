@@ -202,14 +202,13 @@ const useFetchIGCs = () => {
     if (specificPilot) {
       pilotsToFetch = [specificPilot];
     } else {
-      pilotsToFetch = pilots
-        .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
-        .filter(
-          (pilot) =>
-            Boolean(pilot.xcontest) &&
-            Boolean(pilot.league) &&
-            !notAttendedPilotIds.has(Number(pilot.id))
-        );
+      pilotsToFetch = pilots.filter(
+        (pilot) =>
+          !pilotsWithTracksIds.has(Number(pilot.id)) &&
+          Boolean(pilot.xcontest) &&
+          Boolean(pilot.league) &&
+          !notAttendedPilotIds.has(Number(pilot.id))
+      );
     }
 
     const pilotChunks = chunkArray(pilotsToFetch, 2);
@@ -295,14 +294,13 @@ const useFetchIGCs = () => {
     if (specificPilot) {
       pilotsToFetch = [specificPilot];
     } else {
-      pilotsToFetch = pilots
-        .filter((pilot) => !pilotsWithTracksIds.has(Number(pilot.id)))
-        .filter(
-          (pilot) =>
-            Boolean(pilot.volandoo) &&
-            Boolean(pilot.league) &&
-            !notAttendedPilotIds.has(Number(pilot.id))
-        );
+      pilotsToFetch = pilots.filter(
+        (pilot) =>
+          !pilotsWithTracksIds.has(Number(pilot.id)) &&
+          Boolean(pilot.volandoo) &&
+          Boolean(pilot.league) &&
+          !notAttendedPilotIds.has(Number(pilot.id))
+      );
     }
 
     try {
