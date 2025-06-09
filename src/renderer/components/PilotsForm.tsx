@@ -110,7 +110,8 @@ export default function PilotsForm() {
   useEffect(() => {
     const pilotsData = debouncedData
       .slice(1)
-      .filter((row) => row[0].value)
+      // Remove rows that don't have required fields
+      .filter((row) => row[0]?.value || row[4]?.value)
       .map((row) => ({
         id: Number(row[0].value),
         name: row[1].value,
@@ -191,7 +192,13 @@ export default function PilotsForm() {
             handle: () => {
               const grid = [
                 ...data.slice(0, cellContextMenu.row),
-                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                [
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                ],
                 ...data.slice(cellContextMenu.row),
               ];
               setData(grid);
@@ -202,7 +209,13 @@ export default function PilotsForm() {
             handle: () => {
               const grid = [
                 ...data.slice(0, cellContextMenu.row + 1),
-                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                [
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                ],
                 ...data.slice(cellContextMenu.row + 1),
               ];
               setData(grid);
