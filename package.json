@@ -1,7 +1,7 @@
 {
   "name": "trackdownloader",
   "productName": "Track Downloader",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Mireia Garcia, Sergio Toro",
   "description": "Track Downloader is an application to download IGC tracks from Flymaster XContest and Volandoo",
   "main": ".webpack/main",
