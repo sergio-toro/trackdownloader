@@ -2,15 +2,15 @@ module.exports = [
   {
     // Add support for native node modules
     test: /native_modules\/.+\.node$/,
-    use: 'node-loader',
+    use: "node-loader",
   },
   {
     test: /\.(m?js|node)$/,
     parser: { amd: false },
     use: {
-      loader: '@vercel/webpack-asset-relocator-loader',
+      loader: "@vercel/webpack-asset-relocator-loader",
       options: {
-        outputAssetBase: 'native_modules',
+        outputAssetBase: "native_modules",
       },
     },
   },
@@ -19,7 +19,7 @@ module.exports = [
     test: /\.tsx?$/,
     exclude: /(node_modules|\.webpack)/,
     use: {
-      loader: 'ts-loader',
+      loader: "ts-loader",
       options: {
         transpileOnly: true,
       },
@@ -28,24 +28,31 @@ module.exports = [
   {
     // CSS Loader
     test: /\.css$/,
-    use: ['style-loader', 'css-loader', 'postcss-loader'],
+    use: ["style-loader", "css-loader", "postcss-loader"],
   },
   {
     // SCSS (SASS) Loader
     test: /\.s[ac]ss$/i,
     use: [
-      { loader: 'style-loader' },
-      { loader: 'css-loader' },
-      { loader: 'sass-loader' },
+      { loader: "style-loader" },
+      { loader: "css-loader" },
+      {
+        loader: "sass-loader",
+        options: {
+          sassOptions: {
+            silenceDeprecations: ["legacy-js-api"],
+          },
+        },
+      },
     ],
   },
   {
     // Assets loader
     // More information here https://webpack.js.org/guides/asset-modules/
     test: /\.(gif|jpe?g|tiff|png|webp|bmp|svg|eot|ttf|woff|woff2)$/i,
-    type: 'asset',
+    type: "asset",
     generator: {
-      filename: 'assets/[hash][ext][query]',
+      filename: "assets/[hash][ext][query]",
     },
   },
 ];
