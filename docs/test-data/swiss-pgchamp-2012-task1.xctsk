@@ -1,0 +1,121 @@
+{
+  "taskType": "RACE",
+  "version": 1,
+  "earthModel": "WGS84",
+  "competition": {
+    "name": "Swiss Paragliding Championship 2012",
+    "location": "Disentis, Switzerland",
+    "date": "2012-07-24"
+  },
+  "turnpoints": [
+    {
+      "type": "TAKEOFF",
+      "radius": 400,
+      "waypoint": {
+        "name": "S01218 - Takeoff",
+        "description": "Launch area Disentis",
+        "lat": 46.6983,
+        "lon": 8.8513,
+        "altSmoothed": 2200
+      }
+    },
+    {
+      "type": "SSS",
+      "radius": 9000,
+      "waypoint": {
+        "name": "B03270 - Start Cylinder",
+        "description": "Speed section start - 9km radius",
+        "lat": 46.6809,
+        "lon": 8.7712,
+        "altSmoothed": 2000
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 400,
+      "waypoint": {
+        "name": "B03270 - TP1",
+        "description": "Same as start, exit point",
+        "lat": 46.6809,
+        "lon": 8.7712,
+        "altSmoothed": 2000
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 400,
+      "waypoint": {
+        "name": "B12160 - TP2",
+        "description": "Eastern turnpoint",
+        "lat": 46.7877,
+        "lon": 9.1925,
+        "altSmoothed": 2100
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 1000,
+      "waypoint": {
+        "name": "B73252 - TP3",
+        "description": "Southern turnpoint",
+        "lat": 46.6247,
+        "lon": 8.9402,
+        "altSmoothed": 1800
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 400,
+      "waypoint": {
+        "name": "B65255 - TP4",
+        "description": "Western turnpoint",
+        "lat": 46.6368,
+        "lon": 8.8711,
+        "altSmoothed": 1600
+      }
+    },
+    {
+      "type": "ESS",
+      "radius": 400,
+      "waypoint": {
+        "name": "B67127 - End of Speed Section",
+        "description": "ESS cylinder",
+        "lat": 46.6813,
+        "lon": 8.8868,
+        "altSmoothed": 1200
+      }
+    },
+    {
+      "type": "GOAL",
+      "radius": 400,
+      "waypoint": {
+        "name": "L01122 - Goal",
+        "description": "Goal line at landing field",
+        "lat": 46.6889,
+        "lon": 8.8982,
+        "altSmoothed": 1130
+      }
+    }
+  ],
+  "sss": {
+    "type": "RACE",
+    "direction": "ENTER",
+    "timeGates": [
+      "2012-07-24T12:20:00+02:00"
+    ]
+  },
+  "goal": {
+    "type": "LINE",
+    "deadline": "2012-07-24T17:00:00+02:00"
+  },
+  "metadata": {
+    "source": "FS GrayboxTest Test_001",
+    "taskDistance": 80.874,
+    "speedSectionDistance": 77.326,
+    "formula": "PWC2011",
+    "minDistance": 5,
+    "nominalDistance": 60,
+    "nominalTime": 1.5,
+    "nominalGoal": 0.3
+  }
+}

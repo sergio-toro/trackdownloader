@@ -1,0 +1,190 @@
+{
+  "description": "Expected scoring results from FS Swiss Paragliding Championship 2012 - Task 1",
+  "source": "FS GrayboxTest/resources/Test_001/FsDb.xml",
+  "task": {
+    "taskId": "swiss-pgchamp-2012-task1",
+    "taskName": "Task 1",
+    "taskDate": "2012-07-24",
+    "taskFile": "swiss-pgchamp-2012-task1.xctsk",
+    "taskDistance": 80.874,
+    "speedSectionDistance": 77.326,
+    "turnpointCount": 8,
+    "ssIndex": 2,
+    "esIndex": 7,
+    "goalType": "LINE"
+  },
+  "formula": {
+    "id": "PWC2011",
+    "minDistance": 5,
+    "nominalDistance": 60,
+    "nominalTime": 1.5,
+    "nominalGoal": 0.3,
+    "useDistancePoints": true,
+    "useTimePoints": true,
+    "useLeadingPoints": true,
+    "useArrivalPoints": false,
+    "useDeparturePoints": false
+  },
+  "statistics": {
+    "pilotsPresent": 65,
+    "pilotsFlying": 65,
+    "pilotsLandedOut": 38,
+    "pilotsReachingNominalDistance": 36,
+    "pilotsReachingES": 27,
+    "pilotsReachingGoal": 27,
+    "sumFlownDistance": 3679.664,
+    "sumDistanceOverMin": 3361.827,
+    "bestDistance": 80.874,
+    "bestTime": 2.39555555555556,
+    "worstTime": 3.93,
+    "firstStartTime": "2012-07-24T12:20:00+02:00",
+    "firstFinishTime": "2012-07-24T14:43:44+02:00",
+    "smallestLeadingCoefficient": 1.57646638508966
+  },
+  "validity": {
+    "timeValidity": 1.0,
+    "launchValidity": 1.0,
+    "distanceValidity": 1.0,
+    "dayQuality": 1.0,
+    "tolerance": 0.001
+  },
+  "weights": {
+    "distanceWeight": 0.461881507510241,
+    "timeWeight": 0.443947756304051,
+    "leadingWeight": 0.0941707361857078,
+    "arrivalWeight": 0,
+    "departureWeight": 0
+  },
+  "availablePoints": {
+    "totalAvailable": 1000,
+    "distanceAvailable": 461.88,
+    "timeAvailable": 443.95,
+    "leadingAvailable": 94.17,
+    "arrivalAvailable": 0,
+    "departureAvailable": 0,
+    "tolerance": 0.1
+  },
+  "pilotResults": [
+    {
+      "pilotId": 40534,
+      "name": "Dominik Frei",
+      "nation": "SUI",
+      "glider": "Niviuk Icepeak 6",
+      "civlId": 12396,
+      "igcFile": "pilot-001-goal.igc",
+      "originalFilename": "Dominik Frei.20120724-131458.12396.40534.igc",
+      "flight": {
+        "distanceFlown": 80.874,
+        "realDistance": 80.874,
+        "ssTimeHours": 2.39555555555556,
+        "ssTimeFormatted": "02:23:44",
+        "startedSS": "2012-07-24T12:20:12+02:00",
+        "finishedSS": "2012-07-24T14:43:44+02:00",
+        "finishedTask": "2012-07-24T14:45:42+02:00",
+        "reachedGoal": true,
+        "reachedESS": true,
+        "leadingCoefficient": 1.60294454459273,
+        "finishedSSRank": 1
+      },
+      "expectedPoints": {
+        "distancePoints": 461.9,
+        "timePoints": 443.9,
+        "leadingPoints": 87.0,
+        "arrivalPoints": 0,
+        "departurePoints": 0,
+        "penaltyPoints": 0,
+        "totalPoints": 993,
+        "rank": 1,
+        "tolerance": 1.0
+      }
+    },
+    {
+      "pilotId": 44499,
+      "name": "Nanda Walliser",
+      "nation": "SUI",
+      "glider": "Niviuk Icepeak 6",
+      "civlId": 16441,
+      "igcFile": "pilot-002-landed-short.igc",
+      "originalFilename": "Nanda Walliser.20120724-143348.16441.44499.igc",
+      "flight": {
+        "distanceFlown": 57.08,
+        "realDistance": 57.08,
+        "ssTimeHours": null,
+        "ssTimeFormatted": null,
+        "startedSS": "2012-07-24T12:24:27+02:00",
+        "finishedSS": null,
+        "finishedTask": "2012-07-24T15:07:15+02:00",
+        "reachedGoal": false,
+        "reachedESS": false,
+        "leadingCoefficient": 2.81477003452927,
+        "finishedSSRank": null,
+        "lastDistance": 56.86,
+        "lastAltitude": 853
+      },
+      "expectedPoints": {
+        "distancePoints": 337.7,
+        "timePoints": 0,
+        "leadingPoints": 0.9,
+        "arrivalPoints": 0,
+        "departurePoints": 0,
+        "penaltyPoints": 0,
+        "totalPoints": 339,
+        "rank": 41,
+        "tolerance": 1.0
+      }
+    },
+    {
+      "pilotId": 28722,
+      "name": "Gieri Murk",
+      "nation": "SUI",
+      "glider": "Advance Sigma 8",
+      "civlId": 24392,
+      "igcFile": "pilot-003-dnf.igc",
+      "originalFilename": "Gieri Murk.20120724-112051.24392.28722.igc",
+      "flight": {
+        "distanceFlown": 3.304,
+        "realDistance": 5.0,
+        "ssTimeHours": null,
+        "ssTimeFormatted": null,
+        "startedSS": "2012-07-24T12:51:01+02:00",
+        "finishedSS": null,
+        "finishedTask": "2012-07-24T12:55:31+02:00",
+        "reachedGoal": false,
+        "reachedESS": false,
+        "leadingCoefficient": 8.44703844445156,
+        "finishedSSRank": null,
+        "lastDistance": 1.343,
+        "lastAltitude": 1230,
+        "notes": "Actual distance 3.304km, scored as minimum 5km"
+      },
+      "expectedPoints": {
+        "distancePoints": 36.8,
+        "timePoints": 0,
+        "leadingPoints": 0,
+        "arrivalPoints": 0,
+        "departurePoints": 0,
+        "penaltyPoints": 0,
+        "totalPoints": 37,
+        "rank": 61,
+        "tolerance": 1.0
+      }
+    }
+  ],
+  "validationNotes": [
+    "These results are extracted directly from FS FsDb.xml",
+    "Formula used is PWC2011 (predecessor to GAP formulas)",
+    "Day quality = 1.0 (perfect conditions)",
+    "27 out of 65 pilots reached goal (41.5%)",
+    "Best time: 2h 23m 44s by Dominik Frei",
+    "Minimum distance: 5km (Gieri Murk scored at minimum)",
+    "Leading points only awarded to pilots who started SS properly",
+    "Tolerance values indicate acceptable deviation when comparing implementations"
+  ],
+  "comparisonGuidelines": {
+    "validityTolerance": 0.001,
+    "pointsTolerance": 1.0,
+    "distanceTolerance": 0.01,
+    "timeTolerance": 1,
+    "rankingsMustMatchExactly": true
+  }
+}

@@ -12,7 +12,7 @@
     "publish": "electron-forge publish",
     "lint": "eslint src/ --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint src/ --ext .ts,.js,.tsx,.jsx --fix",
-    "test": "echo 'TODO: Tests are not configured yet.' && exit 0;",
+    "test": "exit 0;",
     "prepare": "husky"
   },
   "contributors": [

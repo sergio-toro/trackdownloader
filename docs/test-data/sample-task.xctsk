@@ -1,0 +1,84 @@
+{
+  "taskType": "RACE",
+  "version": 1,
+  "earthModel": "WGS84",
+  "turnpoints": [
+    {
+      "type": "TAKEOFF",
+      "radius": 400,
+      "waypoint": {
+        "name": "Piedrahita Launch",
+        "description": "Main launch area",
+        "lat": 40.456789,
+        "lon": -5.234567,
+        "altSmoothed": 1420
+      }
+    },
+    {
+      "type": "SSS",
+      "radius": 3000,
+      "waypoint": {
+        "name": "Start Cylinder",
+        "description": "Speed section start",
+        "lat": 40.467890,
+        "lon": -5.245678,
+        "altSmoothed": 1500
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 400,
+      "waypoint": {
+        "name": "TP1 - Valley Junction",
+        "description": "First turnpoint at valley junction",
+        "lat": 40.512345,
+        "lon": -5.198765,
+        "altSmoothed": 1200
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 400,
+      "waypoint": {
+        "name": "TP2 - Ridge Top",
+        "description": "Second turnpoint on main ridge",
+        "lat": 40.534567,
+        "lon": -5.267890,
+        "altSmoothed": 1850
+      }
+    },
+    {
+      "type": "ESS",
+      "radius": 2000,
+      "waypoint": {
+        "name": "End of Speed Section",
+        "description": "ESS cylinder",
+        "lat": 40.478901,
+        "lon": -5.256789,
+        "altSmoothed": 1400
+      }
+    },
+    {
+      "type": "GOAL",
+      "radius": 400,
+      "waypoint": {
+        "name": "Goal Field",
+        "description": "Main goal landing field",
+        "lat": 40.475012,
+        "lon": -5.252890,
+        "altSmoothed": 1100
+      }
+    }
+  ],
+  "sss": {
+    "type": "RACE",
+    "direction": "ENTER",
+    "timeGates": [
+      "2024-06-15T11:30:00Z"
+    ]
+  },
+  "goal": {
+    "type": "CYLINDER",
+    "deadline": "2024-06-15T18:00:00Z"
+  }
+}
