@@ -4,6 +4,7 @@ import path from "path";
 import { registerTitlebarIpc } from "@main/window/titlebarIpc";
 import registerScrappersIpc from "@main/scrappers/registerScrappersIpc";
 import registerTracksIpc from "./tracks/registerTracksIpc";
+import registerScoringIpc from "./scoring/ipc/registerScoringIpc";
 // Electron Forge automatically creates these entry points
 declare const SPLASH_WINDOW_WEBPACK_ENTRY: string;
 declare const APP_WINDOW_WEBPACK_ENTRY: string;
@@ -23,6 +24,7 @@ function registerMainIPC() {
 
   registerScrappersIpc();
   registerTracksIpc(appWindow);
+  registerScoringIpc(appWindow);
 }
 
 /**
@@ -54,7 +56,7 @@ export async function createAppWindow(): Promise<BrowserWindow> {
   });
 
   // README: Uncomment the line below to open dev tools
-  appWindow.webContents.openDevTools();
+  // appWindow.webContents.openDevTools();
 
   const splash = new BrowserWindow({
     width: 500,

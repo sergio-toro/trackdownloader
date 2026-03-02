@@ -5,6 +5,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import Application from "@renderer/Application";
 import { SettingsProvider } from "@renderer/context/settingsContext";
 import { TracksProvider } from "@renderer/context/tableTracksContext";
+import { CompetitionProvider } from "@renderer/context/competitionContext";
 
 // Say something
 console.log("[Track Downloader]: Renderer execution started");
@@ -14,11 +15,13 @@ function MainApp() {
   return (
     <SettingsProvider>
       <TracksProvider>
-        <WindowFrame title="Track Downloader">
-          <ErrorBoundary>
-            <Application />
-          </ErrorBoundary>
-        </WindowFrame>
+        <CompetitionProvider>
+          <WindowFrame title="Track Downloader">
+            <ErrorBoundary>
+              <Application />
+            </ErrorBoundary>
+          </WindowFrame>
+        </CompetitionProvider>
       </TracksProvider>
     </SettingsProvider>
   );
