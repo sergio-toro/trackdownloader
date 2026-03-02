@@ -71,6 +71,7 @@ export interface CompetitionState {
     updates: Partial<Participant>
   ) => Promise<void>;
   deleteParticipant: (participantId: number) => Promise<void>;
+  setParticipants: (participants: Participant[]) => Promise<void>;
 
   // Results
   loadTaskResults: (taskId: string) => Promise<TaskResult | null>;
@@ -115,6 +116,7 @@ const initialContext: CompetitionState = {
   addParticipant: async () => {},
   updateParticipant: async () => {},
   deleteParticipant: async () => {},
+  setParticipants: async () => {},
   loadTaskResults: async () => null,
   loadCompetitionResults: async () => null,
   updateFormula: async () => {},
@@ -415,6 +417,21 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
     [competition]
   );
 
+  const setParticipantsData = useCallback(
+    async (newParticipants: Participant[]) => {
+      if (!competition) return;
+      setError(null);
+      try {
+        await window.scoring.setParticipants(competition.id, newParticipants);
+        setParticipants(newParticipants);
+      } catch (err) {
+        setError(`Failed to set participants: ${err}`);
+        console.error("Error setting participants:", err);
+      }
+    },
+    [competition]
+  );
+
   // Results
 
   const loadTaskResults = useCallback(
@@ -512,6 +529,7 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
     addParticipant,
     updateParticipant,
     deleteParticipant,
+    setParticipants: setParticipantsData,
     loadTaskResults,
     loadCompetitionResults,
     updateFormula,

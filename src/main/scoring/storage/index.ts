@@ -49,6 +49,7 @@ export interface ICompetitionStorage {
   ): Promise<void>;
   deleteParticipant(compId: string, participantId: number): Promise<void>;
   getParticipants(compId: string): Promise<Participant[]>;
+  setParticipants(compId: string, participants: Participant[]): Promise<void>;
 
   // Result storage
   saveTaskResults(

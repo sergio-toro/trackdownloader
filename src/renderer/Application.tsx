@@ -1,7 +1,7 @@
 import React from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import Home from "./routes/Home";
-import Scoring from "./routes/Scoring";
+import CompetitionsList from "./routes/CompetitionsList";
 import Competition from "./routes/Competition";
 import "@styles/main.css";
 import "@styles/app.scss";
@@ -13,7 +13,7 @@ const Application: React.FC = () => {
       <HashRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/scoring" element={<Scoring />} />
+          <Route path="/competitions" element={<CompetitionsList />} />
           <Route path="/competition/:competitionId" element={<Competition />} />
         </Routes>
       </HashRouter>

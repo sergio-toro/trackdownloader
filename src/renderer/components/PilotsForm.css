@@ -4,7 +4,7 @@
   }
 
   .data-grid-container .data-grid .cell {
-    height: 25px;
+    height: 35px !important;
     text-align: left;
   }
 

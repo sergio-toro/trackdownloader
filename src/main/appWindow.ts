@@ -56,7 +56,7 @@ export async function createAppWindow(): Promise<BrowserWindow> {
   });
 
   // README: Uncomment the line below to open dev tools
-  // appWindow.webContents.openDevTools();
+  appWindow.webContents.openDevTools();
 
   const splash = new BrowserWindow({
     width: 500,

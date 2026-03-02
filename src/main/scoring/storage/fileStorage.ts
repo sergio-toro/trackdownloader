@@ -390,6 +390,18 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     return participants || [];
   }
 
+  async setParticipants(
+    compId: string,
+    participants: Participant[]
+  ): Promise<void> {
+    await this.writeJson(
+      path.join(this.compDir(compId), "participants.json"),
+      participants
+    );
+    await this.touchCompetition(compId);
+    console.log(`Set ${participants.length} participants for competition`);
+  }
+
   // Result storage
 
   async saveTaskResults(

@@ -294,6 +294,18 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
     }
   });
 
+  ipcMain.handle(
+    "scoring-set-participants",
+    async (_, compId: string, participants: Participant[]) => {
+      try {
+        await storage.setParticipants(compId, participants);
+      } catch (error) {
+        console.error("Error setting participants:", error);
+        throw error;
+      }
+    }
+  );
+
   // ============================================================
   // Results Management
   // ============================================================

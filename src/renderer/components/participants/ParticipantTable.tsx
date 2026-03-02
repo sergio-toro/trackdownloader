@@ -1,12 +1,42 @@
 /**
  * Participant table component
  *
- * Editable table for managing competition participants
+ * Editable datasheet table for managing competition participants
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+// eslint-disable-next-line import/no-named-as-default
+import ReactDataSheet from "react-datasheet";
+import ContextMenu from "@components/layout/ContextMenu";
+import { useDebounce } from "@uidotdev/usehooks";
 import { useCompetition } from "@renderer/context/competitionContext";
-import type { Participant, ParticipantStatus } from "@main/scoring/types";
+import type { Participant } from "@main/scoring/types";
+
+import "../PilotsForm.css";
+
+export interface GridElement extends ReactDataSheet.Cell<GridElement, number> {
+  value: string | null;
+  readonly?: boolean;
+}
+
+class DataSheet extends ReactDataSheet<GridElement, number> {}
+
+interface ContextMenuState {
+  isOpen: boolean;
+  x: number;
+  y: number;
+}
+
+interface CellContextMenu extends ContextMenuState {
+  cell: GridElement | null;
+  col: number | null;
+  row: number | null;
+}
+
+interface RowsRangeContextMenu extends ContextMenuState {
+  start: number | null;
+  end: number | null;
+}
 
 interface ParticipantTableProps {
   competitionId: string;
@@ -17,323 +47,244 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
   competitionId: _competitionId,
   participants,
 }) => {
-  const { addParticipant, updateParticipant, deleteParticipant } =
-    useCompetition();
+  const { setParticipants } = useCompetition();
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editData, setEditData] = useState<Partial<Participant>>({});
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newParticipant, setNewParticipant] = useState<Partial<Participant>>({
-    name: "",
-    status: "Confirmed",
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [rowsRangeContextMenu, setRowsRangeContextMenu] =
+    useState<RowsRangeContextMenu>({
+      isOpen: false,
+      x: 0,
+      y: 0,
+      start: 0,
+      end: 0,
+    });
+  const debouncedRowsRangeContextMenu = useDebounce(rowsRangeContextMenu, 500);
+  const [cellContextMenu, setCellContextMenu] = useState<CellContextMenu>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    cell: null,
+    col: null,
+    row: null,
   });
 
-  const filteredParticipants = participants.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [data, setData] = useState<GridElement[][]>([
+    [
+      { value: "ID", readOnly: true, className: "cell read-only w-[50px]" },
+      { value: "Name", readOnly: true },
+      {
+        value: "XContest",
+        readOnly: true,
+        className: "cell read-only w-[125px]",
+      },
+      {
+        value: "Volandoo",
+        readOnly: true,
+        className: "cell read-only w-[125px]",
+      },
+    ],
+    ...(participants?.length > 0
+      ? participants
+      : [
+          {
+            id: null,
+            name: null,
+            xcontest: null,
+            volandoo: null,
+          },
+        ]
+    ).map((participant) => [
+      { value: participant.id ? String(participant.id) : undefined },
+      { value: participant.name },
+      { value: participant.xcontest },
+      { value: participant.volandoo },
+    ]),
+  ]);
+  const debouncedData = useDebounce(data, 250);
 
-  const handleStartEdit = (participant: Participant) => {
-    setEditingId(participant.id);
-    setEditData({
-      name: participant.name,
-      xcontest: participant.xcontest || "",
-      volandoo: participant.volandoo || "",
-      status: participant.status,
-    });
-  };
+  // Track cursor position for context menu
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPosition({ x: e.pageX, y: e.pageY });
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
-  const handleSaveEdit = useCallback(async () => {
-    if (editingId === null) return;
-
-    await updateParticipant(editingId, editData);
-    setEditingId(null);
-    setEditData({});
-  }, [editingId, editData, updateParticipant]);
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditData({});
-  };
-
-  const handleAddParticipant = async () => {
-    if (!newParticipant.name?.trim()) return;
-
-    const nextId =
+  // Sync changes from grid to competition context (simple bulk approach)
+  useEffect(() => {
+    // Parse grid data, assign IDs to new rows, and save all at once
+    let nextId =
       participants.length > 0
-        ? Math.max(...participants.map((p) => p.id)) + 1
+        ? Math.max(...participants.map((p) => p.id), 0) + 1
         : 1;
 
-    await addParticipant({
-      id: nextId,
-      name: newParticipant.name.trim(),
-      xcontest: newParticipant.xcontest || undefined,
-      volandoo: newParticipant.volandoo || undefined,
-      status: (newParticipant.status as ParticipantStatus) || "Confirmed",
-    });
+    const participantsData = debouncedData
+      .slice(1) // Skip header row
+      // Filter rows that have ID or Name (required fields)
+      .filter((row) => row[0]?.value || row[1]?.value)
+      .map((row) => {
+        // If no ID but has name, assign a new ID
+        const existingId = row[0]?.value ? Number(row[0].value) : 0;
+        const id = existingId > 0 ? existingId : nextId++;
 
-    setNewParticipant({
-      name: "",
-      status: "Confirmed",
-    });
-    setShowAddForm(false);
-  };
+        // Find existing participant to preserve status and other fields
+        const existing = participants.find((p) => p.id === existingId);
 
-  const handleRemoveParticipant = async (id: number) => {
-    if (window.confirm("Are you sure you want to remove this participant?")) {
-      await deleteParticipant(id);
-    }
-  };
+        return {
+          id,
+          name: row[1]?.value || "",
+          xcontest: row[2]?.value || undefined,
+          volandoo: row[3]?.value || undefined,
+          status: existing?.status || ("Confirmed" as const),
+          // Preserve other fields from existing participant
+          ...(existing && {
+            firstName: existing.firstName,
+            lastName: existing.lastName,
+            nation: existing.nation,
+            faiId: existing.faiId,
+            glider: existing.glider,
+            gliderClass: existing.gliderClass,
+            sponsor: existing.sponsor,
+            taskTracks: existing.taskTracks,
+          }),
+        };
+      });
 
-  const statusColors: Record<ParticipantStatus, string> = {
-    Confirmed: "bg-green-100 text-green-800",
-    Waiting: "bg-yellow-100 text-yellow-800",
-    Cancelled: "bg-red-100 text-red-800",
-    Withdrawn: "bg-gray-100 text-gray-800",
-  };
+    setParticipants(participantsData);
+  }, [debouncedData, setParticipants]);
 
   return (
-    <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex justify-between items-center">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search participants..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <svg
-            className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-        >
-          {showAddForm ? "Cancel" : "Add Participant"}
-        </button>
+    <div className="PilotsForm space-y-4">
+      <div className="max-h-[23rem] overflow-y-auto border border-gray-300 rounded-lg">
+        <DataSheet
+          className="w-full"
+          data={data}
+          valueRenderer={(cell) => cell.value}
+          attributesRenderer={(cell) =>
+            cell.className ? { className: cell.className } : {}
+          }
+          onSelect={({ start, end }) => {
+            const startRow = end.i < start.i ? end.i : start.i;
+            const endRow = start.i > end.i ? start.i : end.i;
+
+            if (startRow === endRow) {
+              setRowsRangeContextMenu({
+                ...rowsRangeContextMenu,
+                isOpen: false,
+              });
+            } else {
+              setRowsRangeContextMenu({
+                isOpen: true,
+                x: cursorPosition.x,
+                y: cursorPosition.y,
+                start: startRow,
+                end: endRow,
+              });
+            }
+          }}
+          onContextMenu={(e, cell, i, j) => {
+            e.preventDefault();
+            setCellContextMenu({
+              isOpen: true,
+              x: e.pageX,
+              y: e.pageY,
+              cell,
+              row: i,
+              col: j,
+            });
+          }}
+          onCellsChanged={(changes, additions) => {
+            const grid = data.map((row) => [...row]);
+            changes.forEach(({ row, col, value }) => {
+              grid[row][col] = { ...grid[row][col], value: value.toString() };
+            });
+            if (additions) {
+              additions.forEach(({ row, col, value }) => {
+                if (!grid[row]) {
+                  grid[row] = [];
+                }
+                grid[row][col] = { value: value.toString() };
+              });
+            }
+
+            setData(grid);
+          }}
+        />
       </div>
 
-      {/* Add form */}
-      {showAddForm && (
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <h3 className="font-medium text-gray-900 mb-3">New Participant</h3>
-          <div className="grid grid-cols-4 gap-3">
-            <input
-              type="text"
-              placeholder="Name *"
-              value={newParticipant.name || ""}
-              onChange={(e) =>
-                setNewParticipant((p) => ({ ...p, name: e.target.value }))
-              }
-              className="px-3 py-1.5 border border-gray-300 rounded text-sm"
-            />
-            <input
-              type="text"
-              placeholder="XContest"
-              value={newParticipant.xcontest || ""}
-              onChange={(e) =>
-                setNewParticipant((p) => ({
-                  ...p,
-                  xcontest: e.target.value || undefined,
-                }))
-              }
-              className="px-3 py-1.5 border border-gray-300 rounded text-sm"
-            />
-            <input
-              type="text"
-              placeholder="Volandoo"
-              value={newParticipant.volandoo || ""}
-              onChange={(e) =>
-                setNewParticipant((p) => ({
-                  ...p,
-                  volandoo: e.target.value || undefined,
-                }))
-              }
-              className="px-3 py-1.5 border border-gray-300 rounded text-sm"
-            />
-            <button
-              onClick={handleAddParticipant}
-              disabled={!newParticipant.name?.trim()}
-              className="px-4 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-      )}
+      <ContextMenu
+        isOpen={cellContextMenu.isOpen}
+        x={cellContextMenu.x}
+        y={cellContextMenu.y}
+        options={[
+          {
+            label: "Add row above",
+            handle: () => {
+              const grid = [
+                ...data.slice(0, cellContextMenu.row),
+                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                ...data.slice(cellContextMenu.row),
+              ];
+              setData(grid);
+            },
+          },
+          {
+            label: "Add row below",
+            handle: () => {
+              const grid = [
+                ...data.slice(0, cellContextMenu.row + 1),
+                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                ...data.slice(cellContextMenu.row + 1),
+              ];
+              setData(grid);
+            },
+          },
+          {
+            label: "Delete row",
+            handle: () => {
+              const grid = data.filter((_, i) => i !== cellContextMenu.row);
+              setData(grid);
+            },
+          },
+        ]}
+        onClose={() =>
+          setCellContextMenu({
+            ...cellContextMenu,
+            isOpen: false,
+          })
+        }
+      />
 
-      {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                #
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                XContest
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                Volandoo
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                Status
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredParticipants.map((participant) => (
-              <tr
-                key={participant.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                {editingId === participant.id ? (
-                  <>
-                    <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.id}
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={editData.name || ""}
-                        onChange={(e) =>
-                          setEditData((d) => ({ ...d, name: e.target.value }))
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={editData.xcontest || ""}
-                        onChange={(e) =>
-                          setEditData((d) => ({
-                            ...d,
-                            xcontest: e.target.value || undefined,
-                          }))
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={editData.volandoo || ""}
-                        onChange={(e) =>
-                          setEditData((d) => ({
-                            ...d,
-                            volandoo: e.target.value || undefined,
-                          }))
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <select
-                        value={editData.status || "Confirmed"}
-                        onChange={(e) =>
-                          setEditData((d) => ({
-                            ...d,
-                            status: e.target.value as ParticipantStatus,
-                          }))
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      >
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Waiting">Waiting</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Withdrawn">Withdrawn</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <button
-                        onClick={handleSaveEdit}
-                        className="text-green-600 hover:text-green-800 mr-2"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="text-gray-600 hover:text-gray-800"
-                      >
-                        Cancel
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.id}
-                    </td>
-                    <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                      {participant.name}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.xcontest || "-"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.volandoo || "-"}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`px-2 py-0.5 text-xs font-medium rounded ${statusColors[participant.status]}`}
-                      >
-                        {participant.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <button
-                        onClick={() => handleStartEdit(participant)}
-                        className="text-blue-600 hover:text-blue-800 mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleRemoveParticipant(participant.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {filteredParticipants.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            {participants.length === 0
-              ? "No participants yet"
-              : "No matching participants"}
-          </div>
-        )}
-      </div>
+      <ContextMenu
+        isOpen={debouncedRowsRangeContextMenu.isOpen}
+        x={rowsRangeContextMenu.x}
+        y={rowsRangeContextMenu.y}
+        options={[
+          {
+            label: `Delete rows ${rowsRangeContextMenu.start} - ${rowsRangeContextMenu.end}`,
+            handle: () => {
+              const grid = [
+                ...data.slice(0, rowsRangeContextMenu.start),
+                ...data.slice(rowsRangeContextMenu.end + 1),
+              ];
+              setData(grid);
+            },
+          },
+        ]}
+        onClose={() =>
+          setRowsRangeContextMenu({
+            ...rowsRangeContextMenu,
+            isOpen: false,
+          })
+        }
+      />
 
       {/* Summary */}
       <div className="text-sm text-gray-500">
         {participants.length} participants
-        {searchTerm && ` (${filteredParticipants.length} matching)`}
       </div>
     </div>
   );

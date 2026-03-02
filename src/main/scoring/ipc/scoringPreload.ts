@@ -68,6 +68,10 @@ export interface ScoringMethods {
   ) => Promise<void>;
   deleteParticipant: (compId: string, participantId: number) => Promise<void>;
   getParticipants: (compId: string) => Promise<Participant[]>;
+  setParticipants: (
+    compId: string,
+    participants: Participant[]
+  ) => Promise<void>;
 
   // Results management
   saveTaskResults: (
@@ -214,6 +218,8 @@ const scoring: ScoringMethods = {
     ipcRenderer.invoke("scoring-delete-participant", compId, participantId),
   getParticipants: (compId) =>
     ipcRenderer.invoke("scoring-get-participants", compId),
+  setParticipants: (compId, participants) =>
+    ipcRenderer.invoke("scoring-set-participants", compId, participants),
 
   // Results management
   saveTaskResults: (compId, taskId, results) =>

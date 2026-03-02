@@ -2,9 +2,18 @@ import { app, BrowserWindow } from "electron";
 import { createAppWindow } from "./appWindow";
 import pie from "puppeteer-in-electron";
 
+const CDP_PORT = 9222;
+
 async function main() {
+  const isDev = !app.isPackaged;
+  if (isDev) {
+    console.log(`Enabling CDP on port ${CDP_PORT} for MCP server connection`);
+  }
+
   try {
-    await pie.initialize(app);
+    // pie.initialize sets the remote-debugging-port internally
+    // Pass the port to avoid conflicts
+    await pie.initialize(app, CDP_PORT);
   } catch (e) {
     console.log("Error while initializing puppeteer in electron", e);
   }
