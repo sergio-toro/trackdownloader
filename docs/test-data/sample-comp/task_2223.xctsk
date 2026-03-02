@@ -1,0 +1,91 @@
+{
+    "version": 1,
+    "taskType": "CLASSIC",
+    "turnpoints": [
+        {
+            "radius": "1000",
+            "type": "TAKEOFF",
+            "waypoint": {
+                "lat": "-36.18603515625",
+                "lon": "147.97454833984",
+                "altSmoothed": "940",
+                "name": "ELL094",
+                "description": "ElliotLaunch"
+            }
+        },
+        {
+            "radius": "3000",
+            "type": "SSS",
+            "waypoint": {
+                "lat": "-36.18603515625",
+                "lon": "147.97454833984",
+                "altSmoothed": "940",
+                "name": "ELL094",
+                "description": "ElliotLaunch"
+            }
+        },
+        {
+            "radius": "7000",
+            "waypoint": {
+                "lat": "-36.046245574951",
+                "lon": "148.00007629395",
+                "altSmoothed": "240",
+                "name": "MNT024",
+                "description": "MurrayNinetyTwo"
+            }
+        },
+        {
+            "radius": "10000",
+            "waypoint": {
+                "lat": "-36.181827545166",
+                "lon": "147.70957946777",
+                "altSmoothed": "580",
+                "name": "WHD058",
+                "description": "Whiteheads Rd"
+            }
+        },
+        {
+            "radius": "10000",
+            "waypoint": {
+                "lat": "-36.046245574951",
+                "lon": "148.00007629395",
+                "altSmoothed": "240",
+                "name": "MNT024",
+                "description": "MurrayNinetyTwo"
+            }
+        },
+        {
+            "radius": "2000",
+            "type": "ESS",
+            "waypoint": {
+                "lat": "-35.964115142822",
+                "lon": "147.73692321777",
+                "altSmoothed": "300",
+                "name": "WAL030",
+                "description": "Walwa"
+            }
+        },
+        {
+            "radius": "1000",
+            "waypoint": {
+                "lat": "-35.964115142822",
+                "lon": "147.73692321777",
+                "altSmoothed": "300",
+                "name": "WAL030",
+                "description": "Walwa"
+            }
+        }
+    ],
+    "sss": {
+        "type": "RACE",
+        "direction": "EXIT",
+        "timeGates": [
+            "04:30:00Z"
+        ]
+    },
+    "goal": {
+        "type": "CYLINDER",
+        "deadline": "08:00:00Z"
+    },
+    "earthModel": "WGS84"
+}
