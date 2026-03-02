@@ -22,8 +22,9 @@ export interface Participant {
   firstName?: string;
   lastName?: string;
   nation?: string; // ISO 3166-1 alpha-3
-  civlId?: number;
   faiId?: string;
+  xcontest?: string; // XContest username for track downloads
+  volandoo?: string; // Volandoo ID for track downloads
   glider?: string;
   gliderClass?: string;
   sponsor?: string;

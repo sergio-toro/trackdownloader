@@ -90,6 +90,23 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
     return temporalPath;
   });
 
+  ipcMain.handle(
+    "scoring-get-competition-igc-folder",
+    async (_, compId: string, taskId: string) => {
+      // Use first 8 characters of task UUID for folder name
+      const taskIdShort = taskId.substring(0, 8);
+      const igcFolder = path.join(
+        currentStoragePath,
+        compId,
+        "igcs",
+        taskIdShort
+      );
+      // Ensure the directory exists
+      await fs.mkdir(igcFolder, { recursive: true });
+      return igcFolder;
+    }
+  );
+
   // ============================================================
   // Competition Management
   // ============================================================

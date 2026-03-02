@@ -26,25 +26,19 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newParticipant, setNewParticipant] = useState<Partial<Participant>>({
     name: "",
-    nation: "",
-    glider: "",
     status: "Confirmed",
   });
 
-  const filteredParticipants = participants.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.nation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.glider?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredParticipants = participants.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleStartEdit = (participant: Participant) => {
     setEditingId(participant.id);
     setEditData({
       name: participant.name,
-      nation: participant.nation || "",
-      glider: participant.glider || "",
-      civlId: participant.civlId,
+      xcontest: participant.xcontest || "",
+      volandoo: participant.volandoo || "",
       status: participant.status,
     });
   };
@@ -73,16 +67,13 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
     await addParticipant({
       id: nextId,
       name: newParticipant.name.trim(),
-      nation: newParticipant.nation || "",
-      glider: newParticipant.glider || "",
-      civlId: newParticipant.civlId,
+      xcontest: newParticipant.xcontest || undefined,
+      volandoo: newParticipant.volandoo || undefined,
       status: (newParticipant.status as ParticipantStatus) || "Confirmed",
     });
 
     setNewParticipant({
       name: "",
-      nation: "",
-      glider: "",
       status: "Confirmed",
     });
     setShowAddForm(false);
@@ -139,7 +130,7 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
       {showAddForm && (
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <h3 className="font-medium text-gray-900 mb-3">New Participant</h3>
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <input
               type="text"
               placeholder="Name *"
@@ -151,30 +142,24 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
             />
             <input
               type="text"
-              placeholder="Nation"
-              value={newParticipant.nation || ""}
+              placeholder="XContest"
+              value={newParticipant.xcontest || ""}
               onChange={(e) =>
-                setNewParticipant((p) => ({ ...p, nation: e.target.value }))
+                setNewParticipant((p) => ({
+                  ...p,
+                  xcontest: e.target.value || undefined,
+                }))
               }
               className="px-3 py-1.5 border border-gray-300 rounded text-sm"
             />
             <input
               type="text"
-              placeholder="Glider"
-              value={newParticipant.glider || ""}
-              onChange={(e) =>
-                setNewParticipant((p) => ({ ...p, glider: e.target.value }))
-              }
-              className="px-3 py-1.5 border border-gray-300 rounded text-sm"
-            />
-            <input
-              type="number"
-              placeholder="CIVL ID"
-              value={newParticipant.civlId || ""}
+              placeholder="Volandoo"
+              value={newParticipant.volandoo || ""}
               onChange={(e) =>
                 setNewParticipant((p) => ({
                   ...p,
-                  civlId: e.target.value ? parseInt(e.target.value) : undefined,
+                  volandoo: e.target.value || undefined,
                 }))
               }
               className="px-3 py-1.5 border border-gray-300 rounded text-sm"
@@ -201,14 +186,11 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                Nation
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Glider
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                XContest
               </th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                CIVL ID
+                Volandoo
               </th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                 Status
@@ -242,9 +224,12 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
                     <td className="px-4 py-2">
                       <input
                         type="text"
-                        value={editData.nation || ""}
+                        value={editData.xcontest || ""}
                         onChange={(e) =>
-                          setEditData((d) => ({ ...d, nation: e.target.value }))
+                          setEditData((d) => ({
+                            ...d,
+                            xcontest: e.target.value || undefined,
+                          }))
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                       />
@@ -252,23 +237,11 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
                     <td className="px-4 py-2">
                       <input
                         type="text"
-                        value={editData.glider || ""}
-                        onChange={(e) =>
-                          setEditData((d) => ({ ...d, glider: e.target.value }))
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        value={editData.civlId || ""}
+                        value={editData.volandoo || ""}
                         onChange={(e) =>
                           setEditData((d) => ({
                             ...d,
-                            civlId: e.target.value
-                              ? parseInt(e.target.value)
-                              : undefined,
+                            volandoo: e.target.value || undefined,
                           }))
                         }
                         className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
@@ -315,13 +288,10 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
                       {participant.name}
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.nation || "-"}
+                      {participant.xcontest || "-"}
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.glider || "-"}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-gray-500">
-                      {participant.civlId || "-"}
+                      {participant.volandoo || "-"}
                     </td>
                     <td className="px-4 py-2">
                       <span

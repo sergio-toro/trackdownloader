@@ -11,9 +11,15 @@ import ParticipantTable from "@components/participants/ParticipantTable";
 import TaskResultsTable from "@components/results/TaskResultsTable";
 import CompetitionStandings from "@components/results/CompetitionStandings";
 import ExportDialog from "@components/export/ExportDialog";
-import type { TaskResult, CompetitionResult } from "@main/scoring/types";
+import TaskEditorDialog from "@components/scoring/TaskEditorDialog";
+import ImportXctskDialog from "@components/scoring/ImportXctskDialog";
+import type {
+  TaskResult,
+  CompetitionResult,
+  TaskDefinition,
+} from "@main/scoring/types";
 
-type TabType = "tasks" | "participants" | "results" | "standings";
+type TabType = "tasks" | "participants" | "resultsStandings";
 
 const Competition: React.FC = () => {
   const { competitionId } = useParams<{ competitionId: string }>();
@@ -26,9 +32,11 @@ const Competition: React.FC = () => {
     isLoading,
     error,
     clearError,
+    addTask,
+    updateTask,
   } = useCompetition();
 
-  const [activeTab, setActiveTab] = useState<TabType>("tasks");
+  const [activeTab, setActiveTab] = useState<TabType>("resultsStandings");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskResults, setTaskResults] = useState<Record<string, TaskResult>>(
     {}
@@ -36,6 +44,9 @@ const Competition: React.FC = () => {
   const [competitionResult, setCompetitionResult] =
     useState<CompetitionResult | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showTaskEditor, setShowTaskEditor] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
 
   // Load competition on mount
   useEffect(() => {
@@ -79,7 +90,7 @@ const Competition: React.FC = () => {
 
   // Load results when switching to results/standings tab
   useEffect(() => {
-    if (activeTab === "standings" && !competitionResult) {
+    if (activeTab === "resultsStandings" && !competitionResult) {
       loadStandings();
     }
   }, [activeTab, competitionResult, loadStandings]);
@@ -87,7 +98,7 @@ const Competition: React.FC = () => {
   // Load task result when selecting a task in results tab
   useEffect(() => {
     if (
-      activeTab === "results" &&
+      activeTab === "resultsStandings" &&
       selectedTaskId &&
       !taskResults[selectedTaskId]
     ) {
@@ -101,6 +112,36 @@ const Competition: React.FC = () => {
       setSelectedTaskId(tasks[0].id);
     }
   }, [tasks, selectedTaskId]);
+
+  // Task management handlers
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setShowTaskEditor(true);
+  };
+
+  const handleImportTask = () => {
+    setShowImportDialog(true);
+  };
+
+  const handleEditTask = (task: TaskDefinition) => {
+    setEditingTask(task);
+    setShowTaskEditor(true);
+  };
+
+  const handleSaveTask = async (task: TaskDefinition) => {
+    if (editingTask) {
+      await updateTask(task.id, task);
+    } else {
+      await addTask(task);
+    }
+    setShowTaskEditor(false);
+    setEditingTask(null);
+  };
+
+  const handleTaskImport = async (task: TaskDefinition) => {
+    await addTask(task);
+    setShowImportDialog(false);
+  };
 
   if (isLoading) {
     return (
@@ -147,10 +188,9 @@ const Competition: React.FC = () => {
   }
 
   const tabs: { key: TabType; label: string }[] = [
+    { key: "resultsStandings", label: "Results & Standings" },
     { key: "tasks", label: "Tasks" },
     { key: "participants", label: "Participants" },
-    { key: "results", label: "Results" },
-    { key: "standings", label: "Standings" },
   ];
 
   const scoredTaskCount = Object.keys(taskResults).length;
@@ -215,6 +255,11 @@ const Competition: React.FC = () => {
             <TaskList
               tasks={tasks}
               taskResults={taskResults}
+              participants={participants}
+              competitionId={competitionId!}
+              onAddTask={handleAddTask}
+              onImportTask={handleImportTask}
+              onEditTask={handleEditTask}
               onScoreTask={async (taskId) => {
                 try {
                   const result = await window.scoring.scoreTask(
@@ -228,7 +273,7 @@ const Competition: React.FC = () => {
               }}
               onViewResults={(taskId) => {
                 setSelectedTaskId(taskId);
-                setActiveTab("results");
+                setActiveTab("resultsStandings");
               }}
             />
           )}
@@ -240,69 +285,77 @@ const Competition: React.FC = () => {
             />
           )}
 
-          {activeTab === "results" && (
-            <div className="space-y-4">
-              {/* Task selector */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {tasks.map((task) => (
-                  <button
-                    key={task.id}
-                    onClick={() => setSelectedTaskId(task.id)}
-                    className={`px-3 py-1.5 rounded text-sm whitespace-nowrap ${
-                      selectedTaskId === task.id
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {task.name}
-                  </button>
-                ))}
+          {activeTab === "resultsStandings" && (
+            <div className="space-y-6">
+              {/* Overall Standings Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">
+                  Overall Standings
+                </h3>
+                <CompetitionStandings
+                  competitionResult={competitionResult}
+                  taskResults={Object.values(taskResults)}
+                  participants={participants}
+                  onRecalculate={loadStandings}
+                />
               </div>
 
-              {/* Results table */}
-              {selectedTaskId && taskResults[selectedTaskId] ? (
-                <TaskResultsTable
-                  taskResult={taskResults[selectedTaskId]}
-                  participants={participants}
-                />
-              ) : selectedTaskId ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">Task not scored yet</p>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const result = await window.scoring.scoreTask(
-                          competitionId!,
-                          selectedTaskId
-                        );
-                        setTaskResults((prev) => ({
-                          ...prev,
-                          [selectedTaskId]: result,
-                        }));
-                      } catch (err) {
-                        console.error("Failed to score task:", err);
-                      }
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Score Task
-                  </button>
+              {/* Task Results Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Task Results</h3>
+                {/* Task selector */}
+                <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+                  {tasks.map((task) => (
+                    <button
+                      key={task.id}
+                      onClick={() => setSelectedTaskId(task.id)}
+                      className={`px-3 py-1.5 rounded text-sm whitespace-nowrap ${
+                        selectedTaskId === task.id
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {task.name}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">
-                  Select a task to view results
-                </p>
-              )}
-            </div>
-          )}
 
-          {activeTab === "standings" && (
-            <CompetitionStandings
-              competitionResult={competitionResult}
-              taskResults={Object.values(taskResults)}
-              participants={participants}
-              onRecalculate={loadStandings}
-            />
+                {/* Results table */}
+                {selectedTaskId && taskResults[selectedTaskId] ? (
+                  <TaskResultsTable
+                    taskResult={taskResults[selectedTaskId]}
+                    participants={participants}
+                  />
+                ) : selectedTaskId ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Task not scored yet</p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const result = await window.scoring.scoreTask(
+                            competitionId!,
+                            selectedTaskId
+                          );
+                          setTaskResults((prev) => ({
+                            ...prev,
+                            [selectedTaskId]: result,
+                          }));
+                        } catch (err) {
+                          console.error("Failed to score task:", err);
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Score Task
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-8">
+                    Select a task to view results
+                  </p>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
@@ -312,6 +365,24 @@ const Competition: React.FC = () => {
           onClose={() => setShowExportDialog(false)}
           competitionId={competitionId!}
           competitionName={competition.name}
+        />
+
+        {/* Task Editor Dialog */}
+        <TaskEditorDialog
+          isOpen={showTaskEditor}
+          onClose={() => {
+            setShowTaskEditor(false);
+            setEditingTask(null);
+          }}
+          onSave={handleSaveTask}
+          existingTask={editingTask}
+        />
+
+        {/* Import Task Dialog */}
+        <ImportXctskDialog
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          onImport={handleTaskImport}
         />
       </div>
     </div>
