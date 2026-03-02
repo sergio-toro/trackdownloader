@@ -317,7 +317,7 @@ const CompetitionView: React.FC = () => {
                 >
                   <button
                     onClick={() => setActiveTask(task.id)}
-                    className="flex-1 text-left"
+                    className="flex-1 min-w-0 text-left"
                   >
                     <div
                       className={`truncate ${task.id === activeTaskId ? "font-medium" : ""}`}
@@ -328,7 +328,7 @@ const CompetitionView: React.FC = () => {
                   </button>
                   <button
                     onClick={() => handleEditTask(task)}
-                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                    className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
                     title="Edit task"
                   >
                     <svg
