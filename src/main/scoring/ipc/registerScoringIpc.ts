@@ -13,6 +13,9 @@ import {
 import { parseXctskFile, previewXctskFile } from "../import/xctaskImporter";
 import { analyzeFlightForTask, readIgcFile } from "../analysis";
 import { scoreTask } from "../scoring";
+import { calculateCompetitionStandings } from "../scoring/ftvCalculator";
+import { exportToCsv } from "../export/csvExporter";
+import { exportToHtml } from "../export/htmlExporter";
 import { getDefaultFormula } from "../types/formula";
 import { createWaypointStorage, importCupFile } from "../waypoints";
 import type {
@@ -27,6 +30,7 @@ import type {
   FlightAnalysis,
   WaypointFilter,
   LibraryWaypoint,
+  ExportOptions,
 } from "../types";
 
 // Mutable storage reference to allow path changes at runtime
@@ -700,4 +704,217 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
       throw error;
     }
   });
+
+  // ============================================================
+  // Competition Standings (FTV)
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-calculate-standings",
+    async (_, compId: string): Promise<CompetitionResult> => {
+      try {
+        // Load competition
+        const competition = await storage.getCompetition(compId);
+        if (!competition) {
+          throw new Error(`Competition ${compId} not found`);
+        }
+
+        // Load all task results
+        const tasks = await storage.getTasks(compId);
+        const taskResults: TaskResult[] = [];
+
+        for (const task of tasks) {
+          const result = await storage.getTaskResults(compId, task.id);
+          if (result) {
+            taskResults.push(result);
+          }
+        }
+
+        if (taskResults.length === 0) {
+          throw new Error("No scored tasks found for competition");
+        }
+
+        // Calculate standings with FTV
+        const result = calculateCompetitionStandings(
+          taskResults,
+          competition.participants,
+          competition.formula
+        );
+
+        // Set competition ID
+        result.competitionId = compId;
+
+        // Save results
+        await storage.saveCompetitionResults(compId, result);
+
+        return result;
+      } catch (error) {
+        console.error("Error calculating standings:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ============================================================
+  // Export
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-export-csv",
+    async (_, compId: string, options: ExportOptions) => {
+      try {
+        // Load competition
+        const competition = await storage.getCompetition(compId);
+        if (!competition) {
+          throw new Error(`Competition ${compId} not found`);
+        }
+
+        // Load or calculate standings
+        let competitionResult = await storage.getCompetitionResults(compId);
+        if (!competitionResult) {
+          // Calculate standings first
+          const tasks = await storage.getTasks(compId);
+          const taskResults: TaskResult[] = [];
+
+          for (const task of tasks) {
+            const result = await storage.getTaskResults(compId, task.id);
+            if (result) {
+              taskResults.push(result);
+            }
+          }
+
+          if (taskResults.length === 0) {
+            throw new Error("No scored tasks found for competition");
+          }
+
+          competitionResult = calculateCompetitionStandings(
+            taskResults,
+            competition.participants,
+            competition.formula
+          );
+          competitionResult.competitionId = compId;
+        }
+
+        // Load task results
+        const taskResults: TaskResult[] = [];
+        if (options.includeTaskResults) {
+          const tasks = await storage.getTasks(compId);
+          for (const task of tasks) {
+            const result = await storage.getTaskResults(compId, task.id);
+            if (result) {
+              taskResults.push(result);
+            }
+          }
+        }
+
+        // Open directory picker
+        const dirResult = await dialog.showOpenDialog(appWindow, {
+          properties: ["openDirectory"],
+          title: "Select export directory",
+        });
+
+        if (dirResult.canceled || dirResult.filePaths.length === 0) {
+          return null;
+        }
+
+        const outputDir = dirResult.filePaths[0];
+
+        // Export
+        const exportResult = await exportToCsv(
+          competition,
+          competitionResult,
+          taskResults,
+          {
+            outputDir,
+            includeStandings: options.includeStandings,
+            includeTaskResults: options.includeTaskResults,
+            decimals: competition.formula.numberOfDecimalsTaskResults,
+          }
+        );
+
+        return exportResult;
+      } catch (error) {
+        console.error("Error exporting CSV:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-export-html",
+    async (_, compId: string, options: ExportOptions) => {
+      try {
+        // Load competition
+        const competition = await storage.getCompetition(compId);
+        if (!competition) {
+          throw new Error(`Competition ${compId} not found`);
+        }
+
+        // Load or calculate standings
+        let competitionResult = await storage.getCompetitionResults(compId);
+        if (!competitionResult) {
+          // Calculate standings first
+          const tasks = await storage.getTasks(compId);
+          const taskResults: TaskResult[] = [];
+
+          for (const task of tasks) {
+            const result = await storage.getTaskResults(compId, task.id);
+            if (result) {
+              taskResults.push(result);
+            }
+          }
+
+          if (taskResults.length === 0) {
+            throw new Error("No scored tasks found for competition");
+          }
+
+          competitionResult = calculateCompetitionStandings(
+            taskResults,
+            competition.participants,
+            competition.formula
+          );
+          competitionResult.competitionId = compId;
+        }
+
+        // Load task results
+        const taskResults: TaskResult[] = [];
+        const tasks = await storage.getTasks(compId);
+        for (const task of tasks) {
+          const result = await storage.getTaskResults(compId, task.id);
+          if (result) {
+            taskResults.push(result);
+          }
+        }
+
+        // Open save dialog
+        const saveResult = await dialog.showSaveDialog(appWindow, {
+          defaultPath: `${competition.name.replace(/[^a-zA-Z0-9]/g, "_")}_results.html`,
+          filters: [{ name: "HTML Files", extensions: ["html"] }],
+          title: "Save HTML report",
+        });
+
+        if (saveResult.canceled || !saveResult.filePath) {
+          return null;
+        }
+
+        // Export
+        const outputPath = await exportToHtml(
+          competition,
+          competitionResult,
+          taskResults,
+          {
+            outputPath: saveResult.filePath,
+            includeStandings: options.includeStandings,
+            includeTaskResults: options.includeTaskResults,
+            decimals: competition.formula.numberOfDecimalsTaskResults,
+          }
+        );
+
+        return outputPath;
+      } catch (error) {
+        console.error("Error exporting HTML:", error);
+        throw error;
+      }
+    }
+  );
 }

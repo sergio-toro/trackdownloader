@@ -81,3 +81,24 @@ export {
 // Task scoring
 export { scoreTask, scoreSinglePilot } from "./scoring";
 export type { ScoringOptions } from "./scoring";
+
+// FTV Calculator
+export {
+  calculateCompetitionStandings,
+  calculateSimpleStandings,
+  getPilotTaskResult,
+} from "./scoring/ftvCalculator";
+
+// Export
+export {
+  exportToCsv,
+  taskResultToCsv,
+  standingsToCsv,
+  exportToHtml,
+  generateHtmlPreview,
+} from "./export";
+export type {
+  CsvExportOptions,
+  CsvExportResult,
+  HtmlExportOptions,
+} from "./export";

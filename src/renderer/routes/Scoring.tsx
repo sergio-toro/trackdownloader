@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   useCompetition,
@@ -214,6 +214,7 @@ const CompetitionView: React.FC = () => {
     updateTask,
     closeCompetition,
   } = useCompetition();
+  const navigate = useNavigate();
 
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showTaskEditor, setShowTaskEditor] = useState(false);
@@ -276,6 +277,12 @@ const CompetitionView: React.FC = () => {
           <p className="text-gray-500">{competition.location}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => navigate(`/competition/${competition.id}`)}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 font-medium"
+          >
+            Results & Standings
+          </button>
           <button
             onClick={handleNewTask}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium"

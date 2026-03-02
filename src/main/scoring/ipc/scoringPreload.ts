@@ -20,7 +20,9 @@ import type {
   LibraryWaypoint,
   WaypointFilter,
   CupImportResult,
+  ExportOptions,
 } from "../types";
+import type { CsvExportResult } from "../export/csvExporter";
 
 /**
  * Methods exposed to the renderer via window.scoring
@@ -150,6 +152,19 @@ export interface ScoringMethods {
   deleteWaypoint: (id: string) => Promise<void>;
   deleteWaypoints: (ids: string[]) => Promise<void>;
   importCup: (filePath?: string) => Promise<CupImportResult | null>;
+
+  // Competition standings (FTV)
+  calculateStandings: (compId: string) => Promise<CompetitionResult>;
+
+  // Export
+  exportCsv: (
+    compId: string,
+    options: ExportOptions
+  ) => Promise<CsvExportResult | null>;
+  exportHtml: (
+    compId: string,
+    options: ExportOptions
+  ) => Promise<string | null>;
 }
 
 const scoring: ScoringMethods = {
@@ -263,6 +278,16 @@ const scoring: ScoringMethods = {
   deleteWaypoint: (id) => ipcRenderer.invoke("scoring-delete-waypoint", id),
   deleteWaypoints: (ids) => ipcRenderer.invoke("scoring-delete-waypoints", ids),
   importCup: (filePath) => ipcRenderer.invoke("scoring-import-cup", filePath),
+
+  // Competition standings (FTV)
+  calculateStandings: (compId) =>
+    ipcRenderer.invoke("scoring-calculate-standings", compId),
+
+  // Export
+  exportCsv: (compId, options) =>
+    ipcRenderer.invoke("scoring-export-csv", compId, options),
+  exportHtml: (compId, options) =>
+    ipcRenderer.invoke("scoring-export-html", compId, options),
 };
 
 contextBridge.exposeInMainWorld("scoring", scoring);
