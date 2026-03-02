@@ -26,7 +26,7 @@ export interface SettingsState {
   xcontest: null | { username: string; password: string };
   debug: boolean;
   leagues: string[];
-  temporalFolder: string;
+  programDataFolder: string;
 }
 
 interface SettingsContextProps {
@@ -36,7 +36,7 @@ interface SettingsContextProps {
   setPilots: (pilots: PilotsState[] | null) => void;
   setFlymaster: (flymaster: FlymasterState | null) => void;
   setXContest: (xcontest: SettingsState["xcontest"]) => void;
-  setTemporalFolder: (temporalFolder: string) => void;
+  setProgramDataFolder: (programDataFolder: string) => void;
 }
 
 const initialContext: SettingsContextProps = {
@@ -46,14 +46,14 @@ const initialContext: SettingsContextProps = {
     pilots: null,
     debug: false,
     leagues: [],
-    temporalFolder: null,
+    programDataFolder: "",
   },
   setDebug: () => {},
   setSettings: () => {},
   setPilots: () => {},
   setFlymaster: () => {},
   setXContest: () => {},
-  setTemporalFolder: () => {},
+  setProgramDataFolder: () => {},
 };
 
 const SettingsContext = createContext<SettingsContextProps>(initialContext);
@@ -88,6 +88,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [settings.pilots]);
 
+  // Initialize program data storage path on app start
+  useEffect(() => {
+    if (settings.programDataFolder) {
+      // Set storage path without migration (just restoring saved setting)
+      window.scoring
+        .setStoragePath(settings.programDataFolder, false)
+        .catch((error) => {
+          console.error("Failed to initialize program data folder:", error);
+        });
+    }
+    // Only run once on mount with initial settings
+  }, []);
+
   const contextValue = {
     settings,
     setSettings,
@@ -106,8 +119,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     setXContest: (xcontest: SettingsState["xcontest"]) => {
       setSettings((prevSettings) => ({ ...prevSettings, xcontest }));
     },
-    setTemporalFolder: (temporalFolder: SettingsState["temporalFolder"]) => {
-      setSettings((prevSettings) => ({ ...prevSettings, temporalFolder }));
+    setProgramDataFolder: (
+      programDataFolder: SettingsState["programDataFolder"]
+    ) => {
+      setSettings((prevSettings) => ({ ...prevSettings, programDataFolder }));
     },
   };
 

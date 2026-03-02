@@ -13,12 +13,24 @@ import type {
   ScoringFormulaConfig,
   TaskResult,
   CompetitionResult,
+  FlightAnalysis,
+  FlightFix,
+  FlightAnalysisOptions,
+  FormulaId,
+  LibraryWaypoint,
+  WaypointFilter,
+  CupImportResult,
 } from "../types";
 
 /**
  * Methods exposed to the renderer via window.scoring
  */
 export interface ScoringMethods {
+  // Storage path management
+  getStoragePath: () => Promise<string>;
+  setStoragePath: (path: string, migrate: boolean) => Promise<void>;
+  getTemporalPath: () => Promise<string>;
+
   // Competition management
   createCompetition: (data: CreateCompetitionData) => Promise<string>;
   loadCompetition: (id: string) => Promise<Competition | null>;
@@ -104,9 +116,49 @@ export interface ScoringMethods {
     deadline: string;
     errors: string[];
   }>;
+
+  // Flight analysis
+  analyzeFlight: (
+    igcPath: string,
+    task: TaskDefinition,
+    pilotId: number,
+    options?: Partial<FlightAnalysisOptions>
+  ) => Promise<FlightAnalysis>;
+  readIgc: (igcPath: string) => Promise<FlightFix[]>;
+
+  // Task scoring
+  scoreTask: (
+    compId: string,
+    taskId: string,
+    formulaId?: FormulaId
+  ) => Promise<TaskResult>;
+  scoreTaskWithAnalyses: (
+    task: TaskDefinition,
+    analyses: FlightAnalysis[],
+    formulaId?: FormulaId
+  ) => Promise<TaskResult>;
+
+  // Waypoint library management
+  listWaypoints: (filter?: WaypointFilter) => Promise<LibraryWaypoint[]>;
+  addWaypoint: (
+    waypoint: Omit<LibraryWaypoint, "id" | "createdAt" | "updatedAt">
+  ) => Promise<LibraryWaypoint>;
+  updateWaypoint: (
+    id: string,
+    updates: Partial<Omit<LibraryWaypoint, "id" | "createdAt">>
+  ) => Promise<LibraryWaypoint>;
+  deleteWaypoint: (id: string) => Promise<void>;
+  deleteWaypoints: (ids: string[]) => Promise<void>;
+  importCup: (filePath?: string) => Promise<CupImportResult | null>;
 }
 
 const scoring: ScoringMethods = {
+  // Storage path management
+  getStoragePath: () => ipcRenderer.invoke("scoring-get-storage-path"),
+  setStoragePath: (path, migrate) =>
+    ipcRenderer.invoke("scoring-set-storage-path", path, migrate),
+  getTemporalPath: () => ipcRenderer.invoke("scoring-get-temporal-path"),
+
   // Competition management
   createCompetition: (data) =>
     ipcRenderer.invoke("scoring-create-competition", data),
@@ -178,6 +230,39 @@ const scoring: ScoringMethods = {
     ipcRenderer.invoke("scoring-import-xctsk", filePath),
   previewXctsk: (filePath) =>
     ipcRenderer.invoke("scoring-preview-xctsk", filePath),
+
+  // Flight analysis
+  analyzeFlight: (igcPath, task, pilotId, options) =>
+    ipcRenderer.invoke(
+      "scoring-analyze-flight",
+      igcPath,
+      task,
+      pilotId,
+      options
+    ),
+  readIgc: (igcPath) => ipcRenderer.invoke("scoring-read-igc", igcPath),
+
+  // Task scoring
+  scoreTask: (compId, taskId, formulaId) =>
+    ipcRenderer.invoke("scoring-score-task", compId, taskId, formulaId),
+  scoreTaskWithAnalyses: (task, analyses, formulaId) =>
+    ipcRenderer.invoke(
+      "scoring-score-task-with-analyses",
+      task,
+      analyses,
+      formulaId
+    ),
+
+  // Waypoint library management
+  listWaypoints: (filter) =>
+    ipcRenderer.invoke("scoring-list-waypoints", filter),
+  addWaypoint: (waypoint) =>
+    ipcRenderer.invoke("scoring-add-waypoint", waypoint),
+  updateWaypoint: (id, updates) =>
+    ipcRenderer.invoke("scoring-update-waypoint", id, updates),
+  deleteWaypoint: (id) => ipcRenderer.invoke("scoring-delete-waypoint", id),
+  deleteWaypoints: (ids) => ipcRenderer.invoke("scoring-delete-waypoints", ids),
+  importCup: (filePath) => ipcRenderer.invoke("scoring-import-cup", filePath),
 };
 
 contextBridge.exposeInMainWorld("scoring", scoring);

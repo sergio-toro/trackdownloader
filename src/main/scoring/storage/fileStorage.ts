@@ -515,3 +515,124 @@ export class FileCompetitionStorage implements ICompetitionStorage {
 export function createStorage(baseDir?: string): ICompetitionStorage {
   return new FileCompetitionStorage(baseDir);
 }
+
+/**
+ * Get the default storage path
+ */
+export function getDefaultStoragePath(): string {
+  return path.join(app.getPath("userData"), "competitions");
+}
+
+/**
+ * Check if a directory has competition data
+ */
+async function hasCompetitionData(dirPath: string): Promise<boolean> {
+  try {
+    await fs.access(dirPath);
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    // Check if any subdirectory contains a competition.json file
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const competitionFile = path.join(
+          dirPath,
+          entry.name,
+          "competition.json"
+        );
+        try {
+          await fs.access(competitionFile);
+          return true;
+        } catch {
+          // Not a competition folder, continue
+        }
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Migrate storage from one location to another
+ * Moves all competition folders from oldPath to newPath
+ */
+export async function migrateStorage(
+  oldPath: string,
+  newPath: string
+): Promise<void> {
+  // Check if old path has any data to migrate
+  const hasOldData = await hasCompetitionData(oldPath);
+  if (!hasOldData) {
+    // No data to migrate, just ensure new directory exists
+    await fs.mkdir(newPath, { recursive: true });
+    console.log("No existing competition data to migrate");
+    return;
+  }
+
+  // Check if new path already has competition data
+  const hasNewData = await hasCompetitionData(newPath);
+  if (hasNewData) {
+    throw new Error(
+      "Destination folder already contains competition data. Please select an empty folder or manually manage the existing data."
+    );
+  }
+
+  // Ensure new directory exists
+  await fs.mkdir(newPath, { recursive: true });
+
+  // Get all entries from old path
+  const entries = await fs.readdir(oldPath, { withFileTypes: true });
+
+  // Move each competition folder
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+
+    const oldCompPath = path.join(oldPath, entry.name);
+    const newCompPath = path.join(newPath, entry.name);
+
+    // Check if this is a competition folder
+    const competitionFile = path.join(oldCompPath, "competition.json");
+    try {
+      await fs.access(competitionFile);
+    } catch {
+      // Not a competition folder, skip
+      continue;
+    }
+
+    try {
+      // Try atomic rename first (works if same filesystem)
+      await fs.rename(oldCompPath, newCompPath);
+      console.log(`Moved competition: ${entry.name}`);
+    } catch (error) {
+      // If rename fails (cross-device), fall back to copy + delete
+      if ((error as NodeJS.ErrnoException).code === "EXDEV") {
+        await copyDirectory(oldCompPath, newCompPath);
+        await fs.rm(oldCompPath, { recursive: true });
+        console.log(`Copied and removed competition: ${entry.name}`);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  console.log(`Migration complete: ${oldPath} -> ${newPath}`);
+}
+
+/**
+ * Recursively copy a directory
+ */
+async function copyDirectory(src: string, dest: string): Promise<void> {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      await copyDirectory(srcPath, destPath);
+    } else {
+      await fs.copyFile(srcPath, destPath);
+    }
+  }
+}

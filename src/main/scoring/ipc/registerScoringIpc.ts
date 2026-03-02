@@ -2,9 +2,19 @@
  * IPC handler registration for scoring module
  */
 
+import fs from "fs/promises";
+import path from "path";
 import { BrowserWindow, dialog, ipcMain } from "electron";
-import { createStorage } from "../storage";
+import {
+  createStorage,
+  migrateStorage,
+  getDefaultStoragePath,
+} from "../storage";
 import { parseXctskFile, previewXctskFile } from "../import/xctaskImporter";
+import { analyzeFlightForTask, readIgcFile } from "../analysis";
+import { scoreTask } from "../scoring";
+import { getDefaultFormula } from "../types/formula";
+import { createWaypointStorage, importCupFile } from "../waypoints";
 import type {
   CreateCompetitionData,
   TaskDefinition,
@@ -12,11 +22,70 @@ import type {
   ScoringFormulaConfig,
   TaskResult,
   CompetitionResult,
+  FlightAnalysisOptions,
+  FormulaId,
+  FlightAnalysis,
+  WaypointFilter,
+  LibraryWaypoint,
 } from "../types";
 
-const storage = createStorage();
+// Mutable storage reference to allow path changes at runtime
+let storage = createStorage();
+let currentStoragePath = getDefaultStoragePath();
+
+// Waypoint library storage (shares the same base path)
+const waypointStorage = createWaypointStorage(currentStoragePath);
 
 export default function registerScoringIpc(appWindow: BrowserWindow) {
+  // ============================================================
+  // Storage Path Management
+  // ============================================================
+
+  ipcMain.handle("scoring-get-storage-path", async () => {
+    return currentStoragePath;
+  });
+
+  ipcMain.handle(
+    "scoring-set-storage-path",
+    async (_, newPath: string, migrate: boolean) => {
+      try {
+        const oldPath = currentStoragePath;
+
+        // If path is empty, use default
+        const targetPath = newPath || getDefaultStoragePath();
+
+        // If same path, nothing to do
+        if (targetPath === oldPath) {
+          return;
+        }
+
+        // Migrate data if requested
+        if (migrate) {
+          await migrateStorage(oldPath, targetPath);
+        }
+
+        // Create new storage instance with new path
+        storage = createStorage(targetPath);
+        currentStoragePath = targetPath;
+
+        // Update waypoint storage path
+        waypointStorage.setBaseDir(targetPath);
+
+        console.log(`Storage path changed: ${oldPath} -> ${targetPath}`);
+      } catch (error) {
+        console.error("Error setting storage path:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("scoring-get-temporal-path", async () => {
+    const temporalPath = path.join(currentStoragePath, "downloads");
+    // Ensure the directory exists
+    await fs.mkdir(temporalPath, { recursive: true });
+    return temporalPath;
+  });
+
   // ============================================================
   // Competition Management
   // ============================================================
@@ -398,6 +467,236 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
       return await previewXctskFile(filePath);
     } catch (error) {
       console.error("Error previewing xctsk file:", error);
+      throw error;
+    }
+  });
+
+  // ============================================================
+  // Flight Analysis
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-analyze-flight",
+    async (
+      _,
+      igcPath: string,
+      task: TaskDefinition,
+      pilotId: number,
+      options?: Partial<FlightAnalysisOptions>
+    ) => {
+      try {
+        return await analyzeFlightForTask(igcPath, task, pilotId, options);
+      } catch (error) {
+        console.error("Error analyzing flight:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("scoring-read-igc", async (_, igcPath: string) => {
+    try {
+      return await readIgcFile(igcPath);
+    } catch (error) {
+      console.error("Error reading IGC file:", error);
+      throw error;
+    }
+  });
+
+  // ============================================================
+  // Task Scoring
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-score-task",
+    async (
+      _,
+      compId: string,
+      taskId: string,
+      formulaId?: FormulaId
+    ): Promise<TaskResult> => {
+      try {
+        // Load task definition
+        const task = await storage.getTask(compId, taskId);
+        if (!task) {
+          throw new Error(`Task ${taskId} not found`);
+        }
+
+        // Load formula (use stored or default)
+        let formula: ScoringFormulaConfig;
+        try {
+          formula = await storage.getScoringFormula(compId);
+          if (formulaId && formula.name !== formulaId) {
+            formula = getDefaultFormula(formulaId);
+          }
+        } catch {
+          formula = getDefaultFormula(formulaId || "GAP2023");
+        }
+
+        // Load all participants and analyze their flights
+        const participants = await storage.getParticipants(compId);
+        const analyses: FlightAnalysis[] = [];
+
+        for (const participant of participants) {
+          // Find track for this task
+          const track = participant.taskTracks?.find(
+            (t) => t.taskId === taskId
+          );
+          if (track?.igcPath) {
+            try {
+              // Analyze the flight
+              const analysis = await analyzeFlightForTask(
+                track.igcPath,
+                task,
+                participant.id
+              );
+              analyses.push(analysis);
+            } catch (err) {
+              console.warn(
+                `Failed to analyze flight for participant ${participant.id}:`,
+                err
+              );
+            }
+          }
+        }
+
+        if (analyses.length === 0) {
+          throw new Error("No valid flight tracks found for scoring");
+        }
+
+        // Score the task
+        const result = await scoreTask({
+          task,
+          analyses,
+          formula,
+          onProgress: (percent, message) => {
+            // Could emit progress to renderer via appWindow.webContents.send
+            console.log(`Scoring progress: ${percent}% - ${message}`);
+          },
+        });
+
+        // Save results
+        await storage.saveTaskResults(compId, taskId, result);
+
+        return result;
+      } catch (error) {
+        console.error("Error scoring task:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-score-task-with-analyses",
+    async (
+      _,
+      task: TaskDefinition,
+      analyses: FlightAnalysis[],
+      formulaId?: FormulaId
+    ): Promise<TaskResult> => {
+      try {
+        const formula = getDefaultFormula(formulaId || "GAP2023");
+
+        const result = await scoreTask({
+          task,
+          analyses,
+          formula,
+          onProgress: (percent, message) => {
+            console.log(`Scoring progress: ${percent}% - ${message}`);
+          },
+        });
+
+        return result;
+      } catch (error) {
+        console.error("Error scoring task:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ============================================================
+  // Waypoint Library Management
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-list-waypoints",
+    async (_, filter?: WaypointFilter) => {
+      try {
+        return await waypointStorage.list(filter);
+      } catch (error) {
+        console.error("Error listing waypoints:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-add-waypoint",
+    async (
+      _,
+      waypoint: Omit<LibraryWaypoint, "id" | "createdAt" | "updatedAt">
+    ) => {
+      try {
+        return await waypointStorage.add(waypoint);
+      } catch (error) {
+        console.error("Error adding waypoint:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-update-waypoint",
+    async (
+      _,
+      id: string,
+      updates: Partial<Omit<LibraryWaypoint, "id" | "createdAt">>
+    ) => {
+      try {
+        return await waypointStorage.update(id, updates);
+      } catch (error) {
+        console.error("Error updating waypoint:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle("scoring-delete-waypoint", async (_, id: string) => {
+    try {
+      await waypointStorage.delete(id);
+    } catch (error) {
+      console.error("Error deleting waypoint:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("scoring-delete-waypoints", async (_, ids: string[]) => {
+    try {
+      await waypointStorage.deleteMany(ids);
+    } catch (error) {
+      console.error("Error deleting waypoints:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("scoring-import-cup", async (_, filePath?: string) => {
+    try {
+      // If no path provided, open file dialog
+      let cupPath = filePath;
+      if (!cupPath) {
+        const result = await dialog.showOpenDialog(appWindow, {
+          properties: ["openFile"],
+          filters: [{ name: "SeeYou Waypoints", extensions: ["cup"] }],
+        });
+
+        if (result.canceled || result.filePaths.length === 0) {
+          return null;
+        }
+        cupPath = result.filePaths[0];
+      }
+
+      return await importCupFile(cupPath, waypointStorage, true);
+    } catch (error) {
+      console.error("Error importing CUP file:", error);
       throw error;
     }
   });

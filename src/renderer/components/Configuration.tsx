@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import FlymasterGroupSelector from "@components/flymaster/GroupSelector";
 import FlymasterCredentialsForm from "@components/flymaster/CredentialsForm";
@@ -10,20 +10,56 @@ import Card from "./layout/Card";
 
 const Configuration: React.FC = () => {
   const {
-    settings: { debug, temporalFolder },
+    settings: { debug, programDataFolder },
     setDebug,
-    setTemporalFolder,
+    setProgramDataFolder,
   } = useSettings();
+
+  const [defaultStoragePath, setDefaultStoragePath] = useState<string>("");
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  useEffect(() => {
+    // Get the default storage path on mount
+    window.scoring.getStoragePath().then(setDefaultStoragePath);
+  }, []);
 
   const handleToggleDebug = () => {
     setDebug(!debug);
   };
-  const selectFolder = async () => {
+
+  const selectProgramDataFolder = async () => {
     try {
-      const directory = await window.tracks.selectDirectory();
-      setTemporalFolder(directory);
+      const directory = await window.scoring.selectDirectory();
+      if (!directory) return;
+
+      setIsMigrating(true);
+      try {
+        // Set storage path with migration enabled
+        await window.scoring.setStoragePath(directory, true);
+        setProgramDataFolder(directory);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        alert(`Failed to change program data folder: ${message}`);
+      } finally {
+        setIsMigrating(false);
+      }
     } catch (error) {
-      console.error("Error selecting folder:", error);
+      console.error("Error selecting program data folder:", error);
+    }
+  };
+
+  const resetProgramDataFolder = async () => {
+    try {
+      setIsMigrating(true);
+      // Set to empty string to use default, with migration
+      await window.scoring.setStoragePath("", true);
+      setProgramDataFolder("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to reset program data folder: ${message}`);
+    } finally {
+      setIsMigrating(false);
     }
   };
   return (
@@ -40,22 +76,39 @@ const Configuration: React.FC = () => {
                 <FlymasterGroupSelector />
               </div>
               <div className="flex flex-col gap-2">
-                <Card title="Temporal folder" titleActions={null}>
+                <Card title="Program data folder" titleActions={null}>
                   <p>
-                    Stores Flymaster tracks before moving them to each league
-                    folder
+                    Location for storing competition data and temporary
+                    downloads
                   </p>
-                  <button
-                    onClick={() => selectFolder()}
-                    className="border border-gray-300 px-2 py-1 mt-4 mr-4 font-medium text-sm rounded-md hover:bg-gray-100"
-                  >
-                    {!temporalFolder ? "Select Folder" : "Change Folder"}
-                  </button>
-                  {temporalFolder && (
-                    <span className="text-sm py-3 text-gray-700 ">
-                      {temporalFolder}
-                    </span>
-                  )}
+                  <div className="mt-4 flex items-center gap-2">
+                    <button
+                      onClick={selectProgramDataFolder}
+                      disabled={isMigrating}
+                      className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      {isMigrating
+                        ? "Migrating..."
+                        : !programDataFolder
+                          ? "Select Folder"
+                          : "Change Folder"}
+                    </button>
+                    {programDataFolder && (
+                      <button
+                        onClick={resetProgramDataFolder}
+                        disabled={isMigrating}
+                        className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
+                      >
+                        Reset to Default
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm py-2 text-gray-700">
+                    {programDataFolder || defaultStoragePath || "Loading..."}
+                    {!programDataFolder && defaultStoragePath && (
+                      <span className="text-gray-500"> (default)</span>
+                    )}
+                  </p>
                 </Card>
                 <PilotsForm />
               </div>

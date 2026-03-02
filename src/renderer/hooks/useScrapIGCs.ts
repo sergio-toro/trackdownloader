@@ -45,9 +45,15 @@ const useFetchIGCs = () => {
 
   const [isListingDirectory, setIsListingDirectory] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [temporalFolder, setTemporalFolder] = useState<string | null>(null);
   const {
-    settings: { flymaster, xcontest, pilots, debug, leagues, temporalFolder },
+    settings: { flymaster, xcontest, pilots, debug, leagues },
   } = useSettings();
+
+  // Fetch temporal path from storage on mount
+  useEffect(() => {
+    window.scoring.getTemporalPath().then(setTemporalFolder);
+  }, []);
   const {
     selectedDate,
     selectedFolders,
