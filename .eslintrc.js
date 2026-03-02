@@ -48,6 +48,10 @@ module.exports = {
   rules: {
     "prettier/prettier": ["error", { singleQuote: false, endOfLine: "lf" }],
     quotes: ["error", "double", { avoidEscape: true }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+    ],
     //    "react/prop-types": "error",
     //    "@typescript-eslint/no-var-requires": "off"
   },

@@ -73,3 +73,21 @@ export {
   GAP2025_PG_DEFAULTS,
   getDefaultFormula,
 } from "./formula";
+
+// Flight analysis types
+export type {
+  FlightFix,
+  TurnpointCrossing,
+  TimeDist,
+  DistanceResult,
+  FlightAnalysis,
+  FlightAnalysisOptions,
+} from "./flightAnalysis";
+
+// Waypoint library types
+export type {
+  LibraryWaypoint,
+  WaypointFilter,
+  CupImportResult,
+  WaypointLibraryData,
+} from "./waypoint";

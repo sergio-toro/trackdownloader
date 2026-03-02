@@ -76,4 +76,9 @@ export interface ICompetitionStorage {
 }
 
 // Re-export the file storage implementation
-export { FileCompetitionStorage, createStorage } from "./fileStorage";
+export {
+  FileCompetitionStorage,
+  createStorage,
+  getDefaultStoragePath,
+  migrateStorage,
+} from "./fileStorage";

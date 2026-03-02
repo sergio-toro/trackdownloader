@@ -27,14 +27,14 @@ import { calculateTaskDistances } from "../geo/shortestRoute";
  * XCTrack turnpoint JSON structure
  */
 interface XCTurnpoint {
-  type: "TAKEOFF" | "SSS" | "TURNPOINT" | "ESS" | "GOAL";
-  radius: number;
+  type?: "TAKEOFF" | "SSS" | "TURNPOINT" | "ESS" | "GOAL";
+  radius: number | string;
   waypoint: {
     name: string;
     description?: string;
-    lat: number;
-    lon: number;
-    altSmoothed: number;
+    lat: number | string;
+    lon: number | string;
+    altSmoothed: number | string;
   };
 }
 
@@ -68,7 +68,7 @@ interface XCCompetitionInfo {
  * Complete XCTrack task file structure
  */
 interface XCTask {
-  taskType: "RACE" | "ELAPSED_TIME";
+  taskType: "CLASSIC" | "RACE" | "ELAPSED_TIME";
   version: number;
   earthModel: "WGS84" | "FAI_SPHERE";
   turnpoints: XCTurnpoint[];
@@ -86,6 +86,57 @@ export class XctskValidationError extends Error {
     super(message);
     this.name = "XctskValidationError";
   }
+}
+
+/**
+ * Infer missing turnpoint types based on position
+ * XCTrack format allows omitting type field:
+ * - Before ESS: defaults to TURNPOINT
+ * - After ESS (last turnpoint): defaults to GOAL
+ */
+function inferTurnpointTypes(turnpoints: XCTurnpoint[]): void {
+  const essIndex = turnpoints.findIndex((tp) => tp.type === "ESS");
+
+  turnpoints.forEach((tp, index) => {
+    if (!tp.type) {
+      if (essIndex === -1 || index < essIndex) {
+        tp.type = "TURNPOINT";
+      } else if (index === turnpoints.length - 1) {
+        tp.type = "GOAL";
+      } else {
+        tp.type = "TURNPOINT";
+      }
+    }
+  });
+}
+
+/**
+ * Normalize turnpoint numeric values from strings to numbers
+ * XCTrack files may have numeric values as strings (e.g., "1000" instead of 1000)
+ * C# Newtonsoft.Json auto-converts these, but JSON.parse() does not
+ */
+function normalizeTurnpointValues(turnpoints: XCTurnpoint[]): void {
+  turnpoints.forEach((tp) => {
+    // Convert radius
+    if (typeof tp.radius === "string") {
+      (tp as { radius: number }).radius = parseFloat(tp.radius);
+    }
+
+    // Convert waypoint coordinates
+    if (tp.waypoint) {
+      if (typeof tp.waypoint.lat === "string") {
+        (tp.waypoint as { lat: number }).lat = parseFloat(tp.waypoint.lat);
+      }
+      if (typeof tp.waypoint.lon === "string") {
+        (tp.waypoint as { lon: number }).lon = parseFloat(tp.waypoint.lon);
+      }
+      if (typeof tp.waypoint.altSmoothed === "string") {
+        (tp.waypoint as { altSmoothed: number }).altSmoothed = parseFloat(
+          tp.waypoint.altSmoothed
+        );
+      }
+    }
+  });
 }
 
 /**
@@ -150,6 +201,12 @@ export function parseXctskContent(
  * Validate XCTask structure
  */
 function validateXCTask(xcTask: XCTask): void {
+  // Normalize and infer turnpoint values before validation
+  if (xcTask.turnpoints && Array.isArray(xcTask.turnpoints)) {
+    normalizeTurnpointValues(xcTask.turnpoints);
+    inferTurnpointTypes(xcTask.turnpoints);
+  }
+
   // Check required fields
   if (!xcTask.taskType) {
     throw new XctskValidationError("Missing taskType field");
@@ -171,9 +228,9 @@ function validateXCTask(xcTask: XCTask): void {
   }
 
   // Validate taskType
-  if (!["RACE", "ELAPSED_TIME"].includes(xcTask.taskType)) {
+  if (!["CLASSIC", "RACE", "ELAPSED_TIME"].includes(xcTask.taskType)) {
     throw new XctskValidationError(
-      `Invalid taskType: ${xcTask.taskType}. Must be RACE or ELAPSED_TIME`
+      `Invalid taskType: ${xcTask.taskType}. Must be CLASSIC, RACE or ELAPSED_TIME`
     );
   }
 
@@ -329,9 +386,13 @@ function validateGoal(goal: XCGoalConfig, timeGates: string[]): void {
     throw new XctskValidationError(`Invalid deadline format: ${goal.deadline}`);
   }
 
-  // Check deadline is after all time gates
-  const deadlineTime = new Date(goal.deadline).getTime();
-  const lastGateTime = new Date(timeGates[timeGates.length - 1]).getTime();
+  // Check deadline is after all time gates (normalize for time-only formats)
+  const deadlineTime = new Date(
+    normalizeDateTimeString(goal.deadline)
+  ).getTime();
+  const lastGateTime = new Date(
+    normalizeDateTimeString(timeGates[timeGates.length - 1])
+  ).getTime();
 
   if (deadlineTime <= lastGateTime) {
     throw new XctskValidationError("Deadline must be after all time gates");
@@ -339,10 +400,31 @@ function validateGoal(goal: XCGoalConfig, timeGates: string[]): void {
 }
 
 /**
- * Check if a string is a valid ISO datetime
+ * Check if string is a time-only format (HH:MM:SS or HH:MM:SSZ)
+ */
+function isTimeOnlyFormat(str: string): boolean {
+  return /^\d{2}:\d{2}:\d{2}Z?$/.test(str);
+}
+
+/**
+ * Normalize datetime string - converts time-only to full ISO with default date
+ * XCTrack files may use time-only format (e.g., "04:30:00Z")
+ */
+function normalizeDateTimeString(str: string): string {
+  if (isTimeOnlyFormat(str)) {
+    // Use epoch date as default when only time is provided
+    const time = str.endsWith("Z") ? str : str + "Z";
+    return `1970-01-01T${time}`;
+  }
+  return str;
+}
+
+/**
+ * Check if a string is a valid ISO datetime (or time-only format)
  */
 function isValidISODateTime(dateStr: string): boolean {
-  const date = new Date(dateStr);
+  const normalized = normalizeDateTimeString(dateStr);
+  const date = new Date(normalized);
   return !isNaN(date.getTime());
 }
 
@@ -376,7 +458,7 @@ function convertToTaskImportInternal(
   xcTask: XCTask,
   taskName: string
 ): XCTaskImport {
-  // Map turnpoints
+  // Map turnpoints (normalize time-only datetime strings)
   const turnpoints: Turnpoint[] = xcTask.turnpoints.map((xcTp, index) => ({
     id: `tp-${index + 1}`,
     geopoint: {
@@ -385,10 +467,10 @@ function convertToTaskImportInternal(
       altitude: xcTp.waypoint.altSmoothed,
       name: xcTp.waypoint.name,
     } as GeoPoint,
-    radius: xcTp.radius,
-    open: xcTask.sss.timeGates[0], // Use first gate as default open time
-    close: xcTask.goal.deadline,
-    altitude: xcTp.waypoint.altSmoothed,
+    radius: Number(xcTp.radius),
+    open: normalizeDateTimeString(xcTask.sss.timeGates[0]),
+    close: normalizeDateTimeString(xcTask.goal.deadline),
+    altitude: Number(xcTp.waypoint.altSmoothed),
     type: xcTp.type as TurnpointType,
   }));
 
@@ -397,13 +479,13 @@ function convertToTaskImportInternal(
   const ssIndex = types.indexOf("SSS") + 1;
   const esIndex = types.indexOf("ESS") + 1;
 
-  // Map start gates
+  // Map start gates (normalize time-only datetime strings)
   const startGates: StartGate[] = xcTask.sss.timeGates.map((gate) => ({
-    open: gate,
+    open: normalizeDateTimeString(gate),
   }));
 
-  // Map task type
-  const taskType: TaskType = xcTask.taskType === "RACE" ? "Race" : "TimeTrial";
+  // Map task type based on sss.type (start procedure type), not taskType (format type)
+  const taskType: TaskType = xcTask.sss.type === "RACE" ? "Race" : "TimeTrial";
 
   // Map earth model
   const earthModel: EarthModel = xcTask.earthModel;

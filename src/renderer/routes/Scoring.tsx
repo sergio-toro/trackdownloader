@@ -14,8 +14,9 @@ import {
   ImportXctskDialog,
   TaskSummary,
   WaypointTable,
+  TaskEditorDialog,
 } from "@components/scoring";
-import type { TaskDefinition } from "@main/scoring/types";
+import type { TaskDefinition, Turnpoint } from "@main/scoring/types";
 
 /**
  * Competition list view
@@ -182,6 +183,27 @@ const CompetitionList: React.FC = () => {
 /**
  * Active competition view
  */
+/**
+ * Calculate task distances using the main process
+ * This is a simplified version - in production, this should be done via IPC
+ */
+function calculateTaskDistances(
+  turnpoints: Turnpoint[],
+  _ssIndex: number,
+  _esIndex: number
+) {
+  // For now, return placeholder values - the actual calculation
+  // will happen when the task is saved via the context
+  // The shortestRoute.ts module handles this in the main process
+  return {
+    taskDistance: 0,
+    speedSectionDistance: 0,
+    launchToEssDistance: 0,
+    legDistances: [] as number[],
+    shortestRoute: turnpoints.map((tp) => tp.geopoint),
+  };
+}
+
 const CompetitionView: React.FC = () => {
   const {
     competition,
@@ -189,10 +211,13 @@ const CompetitionView: React.FC = () => {
     activeTaskId,
     setActiveTask,
     addTask,
+    updateTask,
     closeCompetition,
   } = useCompetition();
 
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showTaskEditor, setShowTaskEditor] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
 
   if (!competition) return null;
 
@@ -201,6 +226,39 @@ const CompetitionView: React.FC = () => {
   const handleImportTask = async (task: TaskDefinition) => {
     await addTask(task);
     setShowImportDialog(false);
+  };
+
+  const handleSaveTask = async (task: TaskDefinition) => {
+    // Calculate distances before saving
+    const ssIndex = task.turnpoints.findIndex((tp) => tp.type === "SSS") + 1;
+    const esIndex = task.turnpoints.findIndex((tp) => tp.type === "ESS") + 1;
+    const distances = calculateTaskDistances(task.turnpoints, ssIndex, esIndex);
+
+    const taskWithDistances: TaskDefinition = {
+      ...task,
+      ssIndex,
+      esIndex,
+      ...distances,
+    };
+
+    if (editingTask) {
+      await updateTask(task.id, taskWithDistances);
+    } else {
+      await addTask(taskWithDistances);
+    }
+
+    setShowTaskEditor(false);
+    setEditingTask(null);
+  };
+
+  const handleEditTask = (task: TaskDefinition) => {
+    setEditingTask(task);
+    setShowTaskEditor(true);
+  };
+
+  const handleNewTask = () => {
+    setEditingTask(null);
+    setShowTaskEditor(true);
   };
 
   return (
@@ -217,12 +275,20 @@ const CompetitionView: React.FC = () => {
           <h2 className="text-xl font-bold">{competition.name}</h2>
           <p className="text-gray-500">{competition.location}</p>
         </div>
-        <button
-          onClick={() => setShowImportDialog(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
-        >
-          Import Task (.xctsk)
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleNewTask}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium"
+          >
+            New Task
+          </button>
+          <button
+            onClick={() => setShowImportDialog(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+          >
+            Import Task (.xctsk)
+          </button>
+        </div>
       </div>
 
       {/* Task list */}
@@ -234,18 +300,45 @@ const CompetitionView: React.FC = () => {
           ) : (
             <div className="space-y-1">
               {tasks.map((task) => (
-                <button
+                <div
                   key={task.id}
-                  onClick={() => setActiveTask(task.id)}
-                  className={`w-full text-left px-3 py-2 rounded text-sm ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${
                     task.id === activeTaskId
-                      ? "bg-blue-100 text-blue-800 font-medium"
+                      ? "bg-blue-100 text-blue-800"
                       : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  <div className="font-medium truncate">{task.name}</div>
-                  <div className="text-xs text-gray-500">{task.date}</div>
-                </button>
+                  <button
+                    onClick={() => setActiveTask(task.id)}
+                    className="flex-1 text-left"
+                  >
+                    <div
+                      className={`truncate ${task.id === activeTaskId ? "font-medium" : ""}`}
+                    >
+                      {task.name}
+                    </div>
+                    <div className="text-xs text-gray-500">{task.date}</div>
+                  </button>
+                  <button
+                    onClick={() => handleEditTask(task)}
+                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                    title="Edit task"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -282,6 +375,17 @@ const CompetitionView: React.FC = () => {
         isOpen={showImportDialog}
         onClose={() => setShowImportDialog(false)}
         onImport={handleImportTask}
+      />
+
+      {/* Task editor dialog */}
+      <TaskEditorDialog
+        isOpen={showTaskEditor}
+        onClose={() => {
+          setShowTaskEditor(false);
+          setEditingTask(null);
+        }}
+        onSave={handleSaveTask}
+        existingTask={editingTask}
       />
     </div>
   );
