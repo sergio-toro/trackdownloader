@@ -212,6 +212,7 @@ const CompetitionView: React.FC = () => {
     setActiveTask,
     addTask,
     updateTask,
+    updateCompetition,
     closeCompetition,
   } = useCompetition();
   const navigate = useNavigate();
@@ -219,6 +220,11 @@ const CompetitionView: React.FC = () => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showTaskEditor, setShowTaskEditor] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
+  const [showEditCompetition, setShowEditCompetition] = useState(false);
+  const [editCompName, setEditCompName] = useState("");
+  const [editCompLocation, setEditCompLocation] = useState("");
+  const [editCompStartDate, setEditCompStartDate] = useState("");
+  const [editCompEndDate, setEditCompEndDate] = useState("");
 
   if (!competition) return null;
 
@@ -262,6 +268,26 @@ const CompetitionView: React.FC = () => {
     setShowTaskEditor(true);
   };
 
+  const handleOpenEditCompetition = () => {
+    if (competition) {
+      setEditCompName(competition.name);
+      setEditCompLocation(competition.location || "");
+      setEditCompStartDate(competition.startDate || "");
+      setEditCompEndDate(competition.endDate || "");
+      setShowEditCompetition(true);
+    }
+  };
+
+  const handleSaveCompetition = async () => {
+    await updateCompetition({
+      name: editCompName.trim(),
+      location: editCompLocation.trim(),
+      startDate: editCompStartDate,
+      endDate: editCompEndDate,
+    });
+    setShowEditCompetition(false);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -273,7 +299,28 @@ const CompetitionView: React.FC = () => {
           >
             ← Back to competitions
           </button>
-          <h2 className="text-xl font-bold">{competition.name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold">{competition.name}</h2>
+            <button
+              onClick={handleOpenEditCompetition}
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+              title="Edit competition details"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </button>
+          </div>
           <p className="text-gray-500">{competition.location}</p>
         </div>
         <div className="flex gap-2">
@@ -394,6 +441,80 @@ const CompetitionView: React.FC = () => {
         onSave={handleSaveTask}
         existingTask={editingTask}
       />
+
+      {/* Edit competition modal */}
+      {showEditCompetition && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Edit Competition</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={editCompName}
+                  onChange={(e) => setEditCompName(e.target.value)}
+                  placeholder="Competition name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editCompLocation}
+                  onChange={(e) => setEditCompLocation(e.target.value)}
+                  placeholder="Location"
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editCompStartDate}
+                    onChange={(e) => setEditCompStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editCompEndDate}
+                    onChange={(e) => setEditCompEndDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setShowEditCompetition(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveCompetition}
+                disabled={!editCompName.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
