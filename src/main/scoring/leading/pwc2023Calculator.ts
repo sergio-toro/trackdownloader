@@ -110,11 +110,16 @@ export function calculatePwc2023LC(
 
   const totalArea = areaBeforeBest + areaAfterBest;
 
+  // Normalize by 1800² as per CIVL-GAP specification
+  // 1800 = 30 minutes in seconds, the normalization constant
+  const normFactor = 1800 * 1800;
+  const normalizedArea = totalArea / normFactor;
+
   return {
-    leadingCoeff: totalArea,
-    areaBeforeBest,
-    areaAfterBest,
-    totalArea,
+    leadingCoeff: normalizedArea,
+    areaBeforeBest: areaBeforeBest / normFactor,
+    areaAfterBest: areaAfterBest / normFactor,
+    totalArea: normalizedArea,
   };
 }
 

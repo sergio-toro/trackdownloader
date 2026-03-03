@@ -11,6 +11,7 @@ export interface TaskTrack {
   taskId: string;
   igcPath: string;
   uploadedAt: string;
+  status?: "active" | "ABS" | "DNS";
 }
 
 /**

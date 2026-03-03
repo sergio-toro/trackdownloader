@@ -127,7 +127,8 @@ export function findAllCrossings(
  * Get first valid crossing for each turnpoint in sequence
  *
  * A valid crossing must:
- * - Be an ENTER crossing (entering the cylinder)
+ * - Be an EXIT crossing for SSS/TAKEOFF turnpoints (pilot exits cylinder)
+ * - Be an ENTER crossing for all other turnpoints (pilot enters cylinder)
  * - Occur after the previous turnpoint's valid crossing
  * - Respect chronological order
  *
@@ -143,15 +144,26 @@ export function getValidCrossings(
   let lastTime = 0;
 
   for (let i = 0; i < turnpoints.length; i++) {
+    const tp = turnpoints[i];
     // Filter crossings that occur after the last valid crossing
     const tpCrossings = crossings[i].filter((c) => c.timestamp > lastTime);
 
-    // Find first ENTER crossing
-    const enterCrossing = tpCrossings.find((c) => c.isEnter);
+    // SSS and TAKEOFF require EXIT crossing (pilot starts inside, exits to begin race)
+    // All other turnpoints require ENTER crossing
+    const isExitType = tp.type === "SSS" || tp.type === "TAKEOFF";
+    const crossing = tpCrossings.find((c) =>
+      isExitType ? !c.isEnter : c.isEnter
+    );
 
-    if (enterCrossing) {
-      validCrossings.push(enterCrossing);
-      lastTime = enterCrossing.timestamp;
+    if (crossing) {
+      validCrossings.push(crossing);
+      // TAKEOFF crossing should not constrain subsequent turnpoint timing.
+      // In PG race tasks, TAKEOFF and SSS are co-located — pilots launch before
+      // the gate opens and the TAKEOFF exit may occur well after the SSS exit.
+      // Only SSS (and later turnpoints) should advance the lastTime constraint.
+      if (tp.type !== "TAKEOFF") {
+        lastTime = crossing.timestamp;
+      }
     } else {
       validCrossings.push(null);
     }

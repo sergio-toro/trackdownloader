@@ -32,11 +32,14 @@ export function calculateWeights(
   // Goal ratio determines base weight split
   const goalRatio = pilotsFlying > 0 ? pilotsInGoal / pilotsFlying : 0;
 
-  // Distance weight: higher when fewer pilots reach goal
-  const distanceWeight = 1 - goalRatio;
+  // Distance weight: CIVL-GAP cubic polynomial
+  // Higher when fewer pilots reach goal
+  const gr = goalRatio;
+  const distanceWeight =
+    0.9 - 1.665 * gr + 1.713 * gr * gr - 0.587 * gr * gr * gr;
 
-  // Time weight: starts as remaining weight, then reduced by other categories
-  let timeWeight = goalRatio;
+  // Speed weight is the complement, then split into time/leading/etc
+  let timeWeight = 1 - distanceWeight;
 
   // Arrival weight (optional, usually 0 in GAP2023+)
   let arrivalWeight = 0;

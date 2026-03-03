@@ -26,9 +26,31 @@ Many linting issues (especially formatting) can be auto-fixed:
 npm run lint -- --fix
 ```
 
+## Scripts
+
+Use JavaScript `.mjs` files for standalone scripts.
+
 ## Unused Variables
 
 Prefix intentionally unused variables with `_` (e.g., `_formula`, `_options`).
+
+## Running the App
+
+Start the Electron app in development mode (with hot reload):
+
+```bash
+npm run start
+```
+
+Use `run_in_background: true` when launching via the Bash tool. The app runs on webpack dev server port 3000 with remote debugging on port 9222 (for Electron MCP tools).
+
+To kill the app:
+
+```bash
+pkill -f "electron.*trackdownloader"
+```
+
+This kills all Electron processes for this project. After killing, the background task will also complete.
 
 ## Screenshots
 

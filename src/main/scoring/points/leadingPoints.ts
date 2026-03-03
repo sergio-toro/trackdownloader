@@ -76,9 +76,12 @@ export function calculateLeadingPoints(
 }
 
 /**
- * Calculate leading fraction (GAP.cs lines 967-993)
+ * Calculate leading fraction (GAP2023 ratio-based formula)
  *
- * Formula: fraction = 1 - (lcDiff / √smallestLc)^(2/3)
+ * Formula: fraction = max(0, 1 - (lc/lcMin - 1)^(2/3))
+ *
+ * Uses ratio of LC values rather than absolute difference,
+ * making it normalization-independent.
  *
  * @param lc Pilot's leading coefficient
  * @param smallestLc Smallest (best) leading coefficient in task
@@ -94,10 +97,9 @@ export function calcLeadingFraction(lc: number, smallestLc: number): number {
     return 1;
   }
 
-  const lcDiff = lc - smallestLc;
-
-  // Exponent of 2/3 determines point distribution curve
-  const base = lcDiff / Math.sqrt(smallestLc);
+  // GAP2023 ratio-based formula
+  const lcRatio = lc / smallestLc;
+  const base = lcRatio - 1;
   const fraction = 1 - Math.pow(base, 2 / 3);
 
   return Math.max(0, fraction);

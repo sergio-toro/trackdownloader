@@ -17,6 +17,7 @@ import { calculateCompetitionStandings } from "../scoring/ftvCalculator";
 import { exportToCsv } from "../export/csvExporter";
 import { exportToHtml } from "../export/htmlExporter";
 import { getDefaultFormula } from "../types/formula";
+import { calculateTaskDistances } from "../geo/shortestRoute";
 import { createWaypointStorage, importCupFile } from "../waypoints";
 import type {
   CreateCompetitionData,
@@ -558,6 +559,29 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
           throw new Error(`Task ${taskId} not found`);
         }
 
+        // Recalculate task distances using current shortest route algorithm
+        if (task.turnpoints.length >= 2) {
+          const distances = calculateTaskDistances(
+            task.turnpoints,
+            task.ssIndex,
+            task.esIndex
+          );
+          task.taskDistance = distances.taskDistance;
+          task.speedSectionDistance = distances.speedSectionDistance;
+          task.launchToEssDistance = distances.launchToEssDistance;
+          task.legDistances = distances.legDistances;
+          task.shortestRoute = distances.shortestRoute;
+
+          // Persist recalculated distances
+          await storage.updateTask(compId, taskId, {
+            taskDistance: task.taskDistance,
+            speedSectionDistance: task.speedSectionDistance,
+            launchToEssDistance: task.launchToEssDistance,
+            legDistances: task.legDistances,
+            shortestRoute: task.shortestRoute,
+          });
+        }
+
         // Load formula (use stored or default)
         let formula: ScoringFormulaConfig;
         try {
@@ -578,13 +602,18 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
           const track = participant.taskTracks?.find(
             (t) => t.taskId === taskId
           );
-          if (track?.igcPath) {
+          if (
+            track?.igcPath &&
+            track.status !== "ABS" &&
+            track.status !== "DNS"
+          ) {
             try {
               // Analyze the flight
               const analysis = await analyzeFlightForTask(
                 track.igcPath,
                 task,
-                participant.id
+                participant.id,
+                { minDistance: formula.minimumDistance }
               );
               analyses.push(analysis);
             } catch (err) {

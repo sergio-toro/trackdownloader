@@ -60,9 +60,11 @@ export function generateTimeDistanceGraph(
   const startTime = ssCrossing.timestamp;
   const endIdx = esCrossing ? esCrossing.toFixIndex : fixes.length - 1;
 
-  let prevSsDist = 0;
+  let bestFlownDist = 0;
 
   // Process fixes from SS to ES (or end of track)
+  // Include ALL fixes (not just forward progress) so thermalling time
+  // contributes to the leading coefficient integral
   for (let i = ssCrossing.toFixIndex; i <= endIdx && i < fixes.length; i++) {
     const fix = fixes[i];
 
@@ -88,19 +90,23 @@ export function generateTimeDistanceGraph(
       esIdx
     );
 
-    // Distance flown in speed section
+    // Distance flown in speed section (monotonic best for dist field)
     const flownSsDist = task.speedSectionDistance - distToEss;
+    bestFlownDist = Math.max(bestFlownDist, flownSsDist);
 
-    // Only add entry if we've made progress (monotonic increase)
-    if (flownSsDist > prevSsDist) {
-      graph.push({
-        dist: Math.max(0, flownSsDist),
-        time: (fix.timestamp - startTime) / 1000, // Convert to seconds
-        dist2es: Math.max(0, distToEss),
-        alt: getAltitude(fix),
-      });
-      prevSsDist = flownSsDist;
+    const time = (fix.timestamp - startTime) / 1000;
+
+    // Skip duplicate timestamps
+    if (graph.length > 0 && time <= graph[graph.length - 1].time) {
+      continue;
     }
+
+    graph.push({
+      dist: Math.max(0, bestFlownDist),
+      time,
+      dist2es: Math.max(0, distToEss),
+      alt: getAltitude(fix),
+    });
   }
 
   // Add final point at ESS if reached

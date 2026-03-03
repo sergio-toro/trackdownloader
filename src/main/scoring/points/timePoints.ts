@@ -91,8 +91,8 @@ export function calcTimeFraction(
   // 2/3 (0.667) = steeper decline (older formulas)
   const exponent = useFlatDecline ? 5 / 6 : 2 / 3;
 
-  // Calculate time fraction
-  const base = timeDiff / Math.sqrt(bestTime);
+  // Calculate time fraction (CIVL-GAP spec: divide by 60*sqrt(bestTime))
+  const base = timeDiff / (60 * Math.sqrt(bestTime));
   const fraction = 1 - Math.pow(base, exponent);
 
   return Math.max(0, fraction);

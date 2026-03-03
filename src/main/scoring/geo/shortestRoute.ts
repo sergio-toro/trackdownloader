@@ -106,11 +106,13 @@ export function optimizeRoute(
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
     let maxChange = 0;
 
-    // Optimize each intermediate point (skip first and last)
-    for (let i = 1; i < route.length - 1; i++) {
+    // Optimize each intermediate point (skip first only)
+    // The last point is also optimized (projected toward previous point)
+    for (let i = 1; i < route.length; i++) {
       const tp = turnpoints[i];
       const prev = route[i - 1];
-      const next = route[i + 1];
+      // For last point, project toward previous point (no next neighbor)
+      const next = i < route.length - 1 ? route[i + 1] : route[i - 1];
 
       // Find optimal point on cylinder edge
       const optimal = findOptimalCylinderPoint(prev, next, tp);
@@ -183,10 +185,11 @@ export function findOptimalCylinderPoint(
     return projectPointOnCylinder(center, prev, radius);
   }
 
-  // Find closest point on line from prev to next
-  const t = (-prevX * dx + -prevY * dy) / (lineLen * lineLen);
+  // Find closest point on line SEGMENT from prev to next (clamp to [0,1])
+  const tUnclamped = (-prevX * dx + -prevY * dy) / (lineLen * lineLen);
+  const t = Math.max(0, Math.min(1, tUnclamped));
 
-  // Closest point on line to center (at origin)
+  // Closest point on segment to center (at origin)
   const closestX = prevX + t * dx;
   const closestY = prevY + t * dy;
   const distToLine = Math.sqrt(closestX * closestX + closestY * closestY);
@@ -194,13 +197,7 @@ export function findOptimalCylinderPoint(
   let optimalX: number;
   let optimalY: number;
 
-  if (distToLine < 0.001) {
-    // Line passes through center, use perpendicular direction
-    const perpX = -dy / lineLen;
-    const perpY = dx / lineLen;
-    optimalX = perpX * radius;
-    optimalY = perpY * radius;
-  } else if (distToLine <= radius) {
+  if (distToLine <= radius) {
     // Line intersects or touches cylinder
     // Find intersection points and choose the one that minimizes total distance
     const intersections = findLineCircleIntersections(
@@ -212,9 +209,28 @@ export function findOptimalCylinderPoint(
     );
 
     if (intersections.length === 0) {
-      // Fallback: project closest point
-      optimalX = (closestX / distToLine) * radius;
-      optimalY = (closestY / distToLine) * radius;
+      // Fallback: project toward the farther point (next or prev)
+      if (distToLine > 0.001) {
+        optimalX = (closestX / distToLine) * radius;
+        optimalY = (closestY / distToLine) * radius;
+      } else {
+        // Line passes through center — use direction toward next
+        const nextLen = Math.sqrt(nextX * nextX + nextY * nextY);
+        if (nextLen > 0.001) {
+          optimalX = (nextX / nextLen) * radius;
+          optimalY = (nextY / nextLen) * radius;
+        } else {
+          // Both prev and next at center, use direction toward prev
+          const prevLen = Math.sqrt(prevX * prevX + prevY * prevY);
+          if (prevLen > 0.001) {
+            optimalX = (prevX / prevLen) * radius;
+            optimalY = (prevY / prevLen) * radius;
+          } else {
+            optimalX = radius;
+            optimalY = 0;
+          }
+        }
+      }
     } else if (intersections.length === 1) {
       optimalX = intersections[0].x;
       optimalY = intersections[0].y;
@@ -244,10 +260,12 @@ export function findOptimalCylinderPoint(
       }
     }
   } else {
-    // Line doesn't reach cylinder
-    // Find point on cylinder between center and the closest point on line
-    optimalX = (closestX / distToLine) * radius;
-    optimalY = (closestY / distToLine) * radius;
+    // Line segment doesn't reach cylinder
+    // Find optimal point on cylinder using golden section search
+    // The optimal P minimizes d(prev, P) + d(P, next) for P on the circle
+    const result = findOptimalPointOnCircle(prevX, prevY, nextX, nextY, radius);
+    optimalX = result.x;
+    optimalY = result.y;
   }
 
   // Convert back to geographic coordinates
@@ -256,6 +274,75 @@ export function findOptimalCylinderPoint(
     longitude: center.longitude + metersToLonDeg(optimalX, center.latitude),
     altitude: center.altitude,
     name: center.name,
+  };
+}
+
+/**
+ * Find the point on a circle (centered at origin) that minimizes
+ * d(prev, P) + d(P, next) using golden section search.
+ *
+ * This solves the Fermat reflection problem on a circle.
+ */
+function findOptimalPointOnCircle(
+  prevX: number,
+  prevY: number,
+  nextX: number,
+  nextY: number,
+  radius: number
+): { x: number; y: number } {
+  // Cost function: total path length through point on circle at angle theta
+  const cost = (theta: number): number => {
+    const px = radius * Math.cos(theta);
+    const py = radius * Math.sin(theta);
+    return (
+      Math.sqrt((px - prevX) ** 2 + (py - prevY) ** 2) +
+      Math.sqrt((px - nextX) ** 2 + (py - nextY) ** 2)
+    );
+  };
+
+  // Initial estimate: direction from center toward midpoint of prev and next
+  // weighted by inverse distance (closer point gets more weight)
+  const prevDist = Math.sqrt(prevX * prevX + prevY * prevY);
+  const nextDist = Math.sqrt(nextX * nextX + nextY * nextY);
+  const wPrev = nextDist / (prevDist + nextDist);
+  const wNext = prevDist / (prevDist + nextDist);
+  const midX = wPrev * prevX + wNext * nextX;
+  const midY = wPrev * prevY + wNext * nextY;
+  const initAngle = Math.atan2(midY, midX);
+
+  // Golden section search around initial estimate
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const resphi = 2 - phi;
+  let a = initAngle - Math.PI / 2;
+  let b = initAngle + Math.PI / 2;
+
+  let x1 = a + resphi * (b - a);
+  let x2 = b - resphi * (b - a);
+  let f1 = cost(x1);
+  let f2 = cost(x2);
+
+  const tolerance = 1e-8;
+  for (let i = 0; i < 100; i++) {
+    if (Math.abs(b - a) < tolerance) break;
+    if (f1 < f2) {
+      b = x2;
+      x2 = x1;
+      f2 = f1;
+      x1 = a + resphi * (b - a);
+      f1 = cost(x1);
+    } else {
+      a = x1;
+      x1 = x2;
+      f1 = f2;
+      x2 = b - resphi * (b - a);
+      f2 = cost(x2);
+    }
+  }
+
+  const bestAngle = (a + b) / 2;
+  return {
+    x: radius * Math.cos(bestAngle),
+    y: radius * Math.sin(bestAngle),
   };
 }
 

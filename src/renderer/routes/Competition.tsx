@@ -13,10 +13,12 @@ import CompetitionStandings from "@components/results/CompetitionStandings";
 import ExportDialog from "@components/export/ExportDialog";
 import TaskEditorDialog from "@components/scoring/TaskEditorDialog";
 import ImportXctskDialog from "@components/scoring/ImportXctskDialog";
+import FormulaEditorDialog from "@components/scoring/FormulaEditorDialog";
 import type {
   TaskResult,
   CompetitionResult,
   TaskDefinition,
+  ScoringFormulaConfig,
 } from "@main/scoring/types";
 
 type TabType = "tasks" | "participants" | "results" | "standings";
@@ -35,6 +37,7 @@ const Competition: React.FC = () => {
     addTask,
     updateTask,
     deleteTask,
+    updateFormula,
   } = useCompetition();
 
   const [activeTab, setActiveTab] = useState<TabType>("standings");
@@ -48,6 +51,7 @@ const Competition: React.FC = () => {
   const [showTaskEditor, setShowTaskEditor] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
+  const [showFormulaEditor, setShowFormulaEditor] = useState(false);
 
   // Load competition on mount
   useEffect(() => {
@@ -230,6 +234,7 @@ const Competition: React.FC = () => {
           scoredTaskCount={scoredTaskCount}
           participantCount={participants.length}
           onExport={() => setShowExportDialog(true)}
+          onEditFormula={() => setShowFormulaEditor(true)}
         />
 
         {/* Tabs */}
@@ -390,6 +395,18 @@ const Competition: React.FC = () => {
           onClose={() => setShowImportDialog(false)}
           onImport={handleTaskImport}
         />
+
+        {/* Formula Editor Dialog */}
+        {competition && (
+          <FormulaEditorDialog
+            isOpen={showFormulaEditor}
+            onClose={() => setShowFormulaEditor(false)}
+            formula={competition.formula}
+            onSave={async (formula: Partial<ScoringFormulaConfig>) => {
+              await updateFormula(formula);
+            }}
+          />
+        )}
       </div>
     </div>
   );

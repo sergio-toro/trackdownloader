@@ -12,62 +12,31 @@ import type { ScoringFormulaConfig } from "../types/formula";
 /**
  * Calculate distance points for a pilot
  *
- * Distance points have two components:
- * 1. Linear points (30%): Proportional to distance over minimum
- * 2. Difficulty points (70%): Exponential curve rewarding longer flights
+ * For PG (GAP2023): Simple linear formula
+ *   DistancePoints = (distance / bestDistance) × AvailableDistancePoints
+ *
+ * No minDistance subtraction, no difficulty exponent.
+ * Pilots at minimum distance still get proportional points.
  *
  * @param analysis Flight analysis for the pilot
  * @param stats Task statistics
  * @param available Available points
- * @param formula Scoring formula configuration
+ * @param _formula Scoring formula configuration
  * @returns Distance points
  */
 export function calculateDistancePoints(
   analysis: FlightAnalysis,
   stats: TaskStatistics,
   available: AvailablePoints,
-  formula: ScoringFormulaConfig
+  _formula: ScoringFormulaConfig
 ): number {
   const { distanceFlown } = analysis;
-  const { bestDistance, minDistance } = stats;
+  const { bestDistance } = stats;
 
-  // Pilots below minimum distance get 0 points
-  if (distanceFlown <= minDistance) {
-    return 0;
-  }
+  if (bestDistance <= 0) return 0;
 
-  // Distance over minimum
-  const distOverMin = distanceFlown - minDistance;
-  const bestOverMin = bestDistance - minDistance;
-
-  if (bestOverMin <= 0) {
-    return 0;
-  }
-
-  // Linear distance ratio (0-1)
-  const distanceRatio = distOverMin / bestOverMin;
-
-  // Split available points into linear and difficulty portions
-  const linearFraction = 0.3; // 30% linear
-  const linearAvailable = available.distanceAvailable * linearFraction;
-  const difficultyAvailable =
-    available.distanceAvailable * (1 - linearFraction);
-
-  // Linear portion: proportional to distance ratio
-  const linearPoints = distanceRatio * linearAvailable;
-
-  // Difficulty portion: exponential curve (ratio^1.5)
-  // This rewards pilots who fly further more heavily
-  let difficultyPoints = 0;
-  if (formula.useDifficultyForDistancePoints) {
-    const difficultyFactor = Math.pow(distanceRatio, 1.5);
-    difficultyPoints = difficultyFactor * difficultyAvailable;
-  } else {
-    // Without difficulty, all remaining points are also linear
-    difficultyPoints = distanceRatio * difficultyAvailable;
-  }
-
-  return linearPoints + difficultyPoints;
+  const distanceRatio = distanceFlown / bestDistance;
+  return distanceRatio * available.distanceAvailable;
 }
 
 /**
