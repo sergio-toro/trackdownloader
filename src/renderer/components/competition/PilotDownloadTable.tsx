@@ -11,7 +11,7 @@ import type {
   DownloadStatus,
 } from "@renderer/hooks/useCompetitionDownload";
 
-export type DownloadSource = "xcontest" | "volandoo" | "flymaster";
+export type DownloadSource = "xcontest" | "volandoo" | "flymaster" | "all";
 
 interface PilotDownloadTableProps {
   participants: Participant[];
@@ -185,6 +185,7 @@ const PilotDownloadTable: React.FC<PilotDownloadTableProps> = ({
       case "volandoo":
         return participant.volandoo || "-";
       case "flymaster":
+      case "all":
         return participant.id.toString();
     }
   };
@@ -196,6 +197,7 @@ const PilotDownloadTable: React.FC<PilotDownloadTableProps> = ({
       case "volandoo":
         return "Volandoo";
       case "flymaster":
+      case "all":
         return "Pilot ID";
     }
   };

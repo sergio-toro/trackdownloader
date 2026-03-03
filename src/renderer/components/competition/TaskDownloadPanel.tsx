@@ -74,10 +74,12 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
     downloadXcontest,
     downloadVolandoo,
     downloadFlymaster,
+    downloadAll,
     xcontestProgress,
     volandooProgress,
     flymasterProgress,
     downloadStatus,
+    downloadAllPhase,
     isDownloading,
     errorMessage,
     cancelDownload,
@@ -105,6 +107,11 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
           await downloadFlymaster(ids, selectedFlymasterGroup);
         }
         break;
+      case "all":
+        if (selectedFlymasterGroup) {
+          await downloadAll(ids, selectedFlymasterGroup);
+        }
+        break;
     }
   }, [
     source,
@@ -113,6 +120,7 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
     downloadXcontest,
     downloadVolandoo,
     downloadFlymaster,
+    downloadAll,
   ]);
 
   const selectableCount = useMemo(() => {
@@ -163,12 +171,28 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
       ? xcontestProgress
       : source === "volandoo"
         ? volandooProgress
-        : flymasterProgress;
+        : source === "all"
+          ? downloadAllPhase === "xcontest"
+            ? xcontestProgress
+            : downloadAllPhase === "volandoo"
+              ? volandooProgress
+              : flymasterProgress
+          : flymasterProgress;
+
+  const progressSource: DownloadSource =
+    source === "all" ? (downloadAllPhase ?? "all") : source;
+
+  const phaseLabels: Record<string, string> = {
+    flymaster: "Phase 1/3: Flymaster",
+    xcontest: "Phase 2/3: XContest",
+    volandoo: "Phase 3/3: Volandoo",
+  };
 
   const canDownload =
     selectedIds.size > 0 &&
     !isDownloading &&
-    (source !== "flymaster" || selectedFlymasterGroup);
+    (source !== "flymaster" || selectedFlymasterGroup) &&
+    (source !== "all" || selectedFlymasterGroup);
 
   if (!isOpen) return null;
 
@@ -263,24 +287,39 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
               >
                 Flymaster
               </button>
+              <button
+                onClick={() => {
+                  setSource("all");
+                  setSelectedIds(new Set());
+                }}
+                disabled={isDownloading}
+                className={`px-3 py-1.5 text-sm rounded ${
+                  source === "all"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                } disabled:opacity-50`}
+              >
+                Download All
+              </button>
             </div>
 
             {/* Flymaster group selector */}
-            {source === "flymaster" && flymaster?.groups && (
-              <select
-                value={selectedFlymasterGroup || ""}
-                onChange={(e) => setSelectedFlymasterGroup(e.target.value)}
-                disabled={isDownloading}
-                className="ml-2 px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">Select group...</option>
-                {flymaster.groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-            )}
+            {(source === "flymaster" || source === "all") &&
+              flymaster?.groups && (
+                <select
+                  value={selectedFlymasterGroup || ""}
+                  onChange={(e) => setSelectedFlymasterGroup(e.target.value)}
+                  disabled={isDownloading}
+                  className="ml-2 px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="">Select group...</option>
+                  {flymaster.groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              )}
           </div>
         </div>
 
@@ -325,9 +364,14 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
         {/* Progress indicator */}
         {activeProgress.visible && (
           <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
+            {source === "all" && downloadAllPhase && (
+              <p className="text-xs font-medium text-green-700 mb-2">
+                {phaseLabels[downloadAllPhase]}
+              </p>
+            )}
             <DownloadProgressIndicator
               progress={activeProgress}
-              source={source}
+              source={progressSource}
             />
           </div>
         )}
@@ -368,7 +412,9 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
                       ? "bg-blue-600 hover:bg-blue-700"
                       : source === "volandoo"
                         ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-orange-600 hover:bg-orange-700"
+                        : source === "all"
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-orange-600 hover:bg-orange-700"
                   }`}
                 >
                   Download ({selectedIds.size})

@@ -6,15 +6,14 @@
 
 import React from "react";
 import type { ProgressState } from "@renderer/hooks/useCompetitionDownload";
+import type { DownloadSource } from "@renderer/components/competition/PilotDownloadTable";
 
 interface DownloadProgressIndicatorProps {
   progress: ProgressState;
-  source: "xcontest" | "volandoo" | "flymaster";
+  source: DownloadSource;
 }
 
-const getSourceColor = (
-  source: "xcontest" | "volandoo" | "flymaster"
-): string => {
+const getSourceColor = (source: DownloadSource): string => {
   switch (source) {
     case "xcontest":
       return "bg-blue-600";
@@ -22,6 +21,8 @@ const getSourceColor = (
       return "bg-purple-600";
     case "flymaster":
       return "bg-orange-600";
+    case "all":
+      return "bg-green-600";
   }
 };
 
