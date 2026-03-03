@@ -54,7 +54,10 @@ export default async function xcontestScraper({
 
     const allXContestFlights = [];
 
-    const pilotUrl = `https://www.xcontest.org/world/en/pilots/detail:${xcontestId}`;
+    const dateYear = date
+      ? `20${date.split(".")[2]}`
+      : new Date().getFullYear().toString();
+    const pilotUrl = `https://www.xcontest.org/${dateYear}/world/en/pilots/detail:${xcontestId}`;
     console.log(`Navigating to ${pilotUrl}...`);
 
     await page.goto(pilotUrl, {
