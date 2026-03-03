@@ -33,6 +33,7 @@ export interface ScoringMethods {
   setStoragePath: (path: string, migrate: boolean) => Promise<void>;
   getTemporalPath: () => Promise<string>;
   getCompetitionIgcFolder: (compId: string, taskId: string) => Promise<string>;
+  openFolder: (folderPath: string) => Promise<void>;
 
   // Competition management
   createCompetition: (data: CreateCompetitionData) => Promise<string>;
@@ -180,6 +181,8 @@ const scoring: ScoringMethods = {
   getTemporalPath: () => ipcRenderer.invoke("scoring-get-temporal-path"),
   getCompetitionIgcFolder: (compId, taskId) =>
     ipcRenderer.invoke("scoring-get-competition-igc-folder", compId, taskId),
+  openFolder: (folderPath) =>
+    ipcRenderer.invoke("scoring-open-folder", folderPath),
 
   // Competition management
   createCompetition: (data) =>

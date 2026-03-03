@@ -291,6 +291,33 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     if (await this.exists(resultPath)) {
       await fs.unlink(resultPath);
     }
+
+    // Delete IGC folder for this task
+    const taskIdShort = taskId.substring(0, 8);
+    const igcFolder = path.join(this.compDir(compId), "igcs", taskIdShort);
+    if (await this.exists(igcFolder)) {
+      await fs.rm(igcFolder, { recursive: true });
+      console.log(`Deleted IGC folder: ${igcFolder}`);
+    }
+
+    // Clean participant taskTracks entries for this task
+    const participants = await this.getParticipants(compId);
+    let modified = false;
+    for (const participant of participants) {
+      if (participant.taskTracks?.some((t) => t.taskId === taskId)) {
+        participant.taskTracks = participant.taskTracks.filter(
+          (t) => t.taskId !== taskId
+        );
+        modified = true;
+      }
+    }
+    if (modified) {
+      await this.writeJson(
+        path.join(this.compDir(compId), "participants.json"),
+        participants
+      );
+      console.log(`Cleaned taskTracks for deleted task: ${taskId}`);
+    }
   }
 
   async getTasks(compId: string): Promise<TaskDefinition[]> {

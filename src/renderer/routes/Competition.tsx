@@ -34,6 +34,7 @@ const Competition: React.FC = () => {
     clearError,
     addTask,
     updateTask,
+    deleteTask,
   } = useCompetition();
 
   const [activeTab, setActiveTab] = useState<TabType>("standings");
@@ -275,6 +276,14 @@ const Competition: React.FC = () => {
               onViewResults={(taskId) => {
                 setSelectedTaskId(taskId);
                 setActiveTab("results");
+              }}
+              onDeleteTask={async (taskId) => {
+                await deleteTask(taskId);
+                setTaskResults((prev) => {
+                  const next = { ...prev };
+                  delete next[taskId];
+                  return next;
+                });
               }}
             />
           )}

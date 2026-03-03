@@ -4,7 +4,7 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { BrowserWindow, dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain, shell } from "electron";
 import {
   createStorage,
   migrateStorage,
@@ -106,6 +106,10 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
       return igcFolder;
     }
   );
+
+  ipcMain.handle("scoring-open-folder", async (_, folderPath: string) => {
+    await shell.openPath(folderPath);
+  });
 
   // ============================================================
   // Competition Management

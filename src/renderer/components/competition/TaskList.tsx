@@ -11,6 +11,7 @@ import type {
   Participant,
 } from "@main/scoring/types";
 import TaskDownloadPanel from "./TaskDownloadPanel";
+import TaskDetailView from "./TaskDetailView";
 
 interface TaskListProps {
   tasks: TaskDefinition[];
@@ -22,6 +23,7 @@ interface TaskListProps {
   onAddTask: () => void;
   onImportTask: () => void;
   onEditTask: (task: TaskDefinition) => void;
+  onDeleteTask: (taskId: string) => Promise<void>;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -34,11 +36,19 @@ const TaskList: React.FC<TaskListProps> = ({
   onAddTask,
   onImportTask,
   onEditTask,
+  onDeleteTask,
 }) => {
   const [scoringTaskId, setScoringTaskId] = useState<string | null>(null);
   const [downloadingTaskId, setDownloadingTaskId] = useState<string | null>(
     null
   );
+  const [selectedDetailTaskId, setSelectedDetailTaskId] = useState<
+    string | null
+  >(null);
+
+  const selectedDetailTask = selectedDetailTaskId
+    ? (tasks.find((t) => t.id === selectedDetailTaskId) ?? null)
+    : null;
 
   const handleScoreTask = async (taskId: string) => {
     setScoringTaskId(taskId);
@@ -100,6 +110,21 @@ const TaskList: React.FC<TaskListProps> = ({
     </div>
   );
 
+  if (selectedDetailTask) {
+    return (
+      <TaskDetailView
+        task={selectedDetailTask}
+        taskResult={taskResults[selectedDetailTask.id]}
+        participants={participants}
+        competitionId={competitionId}
+        onBack={() => setSelectedDetailTaskId(null)}
+        onEditTask={onEditTask}
+        onScoreTask={onScoreTask}
+        onViewResults={onViewResults}
+      />
+    );
+  }
+
   if (tasks.length === 0) {
     return (
       <>
@@ -143,7 +168,8 @@ const TaskList: React.FC<TaskListProps> = ({
           return (
             <div
               key={task.id}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors"
+              className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors cursor-pointer"
+              onClick={() => setSelectedDetailTaskId(task.id)}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -193,7 +219,7 @@ const TaskList: React.FC<TaskListProps> = ({
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {isScored ? (
                   <button
                     onClick={() => onViewResults(task.id)}
@@ -265,6 +291,33 @@ const TaskList: React.FC<TaskListProps> = ({
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Are you sure you want to delete task "${task.name}"? This will remove all associated tracks and results.`
+                      )
+                    ) {
+                      onDeleteTask(task.id);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
+                  title="Delete task"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
                 </button>
