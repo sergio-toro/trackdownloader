@@ -29,3 +29,7 @@ npm run lint -- --fix
 ## Unused Variables
 
 Prefix intentionally unused variables with `_` (e.g., `_formula`, `_options`).
+
+## Screenshots
+
+Save Electron MCP screenshots to `.electron-mcp/` directory. This directory is gitignored.

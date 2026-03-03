@@ -91,3 +91,7 @@ jspm_packages/
 
 # Electron-Forge
 out/
+
+# MCP screenshots
+.electron-mcp/
+.playwright-mcp/
