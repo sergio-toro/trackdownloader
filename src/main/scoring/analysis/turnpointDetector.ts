@@ -107,7 +107,7 @@ export function findAllCrossings(
           toFixIndex: fixIdx,
           crossingPoint,
           isEnter,
-          distanceToCenter: distance(crossingPoint, center),
+          distanceToCenter: dist1,
         });
       }
     }

@@ -113,11 +113,12 @@ export function calculateFlownDistance(
     }
   }
 
-  // Apply minimum distance floor
+  // Apply minimum distance floor, then cap at task distance (GAP.cs line 877)
   const flooredDistance = Math.max(bestDistance, minDistance);
+  const cappedDistance = Math.min(flooredDistance, task.taskDistance);
 
   return {
-    distanceFlown: flooredDistance,
+    distanceFlown: cappedDistance,
     realDistance: bestDistance,
     bonusDistance: 0,
     lastCountingFix: bestFix,

@@ -305,14 +305,21 @@ function scorePilot(
     );
   }
 
-  // Sum points
-  let totalPoints = distancePoints + timePoints + arrivalPoints + leadingPoints;
+  // FS rounds each component to 1 decimal (MidpointRounding.AwayFromZero)
+  // before summing into total (FsResult.cs lines 180-242)
+  const distRounded = roundTo1Away(distancePoints);
+  const timeRounded = roundTo1Away(timePoints);
+  const arrRounded = roundTo1Away(arrivalPoints);
+  const leadRounded = roundTo1Away(leadingPoints);
+
+  // Sum pre-rounded components
+  let totalPoints = distRounded + timeRounded + arrRounded + leadRounded;
 
   // Apply penalties
   const penaltyPoints = penalties.reduce((sum, p) => sum + (p.points || 0), 0);
   totalPoints = Math.max(0, totalPoints - penaltyPoints);
 
-  // Round to formula precision
+  // Round total to formula precision
   const decimals = formula.numberOfDecimalsTaskResults;
   totalPoints = roundTo(totalPoints, decimals);
 
@@ -329,11 +336,11 @@ function scorePilot(
     reachedGoal: analysis.reachedGoal,
     reachedESS: !!analysis.essTime,
 
-    // Point breakdown
-    distancePoints: roundTo(distancePoints, decimals),
-    timePoints: roundTo(timePoints, decimals),
-    arrivalPoints: roundTo(arrivalPoints, decimals),
-    leadingPoints: roundTo(leadingPoints, decimals),
+    // Point breakdown (use pre-rounded values for consistency)
+    distancePoints: distRounded,
+    timePoints: timeRounded,
+    arrivalPoints: arrRounded,
+    leadingPoints: leadRounded,
     departurePoints: 0, // Not used in GAP2023+
 
     // Leading coefficient
@@ -354,6 +361,13 @@ function scorePilot(
 function roundTo(value: number, decimals: number): number {
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
+}
+
+/**
+ * Round to 1 decimal using MidpointRounding.AwayFromZero (matching C# Math.Round)
+ */
+function roundTo1Away(value: number): number {
+  return (Math.sign(value) * Math.round(Math.abs(value) * 10)) / 10;
 }
 
 /**

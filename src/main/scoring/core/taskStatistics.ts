@@ -41,7 +41,11 @@ export function calculateTaskStatistics(
 
   // --- Distance stats ---
   const distances = validFlights.map((a) => a.distanceFlown);
-  const bestDistance = distances.length > 0 ? Math.max(...distances) : 0;
+  // Cap bestDistance at task distance (GAP.cs line 417)
+  const bestDistance =
+    distances.length > 0
+      ? Math.min(Math.max(...distances), task.taskDistance)
+      : 0;
 
   // Sum of distances over minimum (for distance validity)
   const distancesOverMin = distances.filter((d) => d > minDistance);
