@@ -167,12 +167,12 @@ describe("Task Scoring Integration", () => {
       );
     });
 
-    it("should produce correct task distance (within 50m of FS)", () => {
+    it("should produce correct task distance (within 5m of FS)", () => {
       if (expected.fsStats?.taskDistanceKm) {
         const fsTaskDistance = expected.fsStats.taskDistanceKm * 1000;
         expect(
           Math.abs(result.statistics.bestDistance - fsTaskDistance)
-        ).toBeLessThan(100);
+        ).toBeLessThan(5);
       }
     });
 
@@ -184,13 +184,9 @@ describe("Task Scoring Integration", () => {
       for (const pilotResult of result.pilotResults) {
         const exp = expectedByPilot.get(pilotResult.pilotId);
         if (!exp) continue; // Extra pilot not in FS results
-        // Tolerance: ±15 to account for leading coefficient differences
-        // caused by dist2es approximation (planar vs UTM projection).
-        // The leading fraction formula (1 - ((lc-lcMin)/sqrt(lcMin))^(2/3))
-        // amplifies small systematic IV differences.
         expect(
           Math.abs(pilotResult.totalPoints - exp.totalPoints)
-        ).toBeLessThan(15);
+        ).toBeLessThan(5);
       }
     });
 
@@ -203,19 +199,15 @@ describe("Task Scoring Integration", () => {
         const exp = expectedByPilot.get(pilotResult.pilotId);
         if (!exp) continue;
 
-        // Distance points: tight tolerance
         expect(
           Math.abs(pilotResult.distancePoints - exp.distancePoints)
-        ).toBeLessThan(7);
-        // Time points: wider tolerance due to crossing detection timing precision
-        // (our interpolation vs FS gives ~25s bestTime diff → ~14pt time diff)
+        ).toBeLessThan(6);
         expect(Math.abs(pilotResult.timePoints - exp.timePoints)).toBeLessThan(
-          15
+          5
         );
-        // Leading points: tolerance for dist2es approximation
         expect(
           Math.abs(pilotResult.leadingPoints - exp.leadingPoints)
-        ).toBeLessThan(15);
+        ).toBeLessThan(2);
       }
     });
 
@@ -227,9 +219,7 @@ describe("Task Scoring Integration", () => {
       for (const pilotResult of result.pilotResults) {
         const exp = expectedByPilot.get(pilotResult.pilotId);
         if (!exp) continue;
-        // Allow ±3 rank tolerance since small point differences from
-        // leading coefficient approximation can shift rankings
-        expect(Math.abs(pilotResult.rank - exp.rank)).toBeLessThanOrEqual(3);
+        expect(Math.abs(pilotResult.rank - exp.rank)).toBeLessThanOrEqual(1);
       }
     });
   });

@@ -196,8 +196,8 @@ export const GAP2025_PG_DEFAULTS: ScoringFormulaConfig = {
   useLeadingTimeRatio: true,
   leadingFraction: 0.26,
 
-  // GAP2025 uses PWC2023 leading calculator
-  leadingCalculatorType: "PWC2023",
+  // GAP2025 uses PWC2019 leading calculator (via GAP2025Legacy override in FS)
+  leadingCalculatorType: "PWC2019",
 
   // GAP2025 switched to GPS altitude
   scoringAltitude: "GPS",

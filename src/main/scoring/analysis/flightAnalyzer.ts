@@ -159,7 +159,12 @@ export function analyzeFlightFixes(
     crossings,
     validCrossings,
     takeoffTime: flightFixes[0]?.timestamp,
-    startTime: ssCrossing?.timestamp,
+    // FS uses gate open time as race start (FsResult.started_ss = gate time)
+    // Race time = ESS fix time - gate open time, not crossing time
+    // TODO: Multi-gate tasks need to find the pilot's assigned gate
+    startTime: ssCrossing
+      ? new Date(task.turnpoints[ssIdx].open).getTime()
+      : undefined,
     essTime: esCrossing?.timestamp,
     goalTime: goalCrossing?.timestamp,
     landingTime: flightFixes[flightFixes.length - 1]?.timestamp,

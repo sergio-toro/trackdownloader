@@ -63,11 +63,11 @@ export function calculateMissingIv(
 ): number {
   switch (formula.leadingCalculatorType) {
     case "PWC2023":
-      // FS results match PWC2019's CalculateMissingIv (uses WeightFalling only)
-      // rather than PWC2023's override (which uses the weight matrix CalculateIv).
-      // The weight matrix discretization gives very different results for large
-      // jumps (like the 2-point missing graph), so use PWC2019 method to match FS.
-      return calculatePwc2019MissingIv(graph, speedSectionDistance);
+      // PWC2023's CalculateMissingIv uses the weight matrix (CalculateIv), but
+      // GAP2023/2025 PG comps actually use PWC2019 calculator (via GAP2025Legacy
+      // override: GetLeadingCalculator → new LeadingCalculatorPwc2019).
+      // This case only applies if a formula explicitly sets PWC2023.
+      return calculatePwc2023Iv(graph, speedSectionDistance);
     case "PWC2019":
       // PWC2019 uses only falling weight for missing part
       return calculatePwc2019MissingIv(graph, speedSectionDistance);

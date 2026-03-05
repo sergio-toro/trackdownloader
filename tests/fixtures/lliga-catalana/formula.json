@@ -13,7 +13,7 @@
   "leadingFraction": 0.26,
   "arrivalFraction": 0,
   "departureFraction": 0,
-  "leadingCalculatorType": "PWC2023",
+  "leadingCalculatorType": "PWC2019",
   "leadingWeightFactor": 1,
   "useConstantLeadingWeight": false,
   "useProportionalLeadingWeightIfNobodyInGoal": false,

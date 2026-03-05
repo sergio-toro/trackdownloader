@@ -285,9 +285,30 @@ export function destination(
 }
 
 /**
+ * WGS84 meters per degree latitude at a given latitude (radians).
+ * Series expansion accurate to ~1m.
+ */
+export function metersPerDegreeLat(latRad: number): number {
+  return (
+    111132.92 - 559.82 * Math.cos(2 * latRad) + 1.175 * Math.cos(4 * latRad)
+  );
+}
+
+/**
+ * WGS84 meters per degree longitude at a given latitude (radians).
+ * Series expansion accurate to ~1m.
+ */
+export function metersPerDegreeLon(latRad: number): number {
+  return 111412.84 * Math.cos(latRad) - 93.5 * Math.cos(3 * latRad);
+}
+
+/**
  * Convert meters to approximate degrees latitude
  */
-export function metersToLatDeg(meters: number): number {
+export function metersToLatDeg(meters: number, latitudeDeg?: number): number {
+  if (latitudeDeg !== undefined) {
+    return meters / metersPerDegreeLat(latitudeDeg * DEG2RAD);
+  }
   return meters / 111111;
 }
 
@@ -295,5 +316,5 @@ export function metersToLatDeg(meters: number): number {
  * Convert meters to approximate degrees longitude at a given latitude
  */
 export function metersToLonDeg(meters: number, latitude: number): number {
-  return meters / (111111 * Math.cos(latitude * DEG2RAD));
+  return meters / metersPerDegreeLon(latitude * DEG2RAD);
 }

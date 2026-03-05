@@ -8,7 +8,7 @@
  */
 
 import type { GeoPoint, Turnpoint } from "../types";
-import { distance, metersToLatDeg, metersToLonDeg } from "./distance";
+import { distance, metersPerDegreeLat, metersPerDegreeLon } from "./distance";
 import { DEFAULT_TOLERANCE, MAX_ITERATIONS, DEG2RAD } from "./constants";
 
 /**
@@ -166,14 +166,16 @@ export function findOptimalCylinderPoint(
   }
 
   // Convert to local planar coordinates for geometric calculations
-  // Using center as origin
-  const cosLat = Math.cos(center.latitude * DEG2RAD);
+  // Using center as origin with WGS84 latitude-dependent scale factors
+  const latRad = center.latitude * DEG2RAD;
+  const mPerDegLat = metersPerDegreeLat(latRad);
+  const mPerDegLon = metersPerDegreeLon(latRad);
 
-  const prevX = (prev.longitude - center.longitude) * 111111 * cosLat;
-  const prevY = (prev.latitude - center.latitude) * 111111;
+  const prevX = (prev.longitude - center.longitude) * mPerDegLon;
+  const prevY = (prev.latitude - center.latitude) * mPerDegLat;
 
-  const nextX = (next.longitude - center.longitude) * 111111 * cosLat;
-  const nextY = (next.latitude - center.latitude) * 111111;
+  const nextX = (next.longitude - center.longitude) * mPerDegLon;
+  const nextY = (next.latitude - center.latitude) * mPerDegLat;
 
   // Check if prev and next are the same point
   const dx = nextX - prevX;
@@ -270,8 +272,8 @@ export function findOptimalCylinderPoint(
 
   // Convert back to geographic coordinates
   return {
-    latitude: center.latitude + metersToLatDeg(optimalY),
-    longitude: center.longitude + metersToLonDeg(optimalX, center.latitude),
+    latitude: center.latitude + optimalY / mPerDegLat,
+    longitude: center.longitude + optimalX / mPerDegLon,
     altitude: center.altitude,
     name: center.name,
   };
@@ -402,16 +404,18 @@ function projectPointOnCylinder(
   point: GeoPoint,
   radius: number
 ): GeoPoint {
-  const cosLat = Math.cos(center.latitude * DEG2RAD);
+  const latRad = center.latitude * DEG2RAD;
+  const mPerDegLat = metersPerDegreeLat(latRad);
+  const mPerDegLon = metersPerDegreeLon(latRad);
 
-  const dx = (point.longitude - center.longitude) * 111111 * cosLat;
-  const dy = (point.latitude - center.latitude) * 111111;
+  const dx = (point.longitude - center.longitude) * mPerDegLon;
+  const dy = (point.latitude - center.latitude) * mPerDegLat;
   const dist = Math.sqrt(dx * dx + dy * dy);
 
   if (dist < 0.001) {
     // Point is at center, return point to the north
     return {
-      latitude: center.latitude + metersToLatDeg(radius),
+      latitude: center.latitude + radius / mPerDegLat,
       longitude: center.longitude,
       altitude: center.altitude,
       name: center.name,
@@ -419,9 +423,8 @@ function projectPointOnCylinder(
   }
 
   return {
-    latitude: center.latitude + metersToLatDeg((dy / dist) * radius),
-    longitude:
-      center.longitude + metersToLonDeg((dx / dist) * radius, center.latitude),
+    latitude: center.latitude + ((dy / dist) * radius) / mPerDegLat,
+    longitude: center.longitude + ((dx / dist) * radius) / mPerDegLon,
     altitude: center.altitude,
     name: center.name,
   };

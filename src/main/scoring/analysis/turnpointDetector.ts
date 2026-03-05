@@ -91,20 +91,13 @@ export function findAllCrossings(
         // Determine crossing direction
         const isEnter = dist0 > dist1;
 
-        // Interpolate crossing point
-        const totalDist =
-          Math.abs(dist0 - tp.radius) + Math.abs(dist1 - tp.radius);
-        const factor =
-          totalDist > 0 ? Math.abs(dist0 - tp.radius) / totalDist : 0.5;
-
+        // FS uses raw p1 (next fix) as crossing time and point (Flight.cs:703,723)
+        // No interpolation — commented out in FS source (lines 724-735)
         const crossingPoint = {
-          latitude: p0.latitude + (p1.latitude - p0.latitude) * factor,
-          longitude: p0.longitude + (p1.longitude - p0.longitude) * factor,
+          latitude: fix.latitude,
+          longitude: fix.longitude,
         };
-
-        // Interpolate time
-        const crossingTime =
-          prevFix.timestamp + (fix.timestamp - prevFix.timestamp) * factor;
+        const crossingTime = fix.timestamp;
 
         crossings[tpIdx].push({
           turnpointIndex: tpIdx,
