@@ -3,8 +3,7 @@
  *
  * Based on FS FsSfGAP/LeadingCalculator/LeadingCalculatorPwc2019.cs
  *
- * Introduces squared distance weighting to reward pilots who are
- * further ahead more heavily than those just barely leading.
+ * Uses weighted distance x time integral with raising and falling weight functions.
  */
 
 import type { TimeDist } from "../types/flightAnalysis";
@@ -14,84 +13,98 @@ import type {
 } from "./types";
 
 /**
- * Calculate leading coefficient using PWC 2019 method
+ * Raising weight function: penalizes pilots near the start (high ratio = far from ESS)
+ */
+function weightRaising(leftToDo: number): number {
+  return Math.pow(1 - Math.pow(10, 9 * leftToDo - 9), 5);
+}
+
+/**
+ * Falling weight function: rewards pilots near ESS (low ratio = close to ESS)
+ */
+function weightFalling(leftToDo: number): number {
+  return Math.pow(1 - Math.pow(10, -3 * leftToDo), 2);
+}
+
+/**
+ * Combined weight function (exported for use by PWC2023 calculator)
+ */
+export function weightPwc2019(leftToDo: number): number {
+  return weightRaising(leftToDo) * weightFalling(leftToDo);
+}
+
+/**
+ * Calculate IV using PWC 2019 method: weighted distance x time integral.
  *
- * PWC 2019 uses squared distance weighting:
- * - Weight = (dist2es / ssDistance)²
- * - Lower distance to ESS = lower weight = better LC
+ * @param graph Time-distance graph
+ * @param speedSectionDistance Speed section distance in meters
+ * @returns Integer IV value
+ */
+export function calculatePwc2019Iv(
+  graph: TimeDist[],
+  speedSectionDistance: number
+): number {
+  if (!graph || graph.length < 2 || speedSectionDistance <= 0) {
+    return 0;
+  }
+
+  let iv = 0;
+
+  for (let i = 1; i < graph.length; i++) {
+    const w = weightPwc2019(graph[i].dist2es / speedSectionDistance);
+    const d = (w * (graph[i].dist - graph[i - 1].dist)) / 1000.0;
+    iv += d * graph[i].time;
+  }
+
+  return Math.round(iv);
+}
+
+/**
+ * Calculate missing IV for non-ESS pilots using PWC 2019 method.
  *
- * Also splits area into before/after best position reached.
+ * Uses only the falling weight (not the combined weight).
+ *
+ * @param graph Missing portion time-distance graph (2 points)
+ * @param speedSectionDistance Speed section distance in meters
+ * @returns Integer missing IV value
+ */
+export function calculatePwc2019MissingIv(
+  graph: TimeDist[],
+  speedSectionDistance: number
+): number {
+  if (!graph || graph.length < 2 || speedSectionDistance <= 0) {
+    return 0;
+  }
+
+  let iv = 0;
+
+  for (let i = 1; i < graph.length; i++) {
+    const w = weightFalling(graph[i - 1].dist2es / speedSectionDistance);
+    iv += (w * (graph[i].dist - graph[i - 1].dist) * graph[i].time) / 1000.0;
+  }
+
+  return Math.round(iv);
+}
+
+/**
+ * Calculate leading coefficient using PWC 2019 method.
+ *
+ * Returns result with totalArea = raw integer IV (not normalized LC).
  *
  * @param graph Time-distance graph from flight analysis
  * @param options Calculator options
- * @returns Leading coefficient result
+ * @returns Leading coefficient result with IV in totalArea
  */
 export function calculatePwc2019LC(
   graph: TimeDist[],
   options: LeadingCalculatorOptions
 ): LeadingCalculatorResult {
-  if (!graph || graph.length < 2) {
-    return {
-      leadingCoeff: 0,
-      areaBeforeBest: 0,
-      areaAfterBest: 0,
-      totalArea: 0,
-    };
-  }
-
-  const { speedSectionDistance } = options;
-
-  if (speedSectionDistance <= 0) {
-    return {
-      leadingCoeff: 0,
-      areaBeforeBest: 0,
-      areaAfterBest: 0,
-      totalArea: 0,
-    };
-  }
-
-  // Find best (minimum) distance to ESS achieved
-  const bestDist2es = Math.min(...graph.map((p) => p.dist2es));
-
-  let areaBeforeBest = 0;
-  let areaAfterBest = 0;
-
-  for (let i = 1; i < graph.length; i++) {
-    const prev = graph[i - 1];
-    const curr = graph[i];
-
-    // Time delta in seconds
-    const dt = curr.time - prev.time;
-
-    if (dt <= 0) {
-      continue;
-    }
-
-    // Squared distance weighting
-    // Lower dist2es = lower weight = better (smaller LC)
-    const prevWeight = Math.pow(prev.dist2es / speedSectionDistance, 2);
-    const currWeight = Math.pow(curr.dist2es / speedSectionDistance, 2);
-    const avgWeight = (prevWeight + currWeight) / 2;
-
-    const contribution = dt * avgWeight;
-
-    // Split into before/after best position
-    // 1.01 factor provides small tolerance
-    if (curr.dist2es <= bestDist2es * 1.01) {
-      // Still progressing towards best position
-      areaBeforeBest += contribution;
-    } else {
-      // Past best position (backtracking or going backwards)
-      areaAfterBest += contribution;
-    }
-  }
-
-  const totalArea = areaBeforeBest + areaAfterBest;
+  const iv = calculatePwc2019Iv(graph, options.speedSectionDistance);
 
   return {
-    leadingCoeff: totalArea,
-    areaBeforeBest,
-    areaAfterBest,
-    totalArea,
+    leadingCoeff: iv,
+    areaBeforeBest: 0,
+    areaAfterBest: 0,
+    totalArea: iv,
   };
 }

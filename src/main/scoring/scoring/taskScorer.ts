@@ -28,7 +28,12 @@ import {
   applyGap2025Adjustments,
   calculateAvailablePoints,
 } from "../core/weights";
-import { calculateLeadingCoeff } from "../leading/leadingCalculator";
+import {
+  calculateIv,
+  calculateMissingIv,
+  calculateLc,
+  buildMissingGraph,
+} from "../leading/leadingCalculator";
 import { calculateDistancePoints } from "../points/distancePoints";
 import { calculateTimePoints } from "../points/timePoints";
 import { calculateArrivalPoints } from "../points/arrivalPoints";
@@ -106,63 +111,71 @@ export async function scoreTask(options: ScoringOptions): Promise<TaskResult> {
 
   onProgress?.(25, "Calculating leading coefficients...");
 
-  // Step 5: Calculate leading coefficients for all pilots who crossed SS
-  // FS awards leading points to ANY pilot who started the speed section,
-  // not just those who reached ESS.
-  const lcResults = new Map<number, ReturnType<typeof calculateLeadingCoeff>>();
-  const essAltitude = task.turnpoints[task.esIndex - 1]?.altitude;
+  // Step 5: Calculate leading coefficients using FS algorithm
+  // Flow: IV → (+ missing IV for non-ESS) → normalize to LC
+  const lcResults = new Map<
+    number,
+    { iv: number; lc: number; totalArea: number }
+  >();
+  const ssDistance = task.speedSectionDistance;
 
-  // When useLeadingTimeRatio is enabled (GAP2023), non-ESS pilots' LCs are
-  // extended by appending their last position to the task end time. This
-  // penalizes pilots who land out by accumulating additional LC area at their
-  // last dist2es (which is far from ESS). The task end time is the last ESS
-  // crossing + score-back time. For pilots who are STILL flying after that time,
-  // this has no effect (their raw graph already covers the full window).
+  // FS uses max(lastSsFinishTime, lastLandedBeforeEssTime) as reference time
+  // for the missing IV calculation for non-ESS pilots.
   const lastEssTime = stats.lastFinishTime;
-  const scoreBackTime = formula.scoreBackTime || 0;
+  const lastLandingTime = Math.max(
+    ...analyses
+      .filter((a) => a.startTime && !a.essTime && a.landingTime)
+      .map((a) => a.landingTime!),
+    0
+  );
+  const lastFinishTime = Math.max(lastEssTime || 0, lastLandingTime || 0);
+
+  // FS uses SS open time as the time reference (GAP.cs line 655)
+  const ssIdx = task.ssIndex - 1;
+  const ssTp = task.turnpoints[ssIdx];
+  const ssOpenTime = ssTp?.open ? new Date(ssTp.open).getTime() : 0;
 
   for (const analysis of analyses) {
     if (analysis.startTime && analysis.timeDistanceGraph.length >= 2) {
-      let graph = analysis.timeDistanceGraph;
+      // 1. Calculate IV from main graph
+      let iv = calculateIv(analysis.timeDistanceGraph, formula, ssDistance);
 
-      // For non-ESS pilots: extend graph to task end time
-      // This ensures pilots who land early are penalized with additional
-      // LC area at their last (high) dist2es position
-      if (!analysis.essTime && formula.useLeadingTimeRatio && lastEssTime > 0) {
-        const lcEndTime =
-          (lastEssTime + scoreBackTime * 1000 - analysis.startTime) / 1000;
+      // 2. For non-ESS pilots: add missing IV
+      if (iv > 0 && ssDistance > 0 && !analysis.essTime) {
+        const graph = analysis.timeDistanceGraph;
         const lastPoint = graph[graph.length - 1];
-        if (lcEndTime > lastPoint.time) {
-          graph = [
-            ...graph,
-            {
-              time: lcEndTime,
-              dist: lastPoint.dist,
-              dist2es: lastPoint.dist2es,
-              alt: lastPoint.alt,
-            },
-          ];
-        }
+        const flownSsDistance = lastPoint.dist;
+
+        // lastTime = max(pilotLandingTime, lastFinishTime) - ssOpenTime, in seconds
+        const pilotEndTime =
+          analysis.landingTime || ssOpenTime + lastPoint.time * 1000;
+        const refTime = Math.max(pilotEndTime, lastFinishTime);
+        const lastTime = (refTime - ssOpenTime) / 1000;
+
+        const missingGraph = buildMissingGraph(
+          flownSsDistance,
+          ssDistance,
+          lastTime
+        );
+        iv += calculateMissingIv(missingGraph, formula, ssDistance);
       }
 
-      const lcResult = calculateLeadingCoeff(
-        graph,
-        formula,
-        task.speedSectionDistance,
-        essAltitude
-      );
+      // 3. Normalize: lc = iv / (1800 * ssDistKm)
+      const lc = calculateLc(ssDistance, iv);
 
-      lcResults.set(analysis.pilotId, lcResult);
+      lcResults.set(analysis.pilotId, {
+        iv,
+        lc,
+        totalArea: lc,
+      });
     }
   }
 
-  // Calculate LC min from ESS pilots for stable normalization
-  const essLcValues = analyses
-    .filter((a) => a.essTime)
-    .map((a) => lcResults.get(a.pilotId))
-    .filter((r): r is NonNullable<typeof r> => !!r)
-    .map((r) => r.totalArea);
-  stats = updateStatsWithLeadingCoeffs(stats, essLcValues);
+  // Calculate LC min from ALL pilots with lc > 0 (not just ESS pilots)
+  const allLcValues = Array.from(lcResults.values())
+    .map((r) => r.lc)
+    .filter((lc) => lc > 0);
+  stats = updateStatsWithLeadingCoeffs(stats, allLcValues);
 
   onProgress?.(30, "Scoring pilots...");
 
@@ -254,7 +267,7 @@ function scorePilot(
   formula: ScoringFormulaConfig,
   allAnalyses: FlightAnalysis[],
   penalties: Penalty[],
-  lcResult?: ReturnType<typeof calculateLeadingCoeff>
+  lcResult?: { iv: number; lc: number; totalArea: number }
 ): PilotResult {
   // Calculate each point category
   const distancePoints = calculateDistancePoints(
@@ -272,14 +285,20 @@ function scorePilot(
     allAnalyses
   );
 
-  // Leading points from pre-computed LC result
+  // Leading points from pre-computed LC
   let leadingPoints = 0;
   let leadingCoefficient: number | undefined;
 
   if (lcResult) {
-    leadingCoefficient = lcResult.totalArea;
+    leadingCoefficient = lcResult.lc;
+    const lcAsResult = {
+      leadingCoeff: lcResult.lc,
+      areaBeforeBest: 0,
+      areaAfterBest: 0,
+      totalArea: lcResult.lc,
+    };
     leadingPoints = calculateLeadingPointsFromLcResult(
-      lcResult,
+      lcAsResult,
       stats,
       available,
       formula
@@ -358,18 +377,19 @@ export function scoreSinglePilot(
   formula: ScoringFormulaConfig,
   allAnalyses: FlightAnalysis[],
   speedSectionDistance: number,
-  essAltitude?: number
+  _essAltitude?: number
 ): PilotResult {
   // Calculate LC for this pilot (any pilot who crossed SS)
-  let lcResult: ReturnType<typeof calculateLeadingCoeff> | undefined;
+  let lcResult: { iv: number; lc: number; totalArea: number } | undefined;
 
   if (analysis.startTime && analysis.timeDistanceGraph.length >= 2) {
-    lcResult = calculateLeadingCoeff(
+    const iv = calculateIv(
       analysis.timeDistanceGraph,
       formula,
-      speedSectionDistance,
-      essAltitude
+      speedSectionDistance
     );
+    const lc = calculateLc(speedSectionDistance, iv);
+    lcResult = { iv, lc, totalArea: lc };
   }
 
   return scorePilot(

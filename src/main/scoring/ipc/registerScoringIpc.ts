@@ -613,7 +613,12 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
                 track.igcPath,
                 task,
                 participant.id,
-                { minDistance: formula.minimumDistance }
+                {
+                  minDistance: formula.minimumDistance,
+                  radiusTolerance: formula.turnpointRadiusTolerance,
+                  minAbsTolerance:
+                    formula.turnpointRadiusMinimumAbsoluteTolerance,
+                }
               );
               analyses.push(analysis);
             } catch (err) {

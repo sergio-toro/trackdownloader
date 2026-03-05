@@ -141,7 +141,14 @@ export function applyGap2025Adjustments(
 }
 
 /**
- * Calculate available points per category (GAP.cs lines 382-420)
+ * Calculate available points per category (GAP.cs lines 738-748)
+ *
+ * FS rounds each category individually, then computes time as remainder:
+ *   distAvail  = round(1000 * dq * distWeight, 1)
+ *   leadAvail  = round(1000 * dq * leadWeight, 1)
+ *   arrAvail   = round(1000 * dq * arrWeight, 1)
+ *   depAvail   = round(1000 * dq * depWeight, 1)
+ *   timeAvail  = round(1000 * dq, 1) - distAvail - leadAvail - arrAvail - depAvail
  *
  * @param weights Point weights
  * @param dayQuality Day quality (0-1)
@@ -151,17 +158,34 @@ export function calculateAvailablePoints(
   weights: PointWeights,
   dayQuality: number
 ): AvailablePoints {
-  // Base available = 1000 × dayQuality
-  const totalAvailable = 1000 * dayQuality;
+  const totalAvailable = roundTo1(1000 * dayQuality);
+  const distanceAvailable = roundTo1(
+    1000 * dayQuality * weights.distanceWeight
+  );
+  const leadingAvailable = roundTo1(1000 * dayQuality * weights.leadingWeight);
+  const arrivalAvailable = roundTo1(1000 * dayQuality * weights.arrivalWeight);
+  const departureAvailable = roundTo1(
+    1000 * dayQuality * weights.departureWeight
+  );
+  const timeAvailable =
+    totalAvailable -
+    distanceAvailable -
+    leadingAvailable -
+    arrivalAvailable -
+    departureAvailable;
 
   return {
     totalAvailable,
-    distanceAvailable: totalAvailable * weights.distanceWeight,
-    timeAvailable: totalAvailable * weights.timeWeight,
-    arrivalAvailable: totalAvailable * weights.arrivalWeight,
-    leadingAvailable: totalAvailable * weights.leadingWeight,
-    departureAvailable: totalAvailable * weights.departureWeight,
+    distanceAvailable,
+    timeAvailable,
+    arrivalAvailable,
+    leadingAvailable,
+    departureAvailable,
   };
+}
+
+function roundTo1(value: number): number {
+  return Math.round(value * 10) / 10;
 }
 
 /**

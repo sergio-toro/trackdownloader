@@ -57,7 +57,10 @@ export {
   calculatePwc2019LC,
   calculatePwc2023LC,
   calculateLeadingCoeff,
-  calculateTaskLcMin,
+  calculateIv,
+  calculateMissingIv,
+  calculateLc,
+  buildMissingGraph,
 } from "./leading";
 export type {
   LeadingCalculatorResult,

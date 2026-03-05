@@ -78,12 +78,13 @@ export function calculateLeadingPoints(
 }
 
 /**
- * Calculate leading fraction (GAP2023 ratio-based formula)
+ * Calculate leading fraction (FS GAP.cs lines 979-982)
  *
- * Formula: fraction = max(0, 1 - (lc/lcMin - 1)^(2/3))
- *
- * Uses ratio of LC values rather than absolute difference,
- * making it normalization-independent.
+ * Formula:
+ *   lc_diff = round(lc - smallestLc, 5)  (away from zero)
+ *   slc5 = sqrt(smallestLc)
+ *   tmp = lc_diff / slc5
+ *   fraction = 1 - tmp^(2/3)
  *
  * @param lc Pilot's leading coefficient
  * @param smallestLc Smallest (best) leading coefficient in task
@@ -99,12 +100,21 @@ export function calcLeadingFraction(lc: number, smallestLc: number): number {
     return 1;
   }
 
-  // GAP2023 ratio-based formula
-  const lcRatio = lc / smallestLc;
-  const base = lcRatio - 1;
-  const fraction = 1 - Math.pow(base, 2 / 3);
+  // FS formula: difference-based with sqrt normalization
+  const lcDiff = roundAwayFromZero(lc - smallestLc, 5);
+  const slc5 = Math.pow(smallestLc, 0.5);
+  const tmp = lcDiff / slc5;
+  const fraction = 1 - Math.pow(tmp, 2.0 / 3.0);
 
   return Math.max(0, fraction);
+}
+
+/**
+ * Round to N decimal places, rounding away from zero (matching C# MidpointRounding.AwayFromZero)
+ */
+function roundAwayFromZero(value: number, decimals: number): number {
+  const factor = Math.pow(10, decimals);
+  return (Math.sign(value) * Math.round(Math.abs(value) * factor)) / factor;
 }
 
 /**

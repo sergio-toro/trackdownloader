@@ -448,3 +448,56 @@ export function calculateCumulativeDistances(
 
   return cumulative;
 }
+
+/**
+ * Calculate shortest route distance from a position through remaining turnpoints.
+ *
+ * Matches FS GetQuickestRouteToGoal / GetShortestRoute: computes the optimized
+ * shortest route from the pilot's position through turnpoints[startLeg..endLeg].
+ *
+ * @param position Pilot's current position
+ * @param turnpoints All task turnpoints
+ * @param startLeg Index of next turnpoint to reach (0-based)
+ * @param endLegOverride Optional end turnpoint index (default: last TP)
+ * @returns Distance of shortest route from position through specified TPs
+ */
+export function calculateShortestRouteToGoal(
+  position: GeoPoint,
+  turnpoints: Turnpoint[],
+  startLeg: number,
+  endLegOverride?: number
+): number {
+  const endLeg = endLegOverride ?? turnpoints.length - 1;
+  if (startLeg > endLeg) return 0;
+
+  // Build route: position → TP[startLeg] → ... → TP[endLeg]
+  const points: GeoPoint[] = [{ ...position }];
+  const tps: Turnpoint[] = [
+    // Dummy turnpoint for position with radius 0
+    {
+      ...turnpoints[startLeg],
+      radius: 0,
+      geopoint: { ...position },
+    },
+  ];
+
+  for (let i = startLeg; i <= endLeg; i++) {
+    points.push({
+      latitude: turnpoints[i].geopoint.latitude,
+      longitude: turnpoints[i].geopoint.longitude,
+      altitude: turnpoints[i].geopoint.altitude,
+    });
+    tps.push(turnpoints[i]);
+  }
+
+  // Optimize route
+  const optimized = optimizeRoute(tps, points);
+
+  // Sum leg distances
+  let totalDist = 0;
+  for (let i = 1; i < optimized.length; i++) {
+    totalDist += distance(optimized[i - 1], optimized[i]);
+  }
+
+  return totalDist;
+}

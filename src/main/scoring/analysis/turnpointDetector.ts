@@ -166,6 +166,15 @@ export function getValidCrossings(
       }
     } else {
       validCrossings.push(null);
+      // TAKEOFF is optional — missing it doesn't break the sequence.
+      // For all other turnpoints: FS requires an unbroken sequence,
+      // so missing any non-TAKEOFF turnpoint stops the chain.
+      if (tp.type !== "TAKEOFF") {
+        for (let j = i + 1; j < turnpoints.length; j++) {
+          validCrossings.push(null);
+        }
+        break;
+      }
     }
   }
 

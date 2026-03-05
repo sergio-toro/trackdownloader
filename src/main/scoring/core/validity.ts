@@ -95,12 +95,13 @@ export function calcLaunchValidity(
  */
 export function calcDistanceValidity(
   stats: TaskStatistics,
-  _formula: ScoringFormulaConfig
+  formula: ScoringFormulaConfig
 ): number {
   const {
     pilotsFlying,
     sumOfFlownDistancesOverMin,
     maxDistanceOverMin,
+    bestDistance,
     nominalDistance,
     minDistance,
   } = stats;
@@ -109,18 +110,25 @@ export function calcDistanceValidity(
     return 0;
   }
 
-  // Nominal distance minus minimum
-  const nomDistOverMin = Math.max(0, nominalDistance - minDistance);
+  const nomGoal = formula.nominalGoal;
+  const nomDistOverMin = nominalDistance - minDistance;
 
   if (nomDistOverMin <= 0) {
     return 1;
   }
 
-  // Average distance over minimum
-  const avgDistOverMin = sumOfFlownDistancesOverMin / pilotsFlying;
+  // FS GAP.cs lines 220-236:
+  // dv = sumDistOverMin / (pilotsFlying/2 * ((nomGoal+1)*(nomDist-minDist) + max(0, nomGoal*(bestDist-nomDist))))
+  const denominator =
+    (pilotsFlying / 2.0) *
+    ((nomGoal + 1.0) * nomDistOverMin +
+      Math.max(0, nomGoal * (bestDistance - nominalDistance)));
 
-  // Distance validity formula
-  const dv = avgDistOverMin / nomDistOverMin;
+  if (denominator <= 0) {
+    return 1;
+  }
+
+  const dv = sumOfFlownDistancesOverMin / denominator;
 
   return clamp(dv, 0, 1);
 }

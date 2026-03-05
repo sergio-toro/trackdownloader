@@ -12,7 +12,7 @@ import type {
   TimeDist,
 } from "../types/flightAnalysis";
 import type { TaskDefinition } from "../types/task";
-import { calculateDistanceToTurnpoint } from "./distanceCalculator";
+import { calculateShortestRouteToGoal } from "../geo/shortestRoute";
 
 /**
  * Generate time-distance graph for leading coefficient calculation
@@ -49,7 +49,14 @@ export function generateTimeDistanceGraph(
   // Get ES crossing (end of speed section)
   const esCrossing = validCrossings[esIdx];
 
-  // Initial point at SS start
+  // FS uses SS open time (gate time) as time reference, not pilot's crossing time.
+  // This matches FS Flight.cs line 1006: startTimeSeconds = Turnpoints[SsTpNo-1].Open
+  const ssTp = task.turnpoints[ssIdx];
+  const ssOpenTime = ssTp?.open
+    ? new Date(ssTp.open).getTime()
+    : ssCrossing.timestamp;
+
+  // Initial point at time=0 (gate open)
   graph.push({
     dist: 0,
     time: 0,
@@ -57,14 +64,14 @@ export function generateTimeDistanceGraph(
     alt: getAltitude(fixes[ssCrossing.toFixIndex]),
   });
 
-  const startTime = ssCrossing.timestamp;
+  const startTime = ssOpenTime;
   const endIdx = esCrossing ? esCrossing.toFixIndex : fixes.length - 1;
 
   let bestFlownDist = 0;
 
   // Process fixes from SS to ES (or end of track)
-  // Include ALL fixes (not just forward progress) so thermalling time
-  // contributes to the leading coefficient integral
+  // Only add entries when pilot makes forward progress (flownSsDist > prevSsDist)
+  // This matches FS behavior (Flight.cs CreateTimeDistanceGraphEntry)
   for (let i = ssCrossing.toFixIndex; i <= endIdx && i < fixes.length; i++) {
     const fix = fixes[i];
 
@@ -82,24 +89,26 @@ export function generateTimeDistanceGraph(
       }
     }
 
-    // Calculate distance to ESS from current position
-    const distToEss = calculateDistanceToTurnpoint(
-      fix,
-      task,
+    // Calculate distance to ESS using optimized shortest route (matches FS GetShortestRoute)
+    const position = { latitude: fix.latitude, longitude: fix.longitude };
+    const distToEss = calculateShortestRouteToGoal(
+      position,
+      task.turnpoints,
       Math.min(currentLeg, esIdx),
       esIdx
     );
 
-    // Distance flown in speed section (monotonic best for dist field)
+    // Distance flown in speed section
     const flownSsDist = task.speedSectionDistance - distToEss;
-    bestFlownDist = Math.max(bestFlownDist, flownSsDist);
 
-    const time = (fix.timestamp - startTime) / 1000;
-
-    // Skip duplicate timestamps
-    if (graph.length > 0 && time <= graph[graph.length - 1].time) {
+    // Only add entry when pilot makes forward progress (matches FS)
+    if (flownSsDist <= bestFlownDist) {
       continue;
     }
+
+    bestFlownDist = flownSsDist;
+
+    const time = (fix.timestamp - startTime) / 1000;
 
     graph.push({
       dist: Math.max(0, bestFlownDist),

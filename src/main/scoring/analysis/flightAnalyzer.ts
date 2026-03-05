@@ -16,6 +16,7 @@ import type {
 import { findAllCrossings, getValidCrossings } from "./turnpointDetector";
 import { calculateFlownDistance } from "./distanceCalculator";
 import { generateTimeDistanceGraph } from "./timeDistanceGraph";
+import { detectLandingIndex } from "./landingDetector";
 
 /**
  * Default analysis options
@@ -92,9 +93,21 @@ export function analyzeFlightFixes(
     return createEmptyAnalysis(pilotId, igcFilename, validationErrors);
   }
 
-  // Find all turnpoint crossings
-  const crossings = findAllCrossings(
+  // Detect landing and truncate track (matches FS FilterTracklog)
+  const taskOpenTime = task.turnpoints[0]?.open
+    ? new Date(task.turnpoints[0].open).getTime()
+    : undefined;
+  const landingIdx = detectLandingIndex(
     fixes,
+    taskOpenTime,
+    task.turnpoints[0]
+  );
+  const flightFixes =
+    landingIdx < fixes.length ? fixes.slice(0, landingIdx) : fixes;
+
+  // Find all turnpoint crossings (on truncated track)
+  const crossings = findAllCrossings(
+    flightFixes,
     task.turnpoints,
     opts.radiusTolerance,
     opts.minAbsTolerance
@@ -103,17 +116,17 @@ export function analyzeFlightFixes(
   // Get valid crossings in sequence
   const validCrossings = getValidCrossings(crossings, task.turnpoints);
 
-  // Calculate distance flown
+  // Calculate distance flown (on truncated track)
   const distResult = calculateFlownDistance(
-    fixes,
+    flightFixes,
     task,
     validCrossings,
     opts.minDistance
   );
 
-  // Generate time-distance graph for leading coefficient
+  // Generate time-distance graph for leading coefficient (on truncated track)
   const timeDistanceGraph = generateTimeDistanceGraph(
-    fixes,
+    flightFixes,
     task,
     validCrossings
   );
@@ -129,27 +142,27 @@ export function analyzeFlightFixes(
 
   // Calculate max altitude
   const maxAltitude = Math.max(
-    ...fixes.map((f) => f.gpsAltitude ?? f.pressureAltitude ?? 0)
+    ...flightFixes.map((f) => f.gpsAltitude ?? f.pressureAltitude ?? 0)
   );
 
   // Get ESS altitude
   const essAltitude = esCrossing
-    ? (fixes[esCrossing.toFixIndex]?.pressureAltitude ??
-      fixes[esCrossing.toFixIndex]?.gpsAltitude ??
+    ? (flightFixes[esCrossing.toFixIndex]?.pressureAltitude ??
+      flightFixes[esCrossing.toFixIndex]?.gpsAltitude ??
       undefined)
     : undefined;
 
   return {
     pilotId,
     igcFilename,
-    fixes,
+    fixes: flightFixes,
     crossings,
     validCrossings,
-    takeoffTime: fixes[0]?.timestamp,
+    takeoffTime: flightFixes[0]?.timestamp,
     startTime: ssCrossing?.timestamp,
     essTime: esCrossing?.timestamp,
     goalTime: goalCrossing?.timestamp,
-    landingTime: fixes[fixes.length - 1]?.timestamp,
+    landingTime: flightFixes[flightFixes.length - 1]?.timestamp,
     distanceFlown: distResult.distanceFlown,
     realDistance: distResult.realDistance,
     bonusDistance: distResult.bonusDistance,
