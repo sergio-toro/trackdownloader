@@ -1,0 +1,1203 @@
+{
+  "ftvFactor": 0.33,
+  "useBestScoreForFtvValidity": true,
+  "standings": [
+    {
+      "pilotId": 81614,
+      "rank": 1,
+      "totalPoints": 1948,
+      "taskPoints": {
+        "10": {
+          "points": 942.4,
+          "countingPoints": 942.4
+        },
+        "11": {
+          "points": 1000,
+          "countingPoints": 1000
+        },
+        "12": {
+          "points": 452.6,
+          "countingPoints": 5.2
+        }
+      }
+    },
+    {
+      "pilotId": 41339,
+      "rank": 2,
+      "totalPoints": 1914,
+      "taskPoints": {
+        "10": {
+          "points": 977,
+          "countingPoints": 977
+        },
+        "11": {
+          "points": 678.1,
+          "countingPoints": 7.8
+        },
+        "12": {
+          "points": 929.6,
+          "countingPoints": 929.6
+        }
+      }
+    },
+    {
+      "pilotId": 85902,
+      "rank": 3,
+      "totalPoints": 1715,
+      "taskPoints": {
+        "10": {
+          "points": 973,
+          "countingPoints": 973
+        },
+        "11": {
+          "points": 610.7,
+          "countingPoints": 7
+        },
+        "12": {
+          "points": 734.5,
+          "countingPoints": 734.5
+        }
+      }
+    },
+    {
+      "pilotId": 75701,
+      "rank": 4,
+      "totalPoints": 1667,
+      "taskPoints": {
+        "10": {
+          "points": 943.6,
+          "countingPoints": 943.6
+        },
+        "11": {
+          "points": 718.9,
+          "countingPoints": 718.9
+        },
+        "12": {
+          "points": 359.7,
+          "countingPoints": 4.1
+        }
+      }
+    },
+    {
+      "pilotId": 68913,
+      "rank": 5,
+      "totalPoints": 1620,
+      "taskPoints": {
+        "10": {
+          "points": 972.7,
+          "countingPoints": 972.7
+        },
+        "11": {
+          "points": 643.3,
+          "countingPoints": 643.3
+        },
+        "12": {
+          "points": 330.1,
+          "countingPoints": 3.8
+        }
+      }
+    },
+    {
+      "pilotId": 2116,
+      "rank": 6,
+      "totalPoints": 1582,
+      "taskPoints": {
+        "10": {
+          "points": 995.5,
+          "countingPoints": 995.5
+        },
+        "11": {
+          "points": 586.9,
+          "countingPoints": 586.9
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 20577,
+      "rank": 7,
+      "totalPoints": 1508,
+      "taskPoints": {
+        "10": {
+          "points": 577.9,
+          "countingPoints": 4.1
+        },
+        "11": {
+          "points": 661.3,
+          "countingPoints": 661.3
+        },
+        "12": {
+          "points": 842.6,
+          "countingPoints": 842.6
+        }
+      }
+    },
+    {
+      "pilotId": 78250,
+      "rank": 8,
+      "totalPoints": 1489,
+      "taskPoints": {
+        "10": {
+          "points": 275.5,
+          "countingPoints": 1.9
+        },
+        "11": {
+          "points": 603.9,
+          "countingPoints": 603.9
+        },
+        "12": {
+          "points": 883.4,
+          "countingPoints": 883.4
+        }
+      }
+    },
+    {
+      "pilotId": 88592,
+      "rank": 9,
+      "totalPoints": 1483,
+      "taskPoints": {
+        "10": {
+          "points": 380,
+          "countingPoints": 2.7
+        },
+        "11": {
+          "points": 607.3,
+          "countingPoints": 607.3
+        },
+        "12": {
+          "points": 873.3,
+          "countingPoints": 873.3
+        }
+      }
+    },
+    {
+      "pilotId": 33350,
+      "rank": 10,
+      "totalPoints": 1417,
+      "taskPoints": {
+        "10": {
+          "points": 416.9,
+          "countingPoints": 416.9
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 1000,
+          "countingPoints": 1000
+        }
+      }
+    },
+    {
+      "pilotId": 87914,
+      "rank": 11,
+      "totalPoints": 1308,
+      "taskPoints": {
+        "10": {
+          "points": 709.5,
+          "countingPoints": 709.5
+        },
+        "11": {
+          "points": 598.1,
+          "countingPoints": 598.1
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 48936,
+      "rank": 12,
+      "totalPoints": 1300,
+      "taskPoints": {
+        "10": {
+          "points": 942.5,
+          "countingPoints": 942.5
+        },
+        "11": {
+          "points": 194.6,
+          "countingPoints": 2.2
+        },
+        "12": {
+          "points": 354.9,
+          "countingPoints": 354.9
+        }
+      }
+    },
+    {
+      "pilotId": 90820,
+      "rank": 13,
+      "totalPoints": 1259,
+      "taskPoints": {
+        "10": {
+          "points": 278.2,
+          "countingPoints": 2
+        },
+        "11": {
+          "points": 494.2,
+          "countingPoints": 494.2
+        },
+        "12": {
+          "points": 763,
+          "countingPoints": 763
+        }
+      }
+    },
+    {
+      "pilotId": 82058,
+      "rank": 14,
+      "totalPoints": 1223,
+      "taskPoints": {
+        "10": {
+          "points": 350.8,
+          "countingPoints": 2.5
+        },
+        "11": {
+          "points": 616.8,
+          "countingPoints": 616.8
+        },
+        "12": {
+          "points": 603.8,
+          "countingPoints": 603.8
+        }
+      }
+    },
+    {
+      "pilotId": 82252,
+      "rank": 14,
+      "totalPoints": 1223,
+      "taskPoints": {
+        "10": {
+          "points": 666,
+          "countingPoints": 666
+        },
+        "11": {
+          "points": 557,
+          "countingPoints": 557
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 88937,
+      "rank": 16,
+      "totalPoints": 1206,
+      "taskPoints": {
+        "10": {
+          "points": 485.4,
+          "countingPoints": 485.4
+        },
+        "11": {
+          "points": 437.8,
+          "countingPoints": 5
+        },
+        "12": {
+          "points": 715.1,
+          "countingPoints": 715.1
+        }
+      }
+    },
+    {
+      "pilotId": 88487,
+      "rank": 17,
+      "totalPoints": 1201,
+      "taskPoints": {
+        "10": {
+          "points": 754.1,
+          "countingPoints": 754.1
+        },
+        "11": {
+          "points": 442.5,
+          "countingPoints": 442.5
+        },
+        "12": {
+          "points": 400,
+          "countingPoints": 4.6
+        }
+      }
+    },
+    {
+      "pilotId": 92450,
+      "rank": 18,
+      "totalPoints": 1193,
+      "taskPoints": {
+        "10": {
+          "points": 615.1,
+          "countingPoints": 615.1
+        },
+        "11": {
+          "points": 578.2,
+          "countingPoints": 578.2
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 75693,
+      "rank": 19,
+      "totalPoints": 1108,
+      "taskPoints": {
+        "10": {
+          "points": 287.1,
+          "countingPoints": 2
+        },
+        "11": {
+          "points": 560.3,
+          "countingPoints": 560.3
+        },
+        "12": {
+          "points": 545.7,
+          "countingPoints": 545.7
+        }
+      }
+    },
+    {
+      "pilotId": 85710,
+      "rank": 20,
+      "totalPoints": 1089,
+      "taskPoints": {
+        "10": {
+          "points": 716.4,
+          "countingPoints": 716.4
+        },
+        "11": {
+          "points": 368.2,
+          "countingPoints": 368.2
+        },
+        "12": {
+          "points": 355.9,
+          "countingPoints": 4.1
+        }
+      }
+    },
+    {
+      "pilotId": 9862,
+      "rank": 21,
+      "totalPoints": 1070,
+      "taskPoints": {
+        "10": {
+          "points": 410.4,
+          "countingPoints": 410.4
+        },
+        "11": {
+          "points": 659.8,
+          "countingPoints": 659.8
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 93574,
+      "rank": 22,
+      "totalPoints": 1021,
+      "taskPoints": {
+        "10": {
+          "points": 414.6,
+          "countingPoints": 414.6
+        },
+        "11": {
+          "points": 602.6,
+          "countingPoints": 602.6
+        },
+        "12": {
+          "points": 353.6,
+          "countingPoints": 4.1
+        }
+      }
+    },
+    {
+      "pilotId": 88680,
+      "rank": 23,
+      "totalPoints": 1015,
+      "taskPoints": {
+        "10": {
+          "points": 416.1,
+          "countingPoints": 416.1
+        },
+        "11": {
+          "points": 597,
+          "countingPoints": 597
+        },
+        "12": {
+          "points": 188.4,
+          "countingPoints": 2.2
+        }
+      }
+    },
+    {
+      "pilotId": 93598,
+      "rank": 24,
+      "totalPoints": 1008,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 0.4
+        },
+        "11": {
+          "points": 914.9,
+          "countingPoints": 914.9
+        },
+        "12": {
+          "points": 92.5,
+          "countingPoints": 92.5
+        }
+      }
+    },
+    {
+      "pilotId": 93192,
+      "rank": 25,
+      "totalPoints": 982,
+      "taskPoints": {
+        "10": {
+          "points": 393.3,
+          "countingPoints": 393.3
+        },
+        "11": {
+          "points": 588.3,
+          "countingPoints": 588.3
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 85337,
+      "rank": 26,
+      "totalPoints": 979,
+      "taskPoints": {
+        "10": {
+          "points": 299.4,
+          "countingPoints": 2.1
+        },
+        "11": {
+          "points": 622.4,
+          "countingPoints": 622.4
+        },
+        "12": {
+          "points": 354.1,
+          "countingPoints": 354.1
+        }
+      }
+    },
+    {
+      "pilotId": 41337,
+      "rank": 27,
+      "totalPoints": 962,
+      "taskPoints": {
+        "10": {
+          "points": 414.4,
+          "countingPoints": 414.4
+        },
+        "11": {
+          "points": 543.8,
+          "countingPoints": 543.8
+        },
+        "12": {
+          "points": 341.8,
+          "countingPoints": 3.9
+        }
+      }
+    },
+    {
+      "pilotId": 68575,
+      "rank": 28,
+      "totalPoints": 961,
+      "taskPoints": {
+        "10": {
+          "points": 287.3,
+          "countingPoints": 2
+        },
+        "11": {
+          "points": 610.4,
+          "countingPoints": 610.4
+        },
+        "12": {
+          "points": 348.3,
+          "countingPoints": 348.3
+        }
+      }
+    },
+    {
+      "pilotId": 89438,
+      "rank": 29,
+      "totalPoints": 934,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 0.4
+        },
+        "11": {
+          "points": 584.2,
+          "countingPoints": 584.2
+        },
+        "12": {
+          "points": 349.5,
+          "countingPoints": 349.5
+        }
+      }
+    },
+    {
+      "pilotId": 90491,
+      "rank": 30,
+      "totalPoints": 933,
+      "taskPoints": {
+        "10": {
+          "points": 298.7,
+          "countingPoints": 2.1
+        },
+        "11": {
+          "points": 568.4,
+          "countingPoints": 568.4
+        },
+        "12": {
+          "points": 362.2,
+          "countingPoints": 362.2
+        }
+      }
+    },
+    {
+      "pilotId": 90819,
+      "rank": 31,
+      "totalPoints": 928,
+      "taskPoints": {
+        "10": {
+          "points": 350.6,
+          "countingPoints": 350.6
+        },
+        "11": {
+          "points": 573.3,
+          "countingPoints": 573.3
+        },
+        "12": {
+          "points": 344.3,
+          "countingPoints": 4
+        }
+      }
+    },
+    {
+      "pilotId": 94458,
+      "rank": 32,
+      "totalPoints": 926,
+      "taskPoints": {
+        "10": {
+          "points": 287.6,
+          "countingPoints": 287.6
+        },
+        "11": {
+          "points": 638.2,
+          "countingPoints": 638.2
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 93191,
+      "rank": 33,
+      "totalPoints": 907,
+      "taskPoints": {
+        "10": {
+          "points": 328.6,
+          "countingPoints": 328.6
+        },
+        "11": {
+          "points": 578.6,
+          "countingPoints": 578.6
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 5532,
+      "rank": 34,
+      "totalPoints": 895,
+      "taskPoints": {
+        "10": {
+          "points": 288.2,
+          "countingPoints": 288.2
+        },
+        "11": {
+          "points": 606.8,
+          "countingPoints": 606.8
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 46067,
+      "rank": 35,
+      "totalPoints": 894,
+      "taskPoints": {
+        "10": {
+          "points": 287.6,
+          "countingPoints": 287.6
+        },
+        "11": {
+          "points": 606.1,
+          "countingPoints": 606.1
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 85331,
+      "rank": 36,
+      "totalPoints": 884,
+      "taskPoints": {
+        "10": {
+          "points": 288,
+          "countingPoints": 288
+        },
+        "11": {
+          "points": 594,
+          "countingPoints": 594
+        },
+        "12": {
+          "points": 149.1,
+          "countingPoints": 1.7
+        }
+      }
+    },
+    {
+      "pilotId": 95187,
+      "rank": 37,
+      "totalPoints": 879,
+      "taskPoints": {
+        "10": {
+          "points": 289.1,
+          "countingPoints": 289.1
+        },
+        "11": {
+          "points": 589.6,
+          "countingPoints": 589.6
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 87868,
+      "rank": 38,
+      "totalPoints": 844,
+      "taskPoints": {
+        "10": {
+          "points": 88.8,
+          "countingPoints": 0.6
+        },
+        "11": {
+          "points": 533,
+          "countingPoints": 533
+        },
+        "12": {
+          "points": 309.9,
+          "countingPoints": 309.9
+        }
+      }
+    },
+    {
+      "pilotId": 93236,
+      "rank": 39,
+      "totalPoints": 826,
+      "taskPoints": {
+        "10": {
+          "points": 408.7,
+          "countingPoints": 408.7
+        },
+        "11": {
+          "points": 413.8,
+          "countingPoints": 413.8
+        },
+        "12": {
+          "points": 299.7,
+          "countingPoints": 3.4
+        }
+      }
+    },
+    {
+      "pilotId": 75695,
+      "rank": 40,
+      "totalPoints": 817,
+      "taskPoints": {
+        "10": {
+          "points": 251.8,
+          "countingPoints": 251.8
+        },
+        "11": {
+          "points": 565.2,
+          "countingPoints": 565.2
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 89834,
+      "rank": 41,
+      "totalPoints": 806,
+      "taskPoints": {
+        "10": {
+          "points": 282.9,
+          "countingPoints": 2
+        },
+        "11": {
+          "points": 440.8,
+          "countingPoints": 440.8
+        },
+        "12": {
+          "points": 363.6,
+          "countingPoints": 363.6
+        }
+      }
+    },
+    {
+      "pilotId": 93193,
+      "rank": 42,
+      "totalPoints": 797,
+      "taskPoints": {
+        "10": {
+          "points": 368.6,
+          "countingPoints": 368.6
+        },
+        "11": {
+          "points": 423.9,
+          "countingPoints": 423.9
+        },
+        "12": {
+          "points": 363.9,
+          "countingPoints": 4.2
+        }
+      }
+    },
+    {
+      "pilotId": 63232,
+      "rank": 43,
+      "totalPoints": 790,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 790.2,
+          "countingPoints": 790.2
+        }
+      }
+    },
+    {
+      "pilotId": 93034,
+      "rank": 44,
+      "totalPoints": 781,
+      "taskPoints": {
+        "10": {
+          "points": 288,
+          "countingPoints": 2
+        },
+        "11": {
+          "points": 475.2,
+          "countingPoints": 475.2
+        },
+        "12": {
+          "points": 303.7,
+          "countingPoints": 303.7
+        }
+      }
+    },
+    {
+      "pilotId": 75697,
+      "rank": 45,
+      "totalPoints": 779,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 779,
+          "countingPoints": 779
+        }
+      }
+    },
+    {
+      "pilotId": 93200,
+      "rank": 46,
+      "totalPoints": 778,
+      "taskPoints": {
+        "10": {
+          "points": 349.7,
+          "countingPoints": 349.7
+        },
+        "11": {
+          "points": 428,
+          "countingPoints": 428
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 41341,
+      "rank": 47,
+      "totalPoints": 775,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 0.4
+        },
+        "11": {
+          "points": 607.3,
+          "countingPoints": 607.3
+        },
+        "12": {
+          "points": 167.7,
+          "countingPoints": 167.7
+        }
+      }
+    },
+    {
+      "pilotId": 93730,
+      "rank": 48,
+      "totalPoints": 764,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 57
+        },
+        "11": {
+          "points": 707,
+          "countingPoints": 707
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 89251,
+      "rank": 49,
+      "totalPoints": 759,
+      "taskPoints": {
+        "10": {
+          "points": 285.6,
+          "countingPoints": 285.6
+        },
+        "11": {
+          "points": 473.7,
+          "countingPoints": 473.7
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 75696,
+      "rank": 50,
+      "totalPoints": 717,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 57
+        },
+        "11": {
+          "points": 659.7,
+          "countingPoints": 659.7
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 25303,
+      "rank": 51,
+      "totalPoints": 709,
+      "taskPoints": {
+        "10": {
+          "points": 294.7,
+          "countingPoints": 294.7
+        },
+        "11": {
+          "points": 413.8,
+          "countingPoints": 413.8
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 93190,
+      "rank": 52,
+      "totalPoints": 708,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 0.4
+        },
+        "11": {
+          "points": 422.9,
+          "countingPoints": 422.9
+        },
+        "12": {
+          "points": 284.6,
+          "countingPoints": 284.6
+        }
+      }
+    },
+    {
+      "pilotId": 41335,
+      "rank": 53,
+      "totalPoints": 609,
+      "taskPoints": {
+        "10": {
+          "points": 255.3,
+          "countingPoints": 255.3
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 354,
+          "countingPoints": 354
+        }
+      }
+    },
+    {
+      "pilotId": 93423,
+      "rank": 54,
+      "totalPoints": 473,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 135.2,
+          "countingPoints": 135.2
+        },
+        "12": {
+          "points": 337.8,
+          "countingPoints": 337.8
+        }
+      }
+    },
+    {
+      "pilotId": 1580,
+      "rank": 55,
+      "totalPoints": 471,
+      "taskPoints": {
+        "10": {
+          "points": 276,
+          "countingPoints": 276
+        },
+        "11": {
+          "points": 194.5,
+          "countingPoints": 194.5
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 14301,
+      "rank": 56,
+      "totalPoints": 420,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 419.7,
+          "countingPoints": 419.7
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 33352,
+      "rank": 57,
+      "totalPoints": 349,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 349.4,
+          "countingPoints": 349.4
+        }
+      }
+    },
+    {
+      "pilotId": 75700,
+      "rank": 58,
+      "totalPoints": 347,
+      "taskPoints": {
+        "10": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 347.1,
+          "countingPoints": 347.1
+        }
+      }
+    },
+    {
+      "pilotId": 32159,
+      "rank": 59,
+      "totalPoints": 284,
+      "taskPoints": {
+        "10": {
+          "points": 284.4,
+          "countingPoints": 284.4
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 93181,
+      "rank": 60,
+      "totalPoints": 197,
+      "taskPoints": {
+        "10": {
+          "points": 60.8,
+          "countingPoints": 60.8
+        },
+        "11": {
+          "points": 135.2,
+          "countingPoints": 135.2
+        },
+        "12": {
+          "points": 44.9,
+          "countingPoints": 0.5
+        }
+      }
+    },
+    {
+      "pilotId": 88482,
+      "rank": 61,
+      "totalPoints": 192,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 57
+        },
+        "11": {
+          "points": 135.2,
+          "countingPoints": 135.2
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    },
+    {
+      "pilotId": 2101,
+      "rank": 62,
+      "totalPoints": 102,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 57
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 44.9,
+          "countingPoints": 44.9
+        }
+      }
+    },
+    {
+      "pilotId": 82496,
+      "rank": 63,
+      "totalPoints": 57,
+      "taskPoints": {
+        "10": {
+          "points": 57,
+          "countingPoints": 57
+        },
+        "11": {
+          "points": 0,
+          "countingPoints": 0
+        },
+        "12": {
+          "points": 0,
+          "countingPoints": 0
+        }
+      }
+    }
+  ]
+}

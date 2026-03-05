@@ -55,15 +55,14 @@ export function calculateCompetitionStandings(
   }
 
   // Collect all pilot task scores
-  const pilotScores = collectPilotScores(taskResults);
+  const pilotScores = collectPilotScores(taskResults, formula);
 
   // Calculate total max points across all tasks
   const taskMaxPoints = new Map<string, number>();
   for (const taskResult of taskResults) {
-    const maxPoints = Math.max(
-      ...taskResult.pilotResults.map((r) => r.totalPoints),
-      0
-    );
+    const maxPoints = formula.useBestScoreForFtvValidity
+      ? Math.max(...taskResult.pilotResults.map((r) => r.totalPoints), 0)
+      : 1000 * taskResult.dayQuality;
     taskMaxPoints.set(taskResult.taskId, maxPoints);
   }
 
@@ -74,7 +73,8 @@ export function calculateCompetitionStandings(
 
   // Calculate FTV target (0 = no FTV, use full points)
   const ftvFactor = formula.ftvFactor;
-  const ftvTarget = ftvFactor > 0 ? totalMaxPoints * ftvFactor : totalMaxPoints;
+  const ftvTarget =
+    ftvFactor > 0 ? totalMaxPoints * (1 - ftvFactor) : totalMaxPoints;
 
   // Apply FTV to each pilot
   const ftvResults: FtvResult[] = [];
@@ -90,15 +90,16 @@ export function calculateCompetitionStandings(
     ftvResults.push(result);
   }
 
-  // Convert to standings and calculate ranks
+  // Convert to standings, round, then calculate ranks
   const standings = buildStandings(ftvResults, taskResults.length);
-  calculateRanks(standings);
 
-  // Round to formula precision
+  // Round to formula precision before ranking so ties are detected correctly
   const decimals = formula.numberOfDecimalsCompetitionResults;
   for (const standing of standings) {
     standing.totalPoints = roundTo(standing.totalPoints, decimals);
   }
+
+  calculateRanks(standings);
 
   return {
     competitionId: "", // Set by caller
@@ -113,14 +114,17 @@ export function calculateCompetitionStandings(
  * Collect all pilot scores from task results
  */
 function collectPilotScores(
-  taskResults: TaskResult[]
+  taskResults: TaskResult[],
+  formula: ScoringFormulaConfig
 ): Map<number, PilotTaskScore[]> {
   const pilotScores = new Map<number, PilotTaskScore[]>();
 
   for (let taskIndex = 0; taskIndex < taskResults.length; taskIndex++) {
     const taskResult = taskResults[taskIndex];
     const maxPoints = Math.max(
-      ...taskResult.pilotResults.map((r) => r.totalPoints),
+      formula.useBestScoreForFtvValidity
+        ? Math.max(...taskResult.pilotResults.map((r) => r.totalPoints), 0)
+        : 1000 * taskResult.dayQuality,
       1 // Avoid division by zero
     );
 
