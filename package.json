@@ -12,7 +12,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint src/ --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint src/ --ext .ts,.js,.tsx,.jsx --fix",
-    "test": "exit 0;",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepare": "husky"
   },
   "contributors": [
@@ -76,6 +77,7 @@
     "tailwindcss": "^3.4.4",
     "ts-loader": "9.5.1",
     "typescript": "^5.3.3",
+    "vitest": "^4.0.18",
     "webpack": "^5.89.0"
   },
   "dependencies": {

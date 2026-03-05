@@ -1,0 +1,174 @@
+{
+  "id": "bc852108-262d-432c-a013-cbf602904a97",
+  "name": "Task10",
+  "date": "2025-09-11",
+  "taskType": "Race",
+  "earthModel": "WGS84",
+  "state": "Regular",
+  "turnpoints": [
+    {
+      "id": "tp-1",
+      "geopoint": {
+        "latitude": 42.04635,
+        "longitude": 0.74599,
+        "altitude": 1560,
+        "name": "D01"
+      },
+      "radius": 400,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 1560,
+      "type": "TAKEOFF"
+    },
+    {
+      "id": "tp-2",
+      "geopoint": {
+        "latitude": 42.05183,
+        "longitude": 0.6552,
+        "altitude": 755,
+        "name": "B08"
+      },
+      "radius": 7000,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 755,
+      "type": "SSS"
+    },
+    {
+      "id": "tp-3",
+      "geopoint": {
+        "latitude": 41.92035,
+        "longitude": 1.1857,
+        "altitude": 360,
+        "name": "G09"
+      },
+      "radius": 10000,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 360,
+      "type": "TURNPOINT"
+    },
+    {
+      "id": "tp-4",
+      "geopoint": {
+        "latitude": 42.10218,
+        "longitude": 1.36496,
+        "altitude": 1114,
+        "name": "B36"
+      },
+      "radius": 400,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 1114,
+      "type": "TURNPOINT"
+    },
+    {
+      "id": "tp-5",
+      "geopoint": {
+        "latitude": 41.80948,
+        "longitude": 1.39547,
+        "altitude": 427,
+        "name": "G16"
+      },
+      "radius": 28000,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 427,
+      "type": "TURNPOINT"
+    },
+    {
+      "id": "tp-6",
+      "geopoint": {
+        "latitude": 42.07686,
+        "longitude": 1.30548,
+        "altitude": 459,
+        "name": "G10"
+      },
+      "radius": 1000,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 459,
+      "type": "ESS"
+    },
+    {
+      "id": "tp-7",
+      "geopoint": {
+        "latitude": 42.07686,
+        "longitude": 1.30548,
+        "altitude": 459,
+        "name": "G10"
+      },
+      "radius": 400,
+      "open": "2025-09-11T13:30:00+02:00",
+      "close": "2025-09-11T20:00:00+02:00",
+      "altitude": 459,
+      "type": "GOAL"
+    }
+  ],
+  "ssIndex": 2,
+  "esIndex": 6,
+  "goalType": "CYLINDER",
+  "startGates": [
+    {
+      "open": "2025-09-11T13:30:00+02:00"
+    }
+  ],
+  "taskDistance": 63140,
+  "speedSectionDistance": 62021,
+  "launchToEssDistance": 62539,
+  "legDistances": [
+    517.4031870814647,
+    35077.75752117712,
+    19514.430612139106,
+    5229.20682026181,
+    2200.0726336271223,
+    601.0213889990669
+  ],
+  "shortestRoute": [
+    {
+      "latitude": 42.04635,
+      "longitude": 0.74599,
+      "altitude": 1560,
+      "name": "D01"
+    },
+    {
+      "latitude": 42.04656148981108,
+      "longitude": 0.7397468892629322,
+      "altitude": 755,
+      "name": "B08"
+    },
+    {
+      "latitude": 42.00832712941203,
+      "longitude": 1.1601988589234087,
+      "altitude": 360,
+      "name": "G09"
+    },
+    {
+      "latitude": 42.099518835228494,
+      "longitude": 1.3616922533407507,
+      "altitude": 1114,
+      "name": "B36"
+    },
+    {
+      "latitude": 42.05725859685477,
+      "longitude": 1.33384443619174,
+      "altitude": 427,
+      "name": "G16"
+    },
+    {
+      "latitude": 42.07072738140492,
+      "longitude": 1.3143546738469702,
+      "altitude": 459,
+      "name": "G10"
+    },
+    {
+      "latitude": 42.07440695256197,
+      "longitude": 1.3090298695387887,
+      "altitude": 459,
+      "name": "G10"
+    }
+  ],
+  "qnhSetting": 1013.25,
+  "leadingTimeRatio": 0.26,
+  "scoredAt": "2026-03-04T19:14:26.751Z"
+}

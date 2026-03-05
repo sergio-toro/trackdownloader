@@ -23,5 +23,5 @@
       "@misc/*": ["./misc/*"]
     }
   },
-  "include": ["src/**/*", "tools/**/*"]
+  "include": ["src/**/*", "tools/**/*", "tests/**/*", "vitest.config.ts"]
 }

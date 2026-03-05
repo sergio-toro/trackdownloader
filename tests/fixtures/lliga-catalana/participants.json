@@ -1,0 +1,1283 @@
+[
+  {
+    "id": 93529,
+    "name": "Abdelhadi Bouiri",
+    "xcontest": "Abdel",
+    "volandoo": "abdel",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 75697,
+    "name": "Adria Fabra Amoros",
+    "xcontest": "AdriFabra",
+    "status": "Confirmed",
+    "taskIds": [
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93398,
+    "name": "Aitana Junque",
+    "xcontest": "Aitana",
+    "volandoo": "aitana",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93229,
+    "name": "Alan Ruiz",
+    "xcontest": "AlanRR",
+    "volandoo": "alanrr",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 82058,
+    "name": "Albert Clavera",
+    "xcontest": "aclavera",
+    "volandoo": "aclavera",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 25303,
+    "name": "Albert Pol Font",
+    "xcontest": "Gatvol",
+    "volandoo": "apol",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 87868,
+    "name": "Albert Polo",
+    "xcontest": "albhert",
+    "volandoo": "albhert",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93218,
+    "name": "Albert Roca",
+    "xcontest": "AlbertPollo",
+    "volandoo": "albertpollo",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 41341,
+    "name": "Albert Sarda",
+    "xcontest": "AlbertXC",
+    "volandoo": "albertxc",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93236,
+    "name": "Albert Vidal",
+    "xcontest": "Alberticus",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93272,
+    "name": "Aleix Carbajal",
+    "xcontest": "Peixo",
+    "volandoo": "aleix",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93235,
+    "name": "Alejandro Martin",
+    "xcontest": "aerojandro",
+    "volandoo": "aerojandro",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93193,
+    "name": "Alejandro Rodriguez",
+    "xcontest": "Voltrega",
+    "volandoo": "voltrega",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93174,
+    "name": "Alexandre Istratov",
+    "xcontest": "alex.in.the.sky",
+    "volandoo": "alexinthesky",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 45406,
+    "name": "Alfredo Sanchez",
+    "xcontest": "EdyNawer",
+    "volandoo": "edy",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93199,
+    "name": "Alvaro Gordo Hiraldo",
+    "xcontest": "The_Barvario",
+    "volandoo": "agordo",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 34410,
+    "name": "Andreu Aranda",
+    "xcontest": "andreu",
+    "volandoo": "parr4nda",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 88592,
+    "name": "Andreu Moreno Martin",
+    "xcontest": "andreumoma",
+    "volandoo": "andreu",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 5532,
+    "name": "Antoni Cabiscol Catala",
+    "xcontest": "Cabis",
+    "volandoo": "cabis",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 5532,
+    "name": "Antoni Cabiscol Catala",
+    "xcontest": "cabis",
+    "volandoo": "cabis",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 90532,
+    "name": "Antoni Galan Yangua",
+    "xcontest": "homevolador",
+    "volandoo": "homevolador",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93730,
+    "name": "Antoni Vilar Anglada",
+    "xcontest": "Tonvilar",
+    "volandoo": "tonvilar",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 81614,
+    "name": "Antonio Paparella",
+    "xcontest": "tonypaparella13",
+    "volandoo": "tonypaparella",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93686,
+    "name": "Ariadna Rodriguez iglesias",
+    "xcontest": "Ariro",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 87914,
+    "name": "Arlet Molla Garcia",
+    "xcontest": "oreneta",
+    "volandoo": "arletmolla",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 88937,
+    "name": "Arnau Mercade Llao",
+    "xcontest": "Grimpa2",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 49579,
+    "name": "Ben Empson",
+    "xcontest": "benArrayx",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 95187,
+    "name": "Bernat Albet Torres",
+    "xcontest": "bernat.albet",
+    "volandoo": "bernat.albet",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 96079,
+    "name": "Bosco Cusó",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 96110,
+    "name": "Brunno Rodrigues Guimaraes",
+    "xcontest": "brglider",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 41335,
+    "name": "Carlos Madrueno",
+    "xcontest": "CHARLYMS",
+    "volandoo": "cmadrueno",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 68913,
+    "name": "Chechu Martinez Rojano",
+    "xcontest": "Chechu8",
+    "volandoo": "cmartinez",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 89438,
+    "name": "Constantino Solanas",
+    "xcontest": "TinoS",
+    "volandoo": "tinos",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 89251,
+    "name": "Cristian Boiria",
+    "xcontest": "CristianBoiria",
+    "volandoo": "cristianboiria",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 63659,
+    "name": "Dan Girdea",
+    "xcontest": "xcdan",
+    "volandoo": "xcdan",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 1580,
+    "name": "Dani Martinez Alarcon",
+    "xcontest": "DaniSkywalker",
+    "volandoo": "dmartinez",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 93182,
+    "name": "David Gonzalez",
+    "xcontest": "davidgz",
+    "volandoo": "davidgz",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 75693,
+    "name": "David Polo",
+    "xcontest": "IceCrim",
+    "volandoo": "icecrim",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93191,
+    "name": "David Salvador Ventura",
+    "xcontest": "David_SV",
+    "volandoo": "davidsv",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 89026,
+    "name": "David Tonijuan",
+    "xcontest": "handelkite",
+    "volandoo": "parabirras1",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 41339,
+    "name": "David Villarta",
+    "xcontest": "David96",
+    "volandoo": "dvillarta",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 88073,
+    "name": "Edu Segura",
+    "xcontest": "Edusegura",
+    "volandoo": "esegura",
+    "status": "Confirmed",
+    "taskIds": [
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93475,
+    "name": "Eduard Masa",
+    "xcontest": "Edumasa",
+    "volandoo": "emasa",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93185,
+    "name": "Eloi Sanz Celaya",
+    "xcontest": "EloiSCel",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 85331,
+    "name": "Emma Wuyts",
+    "xcontest": "e.wuyts",
+    "volandoo": "ewuyts",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93178,
+    "name": "Enric Puig Sanz",
+    "xcontest": "NRC_MDFK",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93190,
+    "name": "Ernesto Serrano",
+    "xcontest": "erniefly",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93187,
+    "name": "Esteve Grau I Creus",
+    "xcontest": "egrau",
+    "volandoo": "egrau",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 92450,
+    "name": "Ferran Granollers Relats",
+    "xcontest": "Xiflador",
+    "volandoo": "xiflador",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 85337,
+    "name": "Francesca Mugianesi",
+    "xcontest": "FrancescaMugi",
+    "volandoo": "francesca",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93439,
+    "name": "Francisco Javier Moreno Márquez",
+    "xcontest": "francisfjm31",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 84290,
+    "name": "Francois Chauvin",
+    "xcontest": "francoischauvin",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 79690,
+    "name": "Frederic Tuset",
+    "xcontest": "Rex2000",
+    "volandoo": "frederictuset",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93034,
+    "name": "Gerard Fornieles Salarich",
+    "xcontest": "Furni",
+    "volandoo": "furni",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93744,
+    "name": "Gerard Laymon",
+    "xcontest": "GerardLaymon",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 90819,
+    "name": "Gonzalo Velasco Del Pozo",
+    "xcontest": "Velasco",
+    "volandoo": "gvelasco",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 88487,
+    "name": "Gregoire Stik",
+    "xcontest": "gregstik",
+    "volandoo": "gregstik",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 79319,
+    "name": "Grzegorz Krason",
+    "xcontest": "GergoPL",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 96091,
+    "name": "Guillem Vilaseca Fusté",
+    "xcontest": "guille96",
+    "volandoo": "guillemvilaseca",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 88680,
+    "name": "Guillermo Monroset",
+    "xcontest": "GMB",
+    "volandoo": "gmonroset",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 70528,
+    "name": "Harriet Short",
+    "xcontest": "hati",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93192,
+    "name": "James Iborra",
+    "xcontest": "JamesVolador",
+    "volandoo": "jiborra",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 93414,
+    "name": "Jesica Cubo Rodriguez",
+    "xcontest": "Jesicacuro",
+    "volandoo": "jesicacuro",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 10572,
+    "name": "Jesus Costa sanchez",
+    "xcontest": "Chechucosta",
+    "volandoo": "xexucosta",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93181,
+    "name": "Jesus Duran Pernas",
+    "xcontest": "suso",
+    "volandoo": "Jduran",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 46067,
+    "name": "Jesus Torres Gomez",
+    "xcontest": "JTORRESG",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 93186,
+    "name": "Joan Miquel Sole",
+    "xcontest": "Jaimi5",
+    "volandoo": "jaimi",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 89834,
+    "name": "Joan Picola",
+    "xcontest": "Picola_oficial",
+    "volandoo": "joanpicola",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93282,
+    "name": "Joan Puig Sanz",
+    "xcontest": "puxdroid",
+    "volandoo": "puxdroid",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93572,
+    "name": "Joan Sanchez Mendez",
+    "xcontest": "JoanetZZ",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 9862,
+    "name": "Joel Mirón de Soto",
+    "xcontest": "joeldelta",
+    "volandoo": "jmiron",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 75701,
+    "name": "Jordi MassalléJosa",
+    "xcontest": "SALLA",
+    "volandoo": "salla",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 61566,
+    "name": "Jordi Roset Llobet",
+    "xcontest": "Sendu",
+    "volandoo": "jordiro7",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93574,
+    "name": "Jorge Alberto Garcia Pernecco",
+    "xcontest": "JorgeGP",
+    "volandoo": "j.a.garcia",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 82496,
+    "name": "Jose Luis Martinez Novoa",
+    "xcontest": "novoa807",
+    "volandoo": "novoa807",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97"
+    ]
+  },
+  {
+    "id": 93195,
+    "name": "Jose Manuel Baena Molina",
+    "xcontest": "Manelet",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 33352,
+    "name": "Jose Manuel Sorli Rico",
+    "xcontest": "josemanuel",
+    "volandoo": "josemanuel",
+    "status": "Confirmed",
+    "taskIds": [
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 90491,
+    "name": "Josep Ferreiro",
+    "xcontest": "JosepFerreiro",
+    "volandoo": "jferreiro",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 95537,
+    "name": "Juan Emilio Rubio",
+    "xcontest": "rupicola",
+    "volandoo": "rupicola",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93234,
+    "name": "Juan Jose Olivares Romero",
+    "xcontest": "Jjolivares",
+    "volandoo": "jjolivares",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 68575,
+    "name": "Juan Manuel Garcia Guerrero",
+    "xcontest": "juanma",
+    "volandoo": "juanma",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 48936,
+    "name": "Julian Bruno",
+    "xcontest": "josejbruno",
+    "volandoo": "josejbruno",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93180,
+    "name": "Laia Luz",
+    "xcontest": "LaLuKill",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 46325,
+    "name": "Luis Martínez Iturbe",
+    "xcontest": "ITURBE",
+    "volandoo": "iturbe",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 10875,
+    "name": "Luis Morales Gomez",
+    "volandoo": "lmorales",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 2116,
+    "name": "Luis Pol Bernal",
+    "xcontest": "xiliu",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 85902,
+    "name": "Manel Gras Vilalta",
+    "xcontest": "Mnel",
+    "volandoo": "mgras",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93485,
+    "name": "Mar Martinez",
+    "xcontest": "Maarona",
+    "volandoo": "maarona",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 82062,
+    "name": "Marc Compte",
+    "xcontest": "Skiru.xc",
+    "volandoo": "marccs",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 88719,
+    "name": "Marc Mas Masferrer",
+    "xcontest": "Markmas",
+    "volandoo": "markmas",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 95564,
+    "name": "Marc Soliva",
+    "xcontest": "Marcsr223",
+    "volandoo": "marcsr",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93598,
+    "name": "Marti Cols Camprubi",
+    "volandoo": "marticols",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 95813,
+    "name": "Marti Feiner Prat",
+    "xcontest": "martifeiner",
+    "volandoo": "martifeiner",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 14145,
+    "name": "Mateu Bendicho",
+    "xcontest": "Mateu",
+    "volandoo": "mateu",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 59452,
+    "name": "Matias Nombarasco",
+    "xcontest": "matias_nombarasco",
+    "volandoo": "mnombarasco",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 41337,
+    "name": "Miguel Villarta",
+    "xcontest": "M.Villarta",
+    "volandoo": "mvillarta",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 96093,
+    "name": "Miquel Gaig Font",
+    "xcontest": "MGaig",
+    "volandoo": "mgaig",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 75695,
+    "name": "Miquel Serralta Riera",
+    "xcontest": "splig",
+    "volandoo": "saroqueta2",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 10877,
+    "name": "Nani Pons",
+    "xcontest": "Nanipons",
+    "volandoo": "nani",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 94020,
+    "name": "Noah Grymonpre",
+    "xcontest": "NoahGr",
+    "volandoo": "noahgr",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 94512,
+    "name": "Noe Toston Carballo",
+    "xcontest": "NoeToston",
+    "volandoo": "NoeToston",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 86883,
+    "name": "Oleksii Strieltsov",
+    "xcontest": "OleksiiStrieltsov",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 96083,
+    "name": "Oliver Zabell",
+    "xcontest": "Olliez3",
+    "volandoo": "olliez",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 85710,
+    "name": "Pablo Cesar Gongora Ferrari",
+    "xcontest": "SimonPi",
+    "volandoo": "simonpi",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 82252,
+    "name": "Pau Bonilla Bueno",
+    "xcontest": "Paurapent",
+    "volandoo": "bcnparapent",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 93232,
+    "name": "Pau Canals Molano",
+    "xcontest": "Pauet54",
+    "volandoo": "pauet54",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 96348,
+    "name": "Pep Roca",
+    "xcontest": "PepRoca",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93200,
+    "name": "Pere Esteve Bonmati",
+    "xcontest": "skulleu",
+    "volandoo": "pesteve",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 14301,
+    "name": "Pere Valles Milla",
+    "xcontest": "Perefly",
+    "volandoo": "Perektx2",
+    "status": "Confirmed",
+    "taskIds": [
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 89003,
+    "name": "Peter Readman",
+    "xcontest": "peterreadman",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 96090,
+    "name": "Pol Tomás",
+    "xcontest": "PolTomas",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 78250,
+    "name": "Rafael Rosa",
+    "xcontest": "fali",
+    "volandoo": "fali",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93712,
+    "name": "Roger Crespo",
+    "xcontest": "RogerCrespo",
+    "volandoo": "Titolus 2",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 40432,
+    "name": "Roger Pifarre Abad",
+    "xcontest": "rpifa97",
+    "volandoo": "rpifa97",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 94458,
+    "name": "Ruben Luz Tomas",
+    "xcontest": "ru3en",
+    "volandoo": "rluz",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 82522,
+    "name": "Salvador Palau",
+    "xcontest": "S Pi (SPalau)",
+    "volandoo": "gguguxapo",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 92441,
+    "name": "Sebastian Astorga",
+    "xcontest": "sebastorg",
+    "volandoo": "sastorga",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 63232,
+    "name": "Sergei Prikhodko",
+    "xcontest": "prikha",
+    "status": "Confirmed",
+    "taskIds": [
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 33350,
+    "name": "Sergi Claret",
+    "xcontest": "sclaret_7",
+    "volandoo": "sergiclaret",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 75700,
+    "name": "Sergi Pifarre Abad",
+    "xcontest": "sergipifarre",
+    "volandoo": "spifarre",
+    "status": "Confirmed",
+    "taskIds": [
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93584,
+    "name": "Sergi Sureda Diaz",
+    "xcontest": "Sureda",
+    "volandoo": "ssureda1",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 95539,
+    "name": "Sergio Castilla",
+    "xcontest": "38sergio",
+    "volandoo": "scastilla",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93242,
+    "name": "Sergio Langa Lopez",
+    "xcontest": "slanga",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 90820,
+    "name": "Sergio Luz",
+    "xcontest": "kill",
+    "volandoo": "killpaff",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 82233,
+    "name": "Sergio Toro",
+    "xcontest": "storo90",
+    "volandoo": "storo90",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 88482,
+    "name": "Soraya Garcia de Albizu Lopez",
+    "xcontest": "sor.ipunt",
+    "volandoo": "soripunt",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 86319,
+    "name": "Thomas Fischer",
+    "xcontest": "tfischer",
+    "volandoo": "tfischer",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93179,
+    "name": "Vicente Alvaro",
+    "xcontest": "Vicen",
+    "volandoo": "vicen",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 20577,
+    "name": "Vicente Gallart",
+    "volandoo": "tino",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 93423,
+    "name": "Xavi Blazquez Bisbe",
+    "xcontest": "XaviBlazquez",
+    "volandoo": "xblazquez",
+    "status": "Confirmed",
+    "taskIds": [
+      "0d27cc2d-518a-48e5-9c06-31880823ce71",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 75696,
+    "name": "Xavi Liria",
+    "xcontest": "javili",
+    "volandoo": "xliria",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "0d27cc2d-518a-48e5-9c06-31880823ce71"
+    ]
+  },
+  {
+    "id": 94478,
+    "name": "Xavi Lison",
+    "xcontest": "Xavilis",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 17974,
+    "name": "Xavier Berneda Martin",
+    "xcontest": "xberneda",
+    "volandoo": "xberneda1",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 32159,
+    "name": "Xavier Pujol Barricarte",
+    "xcontest": "XpB",
+    "volandoo": "xpujol",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97"
+    ]
+  },
+  {
+    "id": 2101,
+    "name": "Xavier Segura Jobal",
+    "xcontest": "xxavi68",
+    "volandoo": "Xavi Segura",
+    "status": "Confirmed",
+    "taskIds": [
+      "bc852108-262d-432c-a013-cbf602904a97",
+      "a4e2c6ad-9f94-4a3f-b109-3eb886359b4b"
+    ]
+  },
+  {
+    "id": 96365,
+    "name": "Roger Vinyoles Auladell",
+    "xcontest": "rux",
+    "volandoo": "roger",
+    "status": "Confirmed",
+    "taskIds": []
+  },
+  {
+    "id": 93275,
+    "name": "Manel Mamano",
+    "xcontest": "mamano",
+    "status": "Confirmed",
+    "taskIds": []
+  }
+]
