@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(yarn start)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(pkill:*)",
+      "Bash(ps aux:*)",
+      "Bash(grep:*)",
+      "Bash(awk:*)",
+      "Bash(head:*)",
+      "Bash(brew list:*)",
+      "WebFetch(domain:federacioaeria.cat)",
+      "mcp__electron__get_electron_window_info",
+      "mcp__electron__take_screenshot",
+      "mcp__electron__read_electron_logs",
+      "WebFetch(domain:www.xcontest.org)",
+      "Bash(xargs basename:*)",
+      "WebFetch(domain:www.fai.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:drive.google.com)",
+      "mcp__electron__send_command_to_electron",
+      "Bash(pgrep:*)",
+      "Bash(kill 7615:*)",
+      "Bash(kill 65707:*)",
+      "Bash(pip3 install:*)",
+      "Bash(node:*)",
+      "Bash(kill:*)",
+      "Bash(python3:*)",
+      "mcp__plugin_playwright_playwright__browser_snapshot"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["electron"],
+  "prefersReducedMotion": true
+}
