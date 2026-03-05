@@ -1,0 +1,85 @@
+{
+  "taskType": "RACE",
+  "version": 1,
+  "earthModel": "WGS84",
+  "competition": {
+    "name": "PROVA SERGI 2025",
+    "location": "Catalonia, Spain",
+    "date": "2025-08-03"
+  },
+  "turnpoints": [
+    {
+      "type": "TAKEOFF",
+      "radius": 400,
+      "waypoint": {
+        "name": "D01",
+        "description": "Launch",
+        "lat": 42.04635,
+        "lon": 0.74599,
+        "altSmoothed": 1560
+      }
+    },
+    {
+      "type": "SSS",
+      "radius": 1000,
+      "waypoint": {
+        "name": "D01",
+        "description": "Speed section start",
+        "lat": 42.04635,
+        "lon": 0.74599,
+        "altSmoothed": 1560
+      }
+    },
+    {
+      "type": "TURNPOINT",
+      "radius": 4500,
+      "waypoint": {
+        "name": "B08",
+        "description": "Turnpoint",
+        "lat": 42.05183,
+        "lon": 0.6552,
+        "altSmoothed": 755
+      }
+    },
+    {
+      "type": "ESS",
+      "radius": 1000,
+      "waypoint": {
+        "name": "G16",
+        "description": "End of speed section",
+        "lat": 41.80948,
+        "lon": 1.39547,
+        "altSmoothed": 427
+      }
+    },
+    {
+      "type": "GOAL",
+      "radius": 400,
+      "waypoint": {
+        "name": "G16",
+        "description": "Goal",
+        "lat": 41.80948,
+        "lon": 1.39547,
+        "altSmoothed": 427
+      }
+    }
+  ],
+  "sss": {
+    "type": "RACE",
+    "direction": "ENTER",
+    "timeGates": [
+      "2025-08-03T14:00:00+02:00"
+    ]
+  },
+  "goal": {
+    "type": "CYLINDER",
+    "deadline": "2025-08-03T17:30:00+02:00"
+  },
+  "metadata": {
+    "source": "PROVA_T12_Overall_V17_task12",
+    "taskDistance": 65.361,
+    "speedSectionDistance": 63.761,
+    "formula": "GAP2023",
+    "qnh": 1013.25
+  }
+}
