@@ -1,5 +1,6 @@
 /**
  * FormulaEditorDialog - Modal dialog for editing competition formula parameters
+ * Mirrors all settings from FS Advanced Settings dialog for GAP2023/GAP2025
  */
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -12,65 +13,151 @@ interface FormulaEditorDialogProps {
   onSave: (formula: Partial<ScoringFormulaConfig>) => Promise<void>;
 }
 
+// Reusable input components
+const NumberInput: React.FC<{
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+  suffix?: string;
+}> = ({ label, value, onChange, step = 1, min, max, suffix }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+    <div className="flex items-center gap-1">
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        step={step}
+        min={min}
+        max={max}
+        className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+      />
+      {suffix && <span className="text-sm text-gray-500">{suffix}</span>}
+    </div>
+  </div>
+);
+
+const Checkbox: React.FC<{
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}> = ({ label, checked, onChange }) => (
+  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+      className="rounded border-gray-300"
+    />
+    {label}
+  </label>
+);
+
 const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
   isOpen,
   onClose,
   formula,
   onSave,
 }) => {
-  // Main parameters
+  // Competition Parameters
   const [name, setName] = useState<FormulaId>("GAP2023");
-  const [nominalDistanceKm, setNominalDistanceKm] = useState(50);
-  const [minimumDistanceKm, setMinimumDistanceKm] = useState(7);
-  const [nominalTimeMin, setNominalTimeMin] = useState(90);
-  const [nominalGoalPct, setNominalGoalPct] = useState(20);
   const [nominalLaunchPct, setNominalLaunchPct] = useState(96);
-
-  // Scoring options
-  const [leadingWeightFactor, setLeadingWeightFactor] = useState(1.0);
+  const [minimumDistanceKm, setMinimumDistanceKm] = useState(7);
+  const [nominalDistanceKm, setNominalDistanceKm] = useState(70);
+  const [nominalTimeMin, setNominalTimeMin] = useState(90);
+  const [nominalGoalPct, setNominalGoalPct] = useState(30);
   const [scoreBackTimeMin, setScoreBackTimeMin] = useState(5);
   const [scoringAltitude, setScoringAltitude] = useState<"GPS" | "QNH">("GPS");
-  const [useFlatDecline, setUseFlatDecline] = useState(true);
 
-  // Advanced settings
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [ftvFactor, setFtvFactor] = useState(0);
-  const [turnpointRadiusTolerance, setTurnpointRadiusTolerance] =
-    useState(0.005);
+  // Point Types
+  const [useDistancePoints, setUseDistancePoints] = useState(true);
+  const [useTimePoints, setUseTimePoints] = useState(true);
+  const [useDeparturePoints, setUseDeparturePoints] = useState(false);
+  const [useLeadingPoints, setUseLeadingPoints] = useState(true);
+  const [useArrivalPoints, setUseArrivalPoints] = useState(false);
+
+  // Technical Parameters
+  const [dayQualityOverride, setDayQualityOverride] = useState(0);
+  const [jumpTheGunFactor, setJumpTheGunFactor] = useState(0);
+  const [jumpTheGunMax, setJumpTheGunMax] = useState(0);
+  const [leadingWeightFactor, setLeadingWeightFactor] = useState(1.0);
+  const [use1000PointsForMaxDayQuality, setUse1000PointsForMaxDayQuality] =
+    useState(false);
+  const [normalize1000BeforeDayQuality, setNormalize1000BeforeDayQuality] =
+    useState(false);
+  const [useConstantLeadingWeight, setUseConstantLeadingWeight] =
+    useState(true);
+  const [
+    useProportionalLeadingWeightIfNobodyInGoal,
+    setUseProportionalLeadingWeightIfNobodyInGoal,
+  ] = useState(false);
+  const [timePointsIfNotInGoalPct, setTimePointsIfNotInGoalPct] = useState(0);
+  const [turnpointRadiusTolerancePct, setTurnpointRadiusTolerancePct] =
+    useState(0.2);
   const [turnpointRadiusMinAbsTolerance, setTurnpointRadiusMinAbsTolerance] =
     useState(5);
-  const [bonusGr, setBonusGr] = useState(0);
-  const [jumpTheGunFactor, setJumpTheGunFactor] = useState(1);
-  const [jumpTheGunMax, setJumpTheGunMax] = useState(300);
+  const [bonusGr, setBonusGr] = useState(4);
+  const [useDifficultyForDistancePoints, setUseDifficultyForDistancePoints] =
+    useState(false);
+
+  // Additional advanced settings
+  const [ftvFactor, setFtvFactor] = useState(0);
   const [taskDecimals, setTaskDecimals] = useState(1);
   const [compDecimals, setCompDecimals] = useState(0);
 
   // UI state
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Populate form from formula prop
   useEffect(() => {
     if (isOpen && formula) {
+      // Competition Parameters
       setName(formula.name);
-      setNominalDistanceKm(formula.nominalDistance / 1000);
+      setNominalLaunchPct(formula.nominalLaunch * 100);
       setMinimumDistanceKm(formula.minimumDistance / 1000);
+      setNominalDistanceKm(formula.nominalDistance / 1000);
       setNominalTimeMin(formula.nominalTime / 60);
       setNominalGoalPct(formula.nominalGoal * 100);
-      setNominalLaunchPct(formula.nominalLaunch * 100);
-      setLeadingWeightFactor(formula.leadingWeightFactor);
       setScoreBackTimeMin(formula.scoreBackTime / 60);
       setScoringAltitude(formula.scoringAltitude === "QNH" ? "QNH" : "GPS");
-      setUseFlatDecline(formula.useFlatDecline);
-      setFtvFactor(formula.ftvFactor);
-      setTurnpointRadiusTolerance(formula.turnpointRadiusTolerance);
+
+      // Point Types
+      setUseDistancePoints(formula.useDistancePoints);
+      setUseTimePoints(formula.useTimePoints);
+      setUseDeparturePoints(formula.useDeparturePoints);
+      setUseLeadingPoints(formula.useLeadingPoints);
+      setUseArrivalPoints(formula.useArrivalPoints);
+
+      // Technical Parameters
+      setDayQualityOverride(formula.dayQualityOverride);
+      setJumpTheGunFactor(formula.jumpTheGunFactor);
+      setJumpTheGunMax(formula.jumpTheGunMax);
+      setLeadingWeightFactor(formula.leadingWeightFactor);
+      setUse1000PointsForMaxDayQuality(formula.use1000PointsForMaxDayQuality);
+      setNormalize1000BeforeDayQuality(formula.normalize1000BeforeDayQuality);
+      setUseConstantLeadingWeight(formula.useConstantLeadingWeight);
+      setUseProportionalLeadingWeightIfNobodyInGoal(
+        formula.useProportionalLeadingWeightIfNobodyInGoal
+      );
+      setTimePointsIfNotInGoalPct(formula.timePointsIfNotInGoal * 100);
+      setTurnpointRadiusTolerancePct(formula.turnpointRadiusTolerance * 100);
       setTurnpointRadiusMinAbsTolerance(
         formula.turnpointRadiusMinimumAbsoluteTolerance
       );
       setBonusGr(formula.bonusGr);
-      setJumpTheGunFactor(formula.jumpTheGunFactor);
-      setJumpTheGunMax(formula.jumpTheGunMax);
+      setUseDifficultyForDistancePoints(formula.useDifficultyForDistancePoints);
+
+      // Additional
+      setFtvFactor(formula.ftvFactor);
       setTaskDecimals(formula.numberOfDecimalsTaskResults);
       setCompDecimals(formula.numberOfDecimalsCompetitionResults);
+
       setShowAdvanced(false);
     }
   }, [isOpen, formula]);
@@ -80,21 +167,32 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
     try {
       await onSave({
         name,
-        nominalDistance: nominalDistanceKm * 1000,
+        nominalLaunch: nominalLaunchPct / 100,
         minimumDistance: minimumDistanceKm * 1000,
+        nominalDistance: nominalDistanceKm * 1000,
         nominalTime: nominalTimeMin * 60,
         nominalGoal: nominalGoalPct / 100,
-        nominalLaunch: nominalLaunchPct / 100,
-        leadingWeightFactor,
         scoreBackTime: scoreBackTimeMin * 60,
         scoringAltitude,
-        useFlatDecline,
-        ftvFactor,
-        turnpointRadiusTolerance,
-        turnpointRadiusMinimumAbsoluteTolerance: turnpointRadiusMinAbsTolerance,
-        bonusGr,
+        useDistancePoints,
+        useTimePoints,
+        useDeparturePoints,
+        useLeadingPoints,
+        useArrivalPoints,
+        dayQualityOverride,
         jumpTheGunFactor,
         jumpTheGunMax,
+        leadingWeightFactor,
+        use1000PointsForMaxDayQuality,
+        normalize1000BeforeDayQuality,
+        useConstantLeadingWeight,
+        useProportionalLeadingWeightIfNobodyInGoal,
+        timePointsIfNotInGoal: timePointsIfNotInGoalPct / 100,
+        turnpointRadiusTolerance: turnpointRadiusTolerancePct / 100,
+        turnpointRadiusMinimumAbsoluteTolerance: turnpointRadiusMinAbsTolerance,
+        bonusGr,
+        useDifficultyForDistancePoints,
+        ftvFactor,
         numberOfDecimalsTaskResults: taskDecimals,
         numberOfDecimalsCompetitionResults: compDecimals,
       });
@@ -106,21 +204,32 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
     }
   }, [
     name,
-    nominalDistanceKm,
+    nominalLaunchPct,
     minimumDistanceKm,
+    nominalDistanceKm,
     nominalTimeMin,
     nominalGoalPct,
-    nominalLaunchPct,
-    leadingWeightFactor,
     scoreBackTimeMin,
     scoringAltitude,
-    useFlatDecline,
-    ftvFactor,
-    turnpointRadiusTolerance,
-    turnpointRadiusMinAbsTolerance,
-    bonusGr,
+    useDistancePoints,
+    useTimePoints,
+    useDeparturePoints,
+    useLeadingPoints,
+    useArrivalPoints,
+    dayQualityOverride,
     jumpTheGunFactor,
     jumpTheGunMax,
+    leadingWeightFactor,
+    use1000PointsForMaxDayQuality,
+    normalize1000BeforeDayQuality,
+    useConstantLeadingWeight,
+    useProportionalLeadingWeightIfNobodyInGoal,
+    timePointsIfNotInGoalPct,
+    turnpointRadiusTolerancePct,
+    turnpointRadiusMinAbsTolerance,
+    bonusGr,
+    useDifficultyForDistancePoints,
+    ftvFactor,
     taskDecimals,
     compDecimals,
     onSave,
@@ -139,7 +248,7 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
 
       {/* Dialog */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
             <h3 className="text-lg font-semibold">Formula Parameters</h3>
@@ -165,10 +274,10 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-            {/* Main Parameters */}
+            {/* Competition Parameters */}
             <section>
               <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                Main Parameters
+                Competition Parameters
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -185,144 +294,59 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nominal Distance (km)
-                  </label>
-                  <input
-                    type="number"
-                    value={nominalDistanceKm}
-                    onChange={(e) =>
-                      setNominalDistanceKm(parseFloat(e.target.value) || 0)
-                    }
-                    step={1}
-                    min={0}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
+                <NumberInput
+                  label="Nominal Launch"
+                  value={nominalLaunchPct}
+                  onChange={setNominalLaunchPct}
+                  min={0}
+                  max={100}
+                  suffix="% of pilots"
+                />
+                <NumberInput
+                  label="Minimum Distance"
+                  value={minimumDistanceKm}
+                  onChange={setMinimumDistanceKm}
+                  step={0.5}
+                  min={0}
+                  suffix="km"
+                />
+                <NumberInput
+                  label="Nominal Distance"
+                  value={nominalDistanceKm}
+                  onChange={setNominalDistanceKm}
+                  min={0}
+                  suffix="km"
+                />
+                <NumberInput
+                  label="Nominal Time"
+                  value={nominalTimeMin}
+                  onChange={setNominalTimeMin}
+                  step={5}
+                  min={0}
+                  suffix="min"
+                />
+                <NumberInput
+                  label="Nominal Goal"
+                  value={nominalGoalPct}
+                  onChange={setNominalGoalPct}
+                  min={0}
+                  max={100}
+                  suffix="% of pilots"
+                />
+                <NumberInput
+                  label="Score-back Time"
+                  value={scoreBackTimeMin}
+                  onChange={setScoreBackTimeMin}
+                  min={0}
+                  suffix="min"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Minimum Distance (km)
-                  </label>
-                  <input
-                    type="number"
-                    value={minimumDistanceKm}
-                    onChange={(e) =>
-                      setMinimumDistanceKm(parseFloat(e.target.value) || 0)
-                    }
-                    step={0.5}
-                    min={0}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nominal Time (min)
-                  </label>
-                  <input
-                    type="number"
-                    value={nominalTimeMin}
-                    onChange={(e) =>
-                      setNominalTimeMin(parseFloat(e.target.value) || 0)
-                    }
-                    step={5}
-                    min={0}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nominal Goal (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={nominalGoalPct}
-                    onChange={(e) =>
-                      setNominalGoalPct(parseFloat(e.target.value) || 0)
-                    }
-                    step={1}
-                    min={0}
-                    max={100}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nominal Launch (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={nominalLaunchPct}
-                    onChange={(e) =>
-                      setNominalLaunchPct(parseFloat(e.target.value) || 0)
-                    }
-                    step={1}
-                    min={0}
-                    max={100}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Scoring Options */}
-            <section>
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                Scoring Options
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Leading Weight Factor
-                  </label>
-                  <input
-                    type="number"
-                    value={leadingWeightFactor}
-                    onChange={(e) =>
-                      setLeadingWeightFactor(parseFloat(e.target.value) || 0)
-                    }
-                    step={0.1}
-                    min={0}
-                    max={2}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Score Back Time (min)
-                  </label>
-                  <input
-                    type="number"
-                    value={scoreBackTimeMin}
-                    onChange={(e) =>
-                      setScoreBackTimeMin(parseFloat(e.target.value) || 0)
-                    }
-                    step={1}
-                    min={0}
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
-                </div>
-
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Scoring Altitude
                   </label>
                   <div className="flex gap-4 mt-1">
-                    <label className="flex items-center gap-1.5 text-sm">
-                      <input
-                        type="radio"
-                        name="scoringAltitude"
-                        checked={scoringAltitude === "GPS"}
-                        onChange={() => setScoringAltitude("GPS")}
-                      />
-                      GPS
-                    </label>
-                    <label className="flex items-center gap-1.5 text-sm">
+                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
                       <input
                         type="radio"
                         name="scoringAltitude"
@@ -331,18 +355,16 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                       />
                       QNH
                     </label>
+                    <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="scoringAltitude"
+                        checked={scoringAltitude === "GPS"}
+                        onChange={() => setScoringAltitude("GPS")}
+                      />
+                      GPS
+                    </label>
                   </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mt-4">
-                    <input
-                      type="checkbox"
-                      checked={useFlatDecline}
-                      onChange={(e) => setUseFlatDecline(e.target.checked)}
-                    />
-                    Use Flat Decline (5/6)
-                  </label>
                 </div>
               </div>
             </section>
@@ -371,141 +393,167 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
               </button>
 
               {showAdvanced && (
-                <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="mt-4 space-y-6">
+                  {/* Point Types */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      FTV Factor
-                    </label>
-                    <input
-                      type="number"
-                      value={ftvFactor}
-                      onChange={(e) =>
-                        setFtvFactor(parseFloat(e.target.value) || 0)
-                      }
-                      step={0.1}
-                      min={0}
-                      max={1}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Point Types
+                    </h5>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Checkbox
+                        label="Use Distance Points"
+                        checked={useDistancePoints}
+                        onChange={setUseDistancePoints}
+                      />
+                      <Checkbox
+                        label="Use Departure Points"
+                        checked={useDeparturePoints}
+                        onChange={setUseDeparturePoints}
+                      />
+                      <Checkbox
+                        label="Use Time Points"
+                        checked={useTimePoints}
+                        onChange={setUseTimePoints}
+                      />
+                      <Checkbox
+                        label="Use Leading Points"
+                        checked={useLeadingPoints}
+                        onChange={setUseLeadingPoints}
+                      />
+                      <Checkbox
+                        label="Use Arrival Position Points"
+                        checked={useArrivalPoints}
+                        onChange={setUseArrivalPoints}
+                      />
+                    </div>
                   </div>
 
+                  {/* Technical Parameters */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Bonus Glide Ratio
-                    </label>
-                    <input
-                      type="number"
-                      value={bonusGr}
-                      onChange={(e) =>
-                        setBonusGr(parseFloat(e.target.value) || 0)
-                      }
-                      step={1}
-                      min={0}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Technical Parameters
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <NumberInput
+                        label="Day Quality Override"
+                        value={dayQualityOverride}
+                        onChange={setDayQualityOverride}
+                        step={0.01}
+                        min={0}
+                        max={1}
+                      />
+                      <NumberInput
+                        label="Time Points if ES but not Goal"
+                        value={timePointsIfNotInGoalPct}
+                        onChange={setTimePointsIfNotInGoalPct}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                      />
+                      <NumberInput
+                        label={'"Jump the Gun" Factor'}
+                        value={jumpTheGunFactor}
+                        onChange={setJumpTheGunFactor}
+                        min={0}
+                      />
+                      <NumberInput
+                        label="Turnpoint Radius Tolerance"
+                        value={turnpointRadiusTolerancePct}
+                        onChange={setTurnpointRadiusTolerancePct}
+                        step={0.01}
+                        min={0}
+                        suffix="%"
+                      />
+                      <NumberInput
+                        label={'Max "Jump the Gun" (seconds)'}
+                        value={jumpTheGunMax}
+                        onChange={setJumpTheGunMax}
+                        step={10}
+                        min={0}
+                      />
+                      <NumberInput
+                        label="TP Radius Min Abs Tolerance"
+                        value={turnpointRadiusMinAbsTolerance}
+                        onChange={setTurnpointRadiusMinAbsTolerance}
+                        min={0}
+                        suffix="m"
+                      />
+                      <NumberInput
+                        label="Leading Weight Factor"
+                        value={leadingWeightFactor}
+                        onChange={setLeadingWeightFactor}
+                        step={0.1}
+                        min={0}
+                        max={2}
+                      />
+                      <NumberInput
+                        label="Stopped Task Bonus Glide Ratio"
+                        value={bonusGr}
+                        onChange={setBonusGr}
+                        min={0}
+                        suffix=":1"
+                      />
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <Checkbox
+                        label="1000 points for winner if no pilot in goal"
+                        checked={use1000PointsForMaxDayQuality}
+                        onChange={setUse1000PointsForMaxDayQuality}
+                      />
+                      <Checkbox
+                        label="1000 points for winner before DQ is applied"
+                        checked={normalize1000BeforeDayQuality}
+                        onChange={setNormalize1000BeforeDayQuality}
+                      />
+                      <Checkbox
+                        label="Use constant leading weight"
+                        checked={useConstantLeadingWeight}
+                        onChange={setUseConstantLeadingWeight}
+                      />
+                      <Checkbox
+                        label="Proportional Leading Points weight if no pilot in goal"
+                        checked={useProportionalLeadingWeightIfNobodyInGoal}
+                        onChange={setUseProportionalLeadingWeightIfNobodyInGoal}
+                      />
+                      <Checkbox
+                        label='Use "difficulty" for distance points calculation'
+                        checked={useDifficultyForDistancePoints}
+                        onChange={setUseDifficultyForDistancePoints}
+                      />
+                    </div>
                   </div>
 
+                  {/* Other Settings */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      TP Radius Tolerance
-                    </label>
-                    <input
-                      type="number"
-                      value={turnpointRadiusTolerance}
-                      onChange={(e) =>
-                        setTurnpointRadiusTolerance(
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      step={0.001}
-                      min={0}
-                      max={0.1}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Min Abs Tolerance (m)
-                    </label>
-                    <input
-                      type="number"
-                      value={turnpointRadiusMinAbsTolerance}
-                      onChange={(e) =>
-                        setTurnpointRadiusMinAbsTolerance(
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      step={1}
-                      min={0}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Jump the Gun Factor
-                    </label>
-                    <input
-                      type="number"
-                      value={jumpTheGunFactor}
-                      onChange={(e) =>
-                        setJumpTheGunFactor(parseFloat(e.target.value) || 0)
-                      }
-                      step={0.1}
-                      min={0}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Jump the Gun Max
-                    </label>
-                    <input
-                      type="number"
-                      value={jumpTheGunMax}
-                      onChange={(e) =>
-                        setJumpTheGunMax(parseFloat(e.target.value) || 0)
-                      }
-                      step={10}
-                      min={0}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Decimals (Task)
-                    </label>
-                    <input
-                      type="number"
-                      value={taskDecimals}
-                      onChange={(e) =>
-                        setTaskDecimals(parseInt(e.target.value) || 0)
-                      }
-                      step={1}
-                      min={0}
-                      max={4}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Decimals (Comp)
-                    </label>
-                    <input
-                      type="number"
-                      value={compDecimals}
-                      onChange={(e) =>
-                        setCompDecimals(parseInt(e.target.value) || 0)
-                      }
-                      step={1}
-                      min={0}
-                      max={4}
-                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                    />
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Other Settings
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <NumberInput
+                        label="FTV Factor"
+                        value={ftvFactor}
+                        onChange={setFtvFactor}
+                        step={0.1}
+                        min={0}
+                        max={1}
+                      />
+                      <div />
+                      <NumberInput
+                        label="Decimals (Task)"
+                        value={taskDecimals}
+                        onChange={(v) => setTaskDecimals(Math.round(v))}
+                        min={0}
+                        max={4}
+                      />
+                      <NumberInput
+                        label="Decimals (Competition)"
+                        value={compDecimals}
+                        onChange={(v) => setCompDecimals(Math.round(v))}
+                        min={0}
+                        max={4}
+                      />
+                    </div>
                   </div>
                 </div>
               )}

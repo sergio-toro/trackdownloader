@@ -41,8 +41,10 @@ export function calculateLeadingPoints(
     return 0;
   }
 
-  // Must reach ESS to get leading points
-  if (!analysis.essTime) {
+  // Must have crossed SS to get leading points
+  // FS awards leading points to any pilot who started the speed section,
+  // not just those who reached ESS.
+  if (!analysis.startTime || analysis.timeDistanceGraph.length < 2) {
     return 0;
   }
 

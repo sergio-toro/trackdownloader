@@ -471,10 +471,11 @@ export class FileCompetitionStorage implements ICompetitionStorage {
   // Formula management
 
   async getScoringFormula(compId: string): Promise<ScoringFormulaConfig> {
-    const formula = await this.readJson<ScoringFormulaConfig>(
+    const stored = await this.readJson<Partial<ScoringFormulaConfig>>(
       path.join(this.compDir(compId), "formula.json")
     );
-    return formula || getDefaultFormula("GAP2023");
+    const defaults = getDefaultFormula(stored?.name || "GAP2023");
+    return { ...defaults, ...stored };
   }
 
   async updateScoringFormula(

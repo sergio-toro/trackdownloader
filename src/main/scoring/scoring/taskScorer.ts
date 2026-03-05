@@ -28,10 +28,7 @@ import {
   applyGap2025Adjustments,
   calculateAvailablePoints,
 } from "../core/weights";
-import {
-  calculateLeadingCoeff,
-  calculateTaskLcMin,
-} from "../leading/leadingCalculator";
+import { calculateLeadingCoeff } from "../leading/leadingCalculator";
 import { calculateDistancePoints } from "../points/distancePoints";
 import { calculateTimePoints } from "../points/timePoints";
 import { calculateArrivalPoints } from "../points/arrivalPoints";
@@ -109,37 +106,63 @@ export async function scoreTask(options: ScoringOptions): Promise<TaskResult> {
 
   onProgress?.(25, "Calculating leading coefficients...");
 
-  // Step 5: Calculate leading coefficients for all pilots
+  // Step 5: Calculate leading coefficients for all pilots who crossed SS
+  // FS awards leading points to ANY pilot who started the speed section,
+  // not just those who reached ESS.
   const lcResults = new Map<number, ReturnType<typeof calculateLeadingCoeff>>();
   const essAltitude = task.turnpoints[task.esIndex - 1]?.altitude;
 
+  // When useLeadingTimeRatio is enabled (GAP2023), non-ESS pilots' LCs are
+  // extended by appending their last position to the task end time. This
+  // penalizes pilots who land out by accumulating additional LC area at their
+  // last dist2es (which is far from ESS). The task end time is the last ESS
+  // crossing + score-back time. For pilots who are STILL flying after that time,
+  // this has no effect (their raw graph already covers the full window).
+  const lastEssTime = stats.lastFinishTime;
+  const scoreBackTime = formula.scoreBackTime || 0;
+
   for (const analysis of analyses) {
-    if (analysis.essTime && analysis.timeDistanceGraph.length >= 2) {
+    if (analysis.startTime && analysis.timeDistanceGraph.length >= 2) {
+      let graph = analysis.timeDistanceGraph;
+
+      // For non-ESS pilots: extend graph to task end time
+      // This ensures pilots who land early are penalized with additional
+      // LC area at their last (high) dist2es position
+      if (!analysis.essTime && formula.useLeadingTimeRatio && lastEssTime > 0) {
+        const lcEndTime =
+          (lastEssTime + scoreBackTime * 1000 - analysis.startTime) / 1000;
+        const lastPoint = graph[graph.length - 1];
+        if (lcEndTime > lastPoint.time) {
+          graph = [
+            ...graph,
+            {
+              time: lcEndTime,
+              dist: lastPoint.dist,
+              dist2es: lastPoint.dist2es,
+              alt: lastPoint.alt,
+            },
+          ];
+        }
+      }
+
       const lcResult = calculateLeadingCoeff(
-        analysis.timeDistanceGraph,
+        graph,
         formula,
         task.speedSectionDistance,
         essAltitude
       );
+
       lcResults.set(analysis.pilotId, lcResult);
     }
   }
 
-  // Calculate task LC minimum for normalization
-  const validGraphs = analyses
-    .filter((a) => a.essTime && a.timeDistanceGraph.length >= 2)
-    .map((a) => a.timeDistanceGraph);
-
-  const _taskLcMin = calculateTaskLcMin(
-    validGraphs,
-    formula,
-    task.speedSectionDistance,
-    essAltitude
-  );
-
-  // Update stats with LC values
-  const lcValues = Array.from(lcResults.values()).map((r) => r.totalArea);
-  stats = updateStatsWithLeadingCoeffs(stats, lcValues);
+  // Calculate LC min from ESS pilots for stable normalization
+  const essLcValues = analyses
+    .filter((a) => a.essTime)
+    .map((a) => lcResults.get(a.pilotId))
+    .filter((r): r is NonNullable<typeof r> => !!r)
+    .map((r) => r.totalArea);
+  stats = updateStatsWithLeadingCoeffs(stats, essLcValues);
 
   onProgress?.(30, "Scoring pilots...");
 
@@ -337,10 +360,10 @@ export function scoreSinglePilot(
   speedSectionDistance: number,
   essAltitude?: number
 ): PilotResult {
-  // Calculate LC for this pilot
+  // Calculate LC for this pilot (any pilot who crossed SS)
   let lcResult: ReturnType<typeof calculateLeadingCoeff> | undefined;
 
-  if (analysis.essTime && analysis.timeDistanceGraph.length >= 2) {
+  if (analysis.startTime && analysis.timeDistanceGraph.length >= 2) {
     lcResult = calculateLeadingCoeff(
       analysis.timeDistanceGraph,
       formula,

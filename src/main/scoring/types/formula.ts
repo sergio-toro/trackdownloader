@@ -75,6 +75,7 @@ export interface ScoringFormulaConfig {
   useBestScoreForFtvValidity: boolean;
 
   // Day quality settings
+  dayQualityOverride: number; // 0 = no override, >0 overrides computed day quality (0-1)
   use1000PointsForMaxDayQuality: boolean;
   normalize1000BeforeDayQuality: boolean;
 
@@ -102,9 +103,9 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
   name: "GAP2023",
 
   // Nominal values
-  nominalDistance: 50000, // 50 km
-  nominalTime: 5400, // 90 minutes
-  nominalGoal: 0.2, // 20%
+  nominalDistance: 70000, // 70 km
+  nominalTime: 5400, // 90 minutes (1.5 hours)
+  nominalGoal: 0.3, // 30%
   nominalLaunch: 0.96, // 96%
 
   // Minimum distance
@@ -118,16 +119,16 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
   useDeparturePoints: false,
 
   // Point fractions
-  leadingFraction: 0.26, // Leading time ratio
+  leadingFraction: 0.162, // Constant leading weight for GAP2023 PG
   arrivalFraction: 0,
   departureFraction: 0,
 
   // Leading calculator settings
-  leadingCalculatorType: "PWC2023",
+  leadingCalculatorType: "PWC2019",
   leadingWeightFactor: 1.0,
-  useConstantLeadingWeight: false,
-  useProportionalLeadingWeightIfNobodyInGoal: true,
-  useLeadingTimeRatio: true,
+  useConstantLeadingWeight: true, // GAP2023 PG uses fixed 0.162 leading weight
+  useProportionalLeadingWeightIfNobodyInGoal: false,
+  useLeadingTimeRatio: false, // GAP2023 does NOT use leading time ratio
 
   // Time points settings
   useFlatDecline: true, // 5/6 exponent
@@ -135,38 +136,39 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
   redistributeRemovedTimePointsAsDistancePoints: true,
 
   // Distance points settings
-  useDifficultyForDistancePoints: true,
+  useDifficultyForDistancePoints: false, // PG does NOT use difficulty
 
   // Final glide decelerator
   finalGlideDecelerator: "none",
-  cessIncline: 0,
-  aatbFactor: 0,
+  cessIncline: 3.5,
+  aatbFactor: 0.45,
 
   // Goal settings
   useSemiCircleControlZoneForGoalLine: true,
-  scoringAltitude: "GPS",
+  scoringAltitude: "QNH", // GAP2023 uses QNH
 
   // Stopped task settings
   scoreBackTime: 300, // 5 minutes
-  minTimeSpanForValidTask: 3600, // 1 hour
+  minTimeSpanForValidTask: 0, // PG: no minimum
   altitudeBonusFactor: 0,
-  minimumValidityToCountStoppedTask: 0,
+  minimumValidityToCountStoppedTask: 0.05, // PG: 5%
 
   // Turnpoint tolerance
-  turnpointRadiusTolerance: 0.005, // 0.5%
+  turnpointRadiusTolerance: 0.002, // 0.2% (non-FAI default)
   turnpointRadiusMinimumAbsoluteTolerance: 5, // 5 meters
 
   // FTV
   ftvFactor: 0, // No FTV
-  useBestScoreForFtvValidity: false,
+  useBestScoreForFtvValidity: true,
 
   // Day quality settings
-  use1000PointsForMaxDayQuality: true,
+  dayQualityOverride: 0, // 0 = no override
+  use1000PointsForMaxDayQuality: false,
   normalize1000BeforeDayQuality: false,
 
   // Jump the gun
-  jumpTheGunFactor: 1, // 1 point per second
-  jumpTheGunMax: 300, // max 300 points penalty
+  jumpTheGunFactor: 0, // PG: no jump the gun
+  jumpTheGunMax: 0, // PG: no jump the gun
 
   // Decimal precision
   numberOfDecimalsTaskResults: 1,
@@ -175,8 +177,8 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
   // Misc
   isPgComp: true,
   faiSanctioning: 0,
-  bonusGr: 0,
-  bonusForWholeTrack: false,
+  bonusGr: 4, // PG GAP2023: glide ratio 4
+  bonusForWholeTrack: true,
   optimizeSsAlone: false,
   useFirstPilotStartTimeForLC: false,
 };
@@ -188,7 +190,17 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
 export const GAP2025_PG_DEFAULTS: ScoringFormulaConfig = {
   ...GAP2023_PG_DEFAULTS,
   name: "GAP2025",
-  // Add GAP2025-specific changes here when defined
+
+  // GAP2025 uses dynamic leading weight via time ratio (not constant)
+  useConstantLeadingWeight: false,
+  useLeadingTimeRatio: true,
+  leadingFraction: 0.26,
+
+  // GAP2025 uses PWC2023 leading calculator
+  leadingCalculatorType: "PWC2023",
+
+  // GAP2025 switched to GPS altitude
+  scoringAltitude: "GPS",
 };
 
 /**
