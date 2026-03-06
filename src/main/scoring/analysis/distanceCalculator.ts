@@ -80,14 +80,7 @@ export function calculateFlownDistance(
   const nextTp =
     nextLeg < task.turnpoints.length ? task.turnpoints[nextLeg] : null;
 
-  // Determine the end of the search window. FS uses tracklog filtering to
-  // truncate the track at landing, preventing pilots who fly past a missed TP
-  // from getting credit for positions near subsequent TPs. We approximate this
-  // by limiting the search to the pilot's closest approach to the first missed
-  // TP. After that point the pilot is moving away and shouldn't gain credit.
-  const endIdx = findSearchEndIndex(fixes, startIdx, nextTp);
-
-  for (let i = startIdx; i < endIdx; i++) {
+  for (let i = startIdx; i < fixes.length; i++) {
     const fix = fixes[i];
 
     // Quick check: if distance to next TP center is larger than current best
@@ -206,69 +199,6 @@ export function calculateBonusDistance(
   const altitude = fix.pressureAltitude ?? fix.gpsAltitude ?? 0;
   const altitudeAboveGoal = Math.max(0, altitude - goalAltitude);
   return altitudeAboveGoal * glideRatio;
-}
-
-/**
- * Find the end index for the distance search.
- *
- * When a pilot misses a TP, we only search up to the point where they're
- * closest to that TP (plus a small buffer). This prevents crediting pilots
- * who fly past a missed TP and end up near subsequent large-radius TPs.
- *
- * FS achieves this via tracklog filtering (landing detection), which
- * truncates the track. This is a simpler approximation.
- */
-function findSearchEndIndex(
-  fixes: FlightFix[],
-  startIdx: number,
-  nextTp: {
-    geopoint: { latitude: number; longitude: number };
-    radius: number;
-  } | null
-): number {
-  if (!nextTp || fixes.length === 0) {
-    return fixes.length;
-  }
-
-  const tpCenter = {
-    latitude: nextTp.geopoint.latitude,
-    longitude: nextTp.geopoint.longitude,
-  };
-
-  // Find the closest approach to the next TP
-  let minDist = Infinity;
-  let minIdx = startIdx;
-
-  for (let i = startIdx; i < fixes.length; i++) {
-    const d = distance(
-      { latitude: fixes[i].latitude, longitude: fixes[i].longitude },
-      tpCenter
-    );
-    if (d < minDist) {
-      minDist = d;
-      minIdx = i;
-    }
-  }
-
-  // If the pilot entered the TP cylinder, they crossed it (and the chain
-  // should have continued). Search the full track.
-  if (minDist <= nextTp.radius) {
-    return fixes.length;
-  }
-
-  // The pilot missed this TP. Allow searching up to 5 minutes past closest
-  // approach (in case the best shortest-route point is slightly after).
-  const closestTime = fixes[minIdx].timestamp;
-  const bufferMs = 5 * 60 * 1000;
-  let endIdx = minIdx + 1;
-  while (
-    endIdx < fixes.length &&
-    fixes[endIdx].timestamp <= closestTime + bufferMs
-  ) {
-    endIdx++;
-  }
-
-  return endIdx;
 }
 
 /**

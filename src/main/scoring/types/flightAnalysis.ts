@@ -104,4 +104,6 @@ export interface FlightAnalysisOptions {
   minAbsTolerance?: number;
   // Minimum distance floor in meters (default 7000 = 7km)
   minDistance?: number;
+  // Altitude source for landing detection: 'GPS' or 'QNH' (default 'QNH' = pressure altitude)
+  scoringAltitude?: "GPS" | "QNH";
 }

@@ -100,7 +100,8 @@ export function analyzeFlightFixes(
   const landingIdx = detectLandingIndex(
     fixes,
     taskOpenTime,
-    task.turnpoints[0]
+    task.turnpoints[0],
+    opts.scoringAltitude
   );
   const flightFixes =
     landingIdx < fixes.length ? fixes.slice(0, landingIdx) : fixes;

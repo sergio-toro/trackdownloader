@@ -618,6 +618,8 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
                   radiusTolerance: formula.turnpointRadiusTolerance,
                   minAbsTolerance:
                     formula.turnpointRadiusMinimumAbsoluteTolerance,
+                  scoringAltitude:
+                    formula.scoringAltitude === "GPS" ? "GPS" : "QNH",
                 }
               );
               analyses.push(analysis);

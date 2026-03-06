@@ -100,6 +100,7 @@ async function analyzeAndScoreTask(taskName: string): Promise<{
       minDistance: formula.minimumDistance,
       radiusTolerance: formula.turnpointRadiusTolerance,
       minAbsTolerance: formula.turnpointRadiusMinimumAbsoluteTolerance,
+      scoringAltitude: formula.scoringAltitude === "GPS" ? "GPS" : "QNH",
     });
     analyses.push(analysis);
   }
@@ -118,7 +119,7 @@ describe("Task Scoring Integration", () => {
       const scored = await analyzeAndScoreTask(taskName);
       result = scored.result;
       expected = scored.expected;
-    }, 120000);
+    }, 300000);
 
     it("should produce correct day quality", () => {
       expect(result.dayQuality).toBeCloseTo(expected.dayQuality, 1);

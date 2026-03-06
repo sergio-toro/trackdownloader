@@ -41,7 +41,8 @@ const MAX_SPEED = 60; // m/s (216 km/h) - filter GPS spikes
 export function detectLandingIndex(
   fixes: FlightFix[],
   taskOpenTime?: number,
-  firstTp?: Turnpoint
+  firstTp?: Turnpoint,
+  scoringAltitude?: "GPS" | "QNH"
 ): number {
   if (fixes.length < 2) return fixes.length;
 
@@ -133,7 +134,10 @@ export function detectLandingIndex(
     if (reachedFlyingSpeed && doneFlyingAway) {
       // Filter GPS speed spikes (FS: dist / time < 60)
       if (speed < MAX_SPEED) {
-        const alt = fixes[i].pressureAltitude ?? fixes[i].gpsAltitude ?? 0;
+        const alt =
+          scoringAltitude === "GPS"
+            ? (fixes[i].gpsAltitude ?? fixes[i].pressureAltitude ?? 0)
+            : (fixes[i].pressureAltitude ?? fixes[i].gpsAltitude ?? 0);
         const timeSec = fixes[i].timestamp / 1000;
 
         window.push({ speed, alt, time: timeSec, idx: i });
