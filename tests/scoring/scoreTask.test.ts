@@ -101,6 +101,7 @@ async function analyzeAndScoreTask(taskName: string): Promise<{
       radiusTolerance: formula.turnpointRadiusTolerance,
       minAbsTolerance: formula.turnpointRadiusMinimumAbsoluteTolerance,
       scoringAltitude: formula.scoringAltitude === "GPS" ? "GPS" : "QNH",
+      useLegacyLandingDetection: true,
     });
     analyses.push(analysis);
   }
@@ -182,7 +183,7 @@ describe("Task Scoring Integration", () => {
         if (!exp) continue;
         expect(
           Math.abs(pilotResult.totalPoints - exp.totalPoints)
-        ).toBeLessThan(3);
+        ).toBeLessThan(1);
       }
     });
 
@@ -197,7 +198,7 @@ describe("Task Scoring Integration", () => {
 
         expect(
           Math.abs(pilotResult.distancePoints - exp.distancePoints)
-        ).toBeLessThan(3);
+        ).toBeLessThan(1);
         expect(Math.abs(pilotResult.timePoints - exp.timePoints)).toBeLessThan(
           1
         );

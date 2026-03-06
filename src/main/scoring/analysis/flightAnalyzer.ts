@@ -101,7 +101,7 @@ export function analyzeFlightFixes(
     fixes,
     taskOpenTime,
     task.turnpoints[0],
-    opts.scoringAltitude
+    opts.useLegacyLandingDetection
   );
   const flightFixes =
     landingIdx < fixes.length ? fixes.slice(0, landingIdx) : fixes;
