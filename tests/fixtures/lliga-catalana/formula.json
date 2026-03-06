@@ -47,5 +47,6 @@
   "bonusForWholeTrack": false,
   "optimizeSsAlone": false,
   "useFirstPilotStartTimeForLC": false,
-  "dayQualityOverride": 0
+  "dayQualityOverride": 0,
+  "useLegacyLandingDetection": true
 }

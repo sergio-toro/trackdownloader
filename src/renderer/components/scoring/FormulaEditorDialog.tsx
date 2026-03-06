@@ -104,6 +104,8 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
   const [bonusGr, setBonusGr] = useState(4);
   const [useDifficultyForDistancePoints, setUseDifficultyForDistancePoints] =
     useState(false);
+  const [useLegacyLandingDetection, setUseLegacyLandingDetection] =
+    useState(false);
 
   // Additional advanced settings
   const [ftvFactor, setFtvFactor] = useState(0);
@@ -152,6 +154,7 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
       );
       setBonusGr(formula.bonusGr);
       setUseDifficultyForDistancePoints(formula.useDifficultyForDistancePoints);
+      setUseLegacyLandingDetection(formula.useLegacyLandingDetection ?? false);
 
       // Additional
       setFtvFactor(formula.ftvFactor);
@@ -192,6 +195,7 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
         turnpointRadiusMinimumAbsoluteTolerance: turnpointRadiusMinAbsTolerance,
         bonusGr,
         useDifficultyForDistancePoints,
+        useLegacyLandingDetection,
         ftvFactor,
         numberOfDecimalsTaskResults: taskDecimals,
         numberOfDecimalsCompetitionResults: compDecimals,
@@ -229,6 +233,7 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
     turnpointRadiusMinAbsTolerance,
     bonusGr,
     useDifficultyForDistancePoints,
+    useLegacyLandingDetection,
     ftvFactor,
     taskDecimals,
     compDecimals,
@@ -520,6 +525,11 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         label='Use "difficulty" for distance points calculation'
                         checked={useDifficultyForDistancePoints}
                         onChange={setUseDifficultyForDistancePoints}
+                      />
+                      <Checkbox
+                        label="Use legacy landing detection (4-min avg speed)"
+                        checked={useLegacyLandingDetection}
+                        onChange={setUseLegacyLandingDetection}
                       />
                     </div>
                   </div>

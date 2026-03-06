@@ -94,6 +94,9 @@ export interface ScoringFormulaConfig {
   bonusForWholeTrack: boolean;
   optimizeSsAlone: boolean;
   useFirstPilotStartTimeForLC: boolean;
+
+  // Landing detection
+  useLegacyLandingDetection: boolean; // true = 4-min avg speed, false = 60s window (default)
 }
 
 /**
@@ -181,6 +184,9 @@ export const GAP2023_PG_DEFAULTS: ScoringFormulaConfig = {
   bonusForWholeTrack: true,
   optimizeSsAlone: false,
   useFirstPilotStartTimeForLC: false,
+
+  // Landing detection
+  useLegacyLandingDetection: false,
 };
 
 /**

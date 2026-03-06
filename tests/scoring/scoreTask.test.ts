@@ -101,7 +101,7 @@ async function analyzeAndScoreTask(taskName: string): Promise<{
       radiusTolerance: formula.turnpointRadiusTolerance,
       minAbsTolerance: formula.turnpointRadiusMinimumAbsoluteTolerance,
       scoringAltitude: formula.scoringAltitude === "GPS" ? "GPS" : "QNH",
-      useLegacyLandingDetection: true,
+      useLegacyLandingDetection: formula.useLegacyLandingDetection,
     });
     analyses.push(analysis);
   }
