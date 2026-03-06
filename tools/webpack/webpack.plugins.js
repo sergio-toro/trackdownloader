@@ -7,4 +7,7 @@ module.exports = [
   new ForkTsCheckerWebpackPlugin(),
   inDev() && new webpack.HotModuleReplacementPlugin(),
   inDev() && new ReactRefreshWebpackPlugin(),
+  new webpack.DefinePlugin({
+    'process.env.MAPTILER_API_KEY': JSON.stringify(process.env.MAPTILER_API_KEY || ''),
+  }),
 ].filter(Boolean);

@@ -8,6 +8,7 @@ import { useCompetition } from "@renderer/context/competitionContext";
 import TurnpointList from "./TurnpointList";
 import TaskParticipantTable from "./TaskParticipantTable";
 import TaskDownloadPanel from "./TaskDownloadPanel";
+import TaskMap from "./TaskMap";
 
 interface TaskDetailViewProps {
   task: TaskDefinition;
@@ -242,6 +243,15 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Task map */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+        <h4 className="text-md font-semibold text-gray-900 mb-3">Task Map</h4>
+        <TaskMap
+          turnpoints={task.turnpoints}
+          shortestRoute={task.shortestRoute}
+        />
       </div>
 
       {/* Turnpoints section */}

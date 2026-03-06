@@ -52,7 +52,7 @@ module.exports = {
       config: {
         // Fix content-security-policy error when image or video src isn't same origin
         // Remove 'unsafe-eval' to get rid of console warning in development mode.
-        devContentSecurityPolicy: `default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline' data:`,
+        devContentSecurityPolicy: `default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-inline' data: blob:; connect-src 'self' https://api.maptiler.com; img-src 'self' data: https://api.maptiler.com; worker-src 'self' blob:; child-src 'self' blob:`,
         // Webpack Dev Server port
         port: 3000,
         // Logger port
