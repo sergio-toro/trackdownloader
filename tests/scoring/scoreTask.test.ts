@@ -125,8 +125,6 @@ describe("Task Scoring Integration", () => {
     });
 
     it("should produce correct available points", () => {
-      // Tolerance: ±6 to accommodate pilot count differences (task12 has 1 extra
-      // pilot due to FS-specific ABS marking, which shifts goalRatio and weights)
       expect(result.availablePoints.totalAvailable).toBeCloseTo(
         expected.availablePoints.totalAvailable,
         0
@@ -136,26 +134,23 @@ describe("Task Scoring Integration", () => {
           result.availablePoints.distanceAvailable -
             expected.availablePoints.distanceAvailable
         )
-      ).toBeLessThan(6);
+      ).toBeLessThan(1);
       expect(
         Math.abs(
           result.availablePoints.timeAvailable -
             expected.availablePoints.timeAvailable
         )
-      ).toBeLessThan(6);
+      ).toBeLessThan(1);
       expect(
         Math.abs(
           result.availablePoints.leadingAvailable -
             expected.availablePoints.leadingAvailable
         )
-      ).toBeLessThan(3);
+      ).toBeLessThan(1);
     });
 
     it("should produce correct pilot count", () => {
-      // Allow ±1 for pilots with FS-specific ABS status not in our data
-      expect(
-        Math.abs(result.pilotResults.length - expected.pilotResults.length)
-      ).toBeLessThanOrEqual(1);
+      expect(result.pilotResults.length).toBe(expected.pilotResults.length);
     });
 
     it("should produce correct pilots in goal / reaching ESS", () => {
@@ -183,10 +178,10 @@ describe("Task Scoring Integration", () => {
 
       for (const pilotResult of result.pilotResults) {
         const exp = expectedByPilot.get(pilotResult.pilotId);
-        if (!exp) continue; // Extra pilot not in FS results
+        if (!exp) continue;
         expect(
           Math.abs(pilotResult.totalPoints - exp.totalPoints)
-        ).toBeLessThan(5);
+        ).toBeLessThan(3);
       }
     });
 
@@ -201,13 +196,13 @@ describe("Task Scoring Integration", () => {
 
         expect(
           Math.abs(pilotResult.distancePoints - exp.distancePoints)
-        ).toBeLessThan(6);
+        ).toBeLessThan(3);
         expect(Math.abs(pilotResult.timePoints - exp.timePoints)).toBeLessThan(
-          5
+          1
         );
         expect(
           Math.abs(pilotResult.leadingPoints - exp.leadingPoints)
-        ).toBeLessThan(2);
+        ).toBeLessThan(1);
       }
     });
 
