@@ -116,11 +116,8 @@ const Configuration: React.FC = () => {
           </DropDownButton>
         </div>
         <div className="flex gap-3 items-center">
-          <Link
-            to="/competitions"
-            className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-          >
-            Competitions
+          <Link to="/" className="text-sm text-blue-600 hover:underline">
+            Back to Competitions
           </Link>
           <button
             className="border border-gray-400 rounded-md text-xs px-2 py-1 cursor-pointer"

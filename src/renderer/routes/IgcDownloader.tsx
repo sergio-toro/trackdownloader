@@ -10,7 +10,7 @@ import { Tabs } from "@components/layout/Tabs";
 import { Tab } from "@components/layout/Tab";
 import TableSummary from "@components/TableSummary";
 
-const Home: React.FC = () => {
+const IgcDownloader: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const {
     settings: { pilots, leagues },
@@ -94,4 +94,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default IgcDownloader;

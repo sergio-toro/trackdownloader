@@ -190,8 +190,11 @@ const Scoring: React.FC = () => {
         <div className="min-w-full relative bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6 p-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Competitions</h1>
-            <Link to="/" className="text-sm text-blue-600 hover:underline">
-              Back to Track Downloader
+            <Link
+              to="/igc-downloader"
+              className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+            >
+              IGC Downloader
             </Link>
           </div>
           <ScoringContent />

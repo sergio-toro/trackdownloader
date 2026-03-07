@@ -170,7 +170,7 @@ const Competition: React.FC = () => {
               Dismiss
             </button>
             <Link
-              to="/competitions"
+              to="/"
               className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
             >
               Back to Competitions
@@ -185,7 +185,7 @@ const Competition: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-gray-500">Competition not found</p>
-        <Link to="/competitions" className="text-blue-600 hover:underline">
+        <Link to="/" className="text-blue-600 hover:underline">
           Back to Competitions
         </Link>
       </div>
@@ -207,7 +207,7 @@ const Competition: React.FC = () => {
         {/* Navigation */}
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={() => navigate("/competitions")}
+            onClick={() => navigate("/")}
             className="text-sm text-blue-600 hover:underline flex items-center gap-1"
           >
             <svg

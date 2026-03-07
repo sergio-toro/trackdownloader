@@ -1,6 +1,6 @@
 import React from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
-import Home from "./routes/Home";
+import IgcDownloader from "./routes/IgcDownloader";
 import CompetitionsList from "./routes/CompetitionsList";
 import Competition from "./routes/Competition";
 import "@styles/main.css";
@@ -12,8 +12,8 @@ const Application: React.FC = () => {
     <div>
       <HashRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/competitions" element={<CompetitionsList />} />
+          <Route path="/" element={<CompetitionsList />} />
+          <Route path="/igc-downloader" element={<IgcDownloader />} />
           <Route path="/competition/:competitionId" element={<Competition />} />
         </Routes>
       </HashRouter>
