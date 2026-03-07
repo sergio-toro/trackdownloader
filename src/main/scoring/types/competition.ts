@@ -75,6 +75,7 @@ export interface Competition {
   formula: ScoringFormulaConfig;
   participants: Participant[];
   tasks: TaskDefinition[];
+  taskOrder?: string[];
   createdAt: string;
   updatedAt: string;
 }

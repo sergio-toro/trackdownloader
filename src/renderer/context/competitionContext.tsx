@@ -64,6 +64,7 @@ export interface CompetitionState {
   ) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   setActiveTask: (taskId: string | null) => void;
+  reorderTasks: (taskIds: string[]) => Promise<void>;
 
   // Participant management
   addParticipant: (participant: Participant) => Promise<void>;
@@ -114,6 +115,7 @@ const initialContext: CompetitionState = {
   updateTask: async () => {},
   deleteTask: async () => {},
   setActiveTask: () => {},
+  reorderTasks: async () => {},
   addParticipant: async () => {},
   updateParticipant: async () => {},
   deleteParticipant: async () => {},
@@ -234,7 +236,21 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
       const comp = await window.scoring.loadCompetition(id);
       if (comp) {
         setCompetition(comp);
-        setTasks(comp.tasks);
+        // Apply saved task order if available
+        if (comp.taskOrder && comp.taskOrder.length > 0) {
+          const orderMap = new Map(comp.taskOrder.map((id, idx) => [id, idx]));
+          const sorted = [...comp.tasks].sort((a, b) => {
+            const ai = orderMap.get(a.id);
+            const bi = orderMap.get(b.id);
+            if (ai !== undefined && bi !== undefined) return ai - bi;
+            if (ai !== undefined) return -1;
+            if (bi !== undefined) return 1;
+            return 0;
+          });
+          setTasks(sorted);
+        } else {
+          setTasks(comp.tasks);
+        }
         setParticipants(comp.participants);
         setTaskResults({});
         setCompetitionResults(null);
@@ -371,6 +387,39 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
       }
     },
     [competition, activeTaskId, tasks]
+  );
+
+  const reorderTasks = useCallback(
+    async (taskIds: string[]) => {
+      if (!competition) return;
+      setError(null);
+      try {
+        await window.scoring.updateCompetition(competition.id, {
+          taskOrder: taskIds,
+        });
+        setCompetition((prev) =>
+          prev ? { ...prev, taskOrder: taskIds } : null
+        );
+        // Reorder the tasks state to match
+        setTasks((prev) => {
+          const taskMap = new Map(prev.map((t) => [t.id, t]));
+          const ordered: TaskDefinition[] = [];
+          for (const id of taskIds) {
+            const t = taskMap.get(id);
+            if (t) ordered.push(t);
+          }
+          // Append any tasks not in taskIds (shouldn't happen, but safe)
+          for (const t of prev) {
+            if (!taskIds.includes(t.id)) ordered.push(t);
+          }
+          return ordered;
+        });
+      } catch (err) {
+        setError(`Failed to reorder tasks: ${err}`);
+        console.error("Error reordering tasks:", err);
+      }
+    },
+    [competition]
   );
 
   const setActiveTask = useCallback((taskId: string | null) => {
@@ -539,6 +588,7 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
     updateTask,
     deleteTask,
     setActiveTask,
+    reorderTasks,
     addParticipant,
     updateParticipant,
     deleteParticipant,

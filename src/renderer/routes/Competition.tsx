@@ -38,6 +38,7 @@ const Competition: React.FC = () => {
     updateTask,
     deleteTask,
     updateFormula,
+    reorderTasks,
   } = useCompetition();
 
   const [activeTab, setActiveTab] = useState<TabType>("standings");
@@ -327,6 +328,7 @@ const Competition: React.FC = () => {
                   return next;
                 });
               }}
+              onReorderTasks={reorderTasks}
             />
           )}
 

@@ -5,6 +5,21 @@
  */
 
 import React, { useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type {
   TaskDefinition,
   TaskResult,
@@ -24,7 +39,222 @@ interface TaskListProps {
   onImportTask: () => void;
   onEditTask: (task: TaskDefinition) => void;
   onDeleteTask: (taskId: string) => Promise<void>;
+  onReorderTasks?: (taskIds: string[]) => void;
 }
+
+interface SortableTaskCardProps {
+  task: TaskDefinition;
+  result?: TaskResult;
+  isScoring: boolean;
+  onSelect: () => void;
+  onScore: () => void;
+  onViewResults: () => void;
+  onEdit: () => void;
+  onDownload: () => void;
+  onDelete: () => void;
+  formatDistance: (meters: number) => string;
+}
+
+const SortableTaskCard: React.FC<SortableTaskCardProps> = ({
+  task,
+  result,
+  isScoring,
+  onSelect,
+  onScore,
+  onViewResults,
+  onEdit,
+  onDownload,
+  onDelete,
+  formatDistance,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  const isScored = !!result;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors cursor-pointer"
+      onClick={onSelect}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-start gap-2">
+          <button
+            className="mt-1 cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="5" cy="3" r="1.5" />
+              <circle cx="11" cy="3" r="1.5" />
+              <circle cx="5" cy="8" r="1.5" />
+              <circle cx="11" cy="8" r="1.5" />
+              <circle cx="5" cy="13" r="1.5" />
+              <circle cx="11" cy="13" r="1.5" />
+            </svg>
+          </button>
+          <div>
+            <h3 className="font-semibold text-gray-900">{task.name}</h3>
+            <p className="text-sm text-gray-500">{task.date}</p>
+          </div>
+        </div>
+        <span
+          className={`px-2 py-0.5 text-xs font-medium rounded ${
+            isScored
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {isScored ? "Scored" : "Not Scored"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+        <div>
+          <span className="text-gray-400">Distance:</span>{" "}
+          {formatDistance(task.taskDistance)}
+        </div>
+        <div>
+          <span className="text-gray-400">Turnpoints:</span>{" "}
+          {task.turnpoints.length}
+        </div>
+        <div>
+          <span className="text-gray-400">Type:</span> {task.taskType}
+        </div>
+        {isScored && result && (
+          <div>
+            <span className="text-gray-400">In Goal:</span>{" "}
+            {result.statistics.pilotsInGoal}/{result.statistics.pilotsFlying}
+          </div>
+        )}
+      </div>
+
+      {isScored && result && (
+        <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500">Day Quality</span>
+            <span className="font-medium">
+              {(result.dayQuality * 100).toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+        {isScored ? (
+          <button
+            onClick={onViewResults}
+            className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+          >
+            View Results
+          </button>
+        ) : (
+          <button
+            onClick={onScore}
+            disabled={isScoring}
+            className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:bg-gray-400"
+          >
+            {isScoring ? "Scoring..." : "Score Task"}
+          </button>
+        )}
+        <button
+          onClick={onEdit}
+          className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm hover:bg-amber-200"
+          title="Edit task"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={onDownload}
+          className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200"
+          title="Download tracks"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+            />
+          </svg>
+        </button>
+        {isScored && (
+          <button
+            onClick={onScore}
+            disabled={isScoring}
+            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:bg-gray-50"
+            title="Recalculate scoring"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
+        )}
+        <button
+          onClick={onDelete}
+          className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
+          title="Delete task"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const TaskList: React.FC<TaskListProps> = ({
   tasks,
@@ -37,6 +267,7 @@ const TaskList: React.FC<TaskListProps> = ({
   onImportTask,
   onEditTask,
   onDeleteTask,
+  onReorderTasks,
 }) => {
   const [scoringTaskId, setScoringTaskId] = useState<string | null>(null);
   const [downloadingTaskId, setDownloadingTaskId] = useState<string | null>(
@@ -45,6 +276,20 @@ const TaskList: React.FC<TaskListProps> = ({
   const [selectedDetailTaskId, setSelectedDetailTaskId] = useState<
     string | null
   >(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = tasks.findIndex((t) => t.id === active.id);
+      const newIndex = tasks.findIndex((t) => t.id === over.id);
+      const reordered = arrayMove(tasks, oldIndex, newIndex);
+      onReorderTasks?.(reordered.map((t) => t.id));
+    }
+  };
 
   const selectedDetailTask = selectedDetailTaskId
     ? (tasks.find((t) => t.id === selectedDetailTaskId) ?? null)
@@ -159,175 +404,42 @@ const TaskList: React.FC<TaskListProps> = ({
   return (
     <>
       <TaskHeader />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tasks.map((task) => {
-          const result = taskResults[task.id];
-          const isScored = !!result;
-          const isScoring = scoringTaskId === task.id;
-
-          return (
-            <div
-              key={task.id}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors cursor-pointer"
-              onClick={() => setSelectedDetailTaskId(task.id)}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{task.name}</h3>
-                  <p className="text-sm text-gray-500">{task.date}</p>
-                </div>
-                <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded ${
-                    isScored
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {isScored ? "Scored" : "Not Scored"}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
-                <div>
-                  <span className="text-gray-400">Distance:</span>{" "}
-                  {formatDistance(task.taskDistance)}
-                </div>
-                <div>
-                  <span className="text-gray-400">Turnpoints:</span>{" "}
-                  {task.turnpoints.length}
-                </div>
-                <div>
-                  <span className="text-gray-400">Type:</span> {task.taskType}
-                </div>
-                {isScored && result && (
-                  <div>
-                    <span className="text-gray-400">In Goal:</span>{" "}
-                    {result.statistics.pilotsInGoal}/
-                    {result.statistics.pilotsFlying}
-                  </div>
-                )}
-              </div>
-
-              {isScored && result && (
-                <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Day Quality</span>
-                    <span className="font-medium">
-                      {(result.dayQuality * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                {isScored ? (
-                  <button
-                    onClick={() => onViewResults(task.id)}
-                    className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    View Results
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleScoreTask(task.id)}
-                    disabled={isScoring}
-                    className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:bg-gray-400"
-                  >
-                    {isScoring ? "Scoring..." : "Score Task"}
-                  </button>
-                )}
-                <button
-                  onClick={() => onEditTask(task)}
-                  className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded text-sm hover:bg-amber-200"
-                  title="Edit task"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setDownloadingTaskId(task.id)}
-                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200"
-                  title="Download tracks"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                    />
-                  </svg>
-                </button>
-                {isScored && (
-                  <button
-                    onClick={() => handleScoreTask(task.id)}
-                    disabled={isScoring}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:bg-gray-50"
-                    title="Recalculate scoring"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Are you sure you want to delete task "${task.name}"? This will remove all associated tracks and results.`
-                      )
-                    ) {
-                      onDeleteTask(task.id);
-                    }
-                  }}
-                  className="px-3 py-1.5 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
-                  title="Delete task"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={tasks.map((t) => t.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tasks.map((task) => (
+              <SortableTaskCard
+                key={task.id}
+                task={task}
+                result={taskResults[task.id]}
+                isScoring={scoringTaskId === task.id}
+                onSelect={() => setSelectedDetailTaskId(task.id)}
+                onScore={() => handleScoreTask(task.id)}
+                onViewResults={() => onViewResults(task.id)}
+                onEdit={() => onEditTask(task)}
+                onDownload={() => setDownloadingTaskId(task.id)}
+                onDelete={() => {
+                  if (
+                    window.confirm(
+                      `Are you sure you want to delete task "${task.name}"? This will remove all associated tracks and results.`
+                    )
+                  ) {
+                    onDeleteTask(task.id);
+                  }
+                }}
+                formatDistance={formatDistance}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Download panel modal */}
       {downloadingTask && (
