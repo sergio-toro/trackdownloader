@@ -414,7 +414,14 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     const participants = await this.readJson<Participant[]>(
       path.join(this.compDir(compId), "participants.json")
     );
-    return participants || [];
+    if (!participants) return [];
+    // Deduplicate by participant ID (keep first occurrence)
+    const seen = new Set<number>();
+    return participants.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
   }
 
   async setParticipants(

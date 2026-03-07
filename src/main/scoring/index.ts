@@ -45,8 +45,6 @@ export {
   calcDayQuality,
   calculateAllValidities,
   calculateWeights,
-  applyGap2023Adjustments,
-  applyGap2025Adjustments,
   calculateAvailablePoints,
   calculateLinearDistanceThreshold,
 } from "./core";

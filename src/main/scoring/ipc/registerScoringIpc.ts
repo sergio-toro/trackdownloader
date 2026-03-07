@@ -633,14 +633,22 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
           }
         }
 
-        if (analyses.length === 0) {
+        // Deduplicate analyses by pilotId (in case of duplicate participants)
+        const seen = new Set<number>();
+        const uniqueAnalyses = analyses.filter((a) => {
+          if (seen.has(a.pilotId)) return false;
+          seen.add(a.pilotId);
+          return true;
+        });
+
+        if (uniqueAnalyses.length === 0) {
           throw new Error("No valid flight tracks found for scoring");
         }
 
         // Score the task
         const result = await scoreTask({
           task,
-          analyses,
+          analyses: uniqueAnalyses,
           formula,
           onProgress: (percent, message) => {
             // Could emit progress to renderer via appWindow.webContents.send

@@ -22,12 +22,7 @@ import {
   updateStatsWithLeadingCoeffs,
 } from "../core/taskStatistics";
 import { calculateAllValidities } from "../core/validity";
-import {
-  calculateWeights,
-  applyGap2023Adjustments,
-  applyGap2025Adjustments,
-  calculateAvailablePoints,
-} from "../core/weights";
+import { calculateWeights, calculateAvailablePoints } from "../core/weights";
 import {
   calculateIv,
   calculateMissingIv,
@@ -97,14 +92,8 @@ export async function scoreTask(options: ScoringOptions): Promise<TaskResult> {
 
   onProgress?.(20, "Calculating weight distribution...");
 
-  // Step 3: Calculate weights (with formula-specific adjustments)
-  let weights = calculateWeights(stats, formula);
-
-  if (formula.name === "GAP2025") {
-    weights = applyGap2025Adjustments(weights, stats, formula, task);
-  } else {
-    weights = applyGap2023Adjustments(weights, stats, formula);
-  }
+  // Step 3: Calculate weights
+  const weights = calculateWeights(stats, formula);
 
   // Step 4: Calculate available points
   const available = calculateAvailablePoints(weights, dayQuality);

@@ -26,8 +26,6 @@ export {
 // Weight distribution
 export {
   calculateWeights,
-  applyGap2023Adjustments,
-  applyGap2025Adjustments,
   calculateAvailablePoints,
   calculateLinearDistanceThreshold,
 } from "./weights";

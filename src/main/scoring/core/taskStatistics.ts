@@ -91,6 +91,7 @@ export function calculateTaskStatistics(
 
     // Distance stats
     bestDistance,
+    taskDistance: task.taskDistance,
     sumOfFlownDistancesOverMin,
     maxDistanceOverMin,
     minDistance,

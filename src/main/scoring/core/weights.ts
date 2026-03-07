@@ -1,7 +1,7 @@
 /**
  * Point weight distribution for GAP scoring
  *
- * Based on FS GAP.cs lines 300-450.
+ * Based on FS GAP.cs lines 508-596.
  * Calculates how the available points are distributed across categories.
  */
 
@@ -10,14 +10,13 @@ import type {
   PointWeights,
   AvailablePoints,
 } from "../types/results";
-import type { TaskDefinition } from "../types/task";
 import type { ScoringFormulaConfig } from "../types/formula";
 
 /**
- * Calculate base point weight distribution (GAP.cs lines 300-380)
+ * Calculate point weight distribution (GAP.cs lines 508-578)
  *
  * Points are distributed based on how many pilots reached goal.
- * More goal finishers = more time points, fewer = more distance points.
+ * The algorithm differs depending on formula flags (useConstantLeadingWeight, etc.)
  *
  * @param stats Task statistics
  * @param formula Scoring formula configuration
@@ -27,39 +26,55 @@ export function calculateWeights(
   stats: TaskStatistics,
   formula: ScoringFormulaConfig
 ): PointWeights {
-  const { pilotsFlying, pilotsInGoal } = stats;
-
-  // Goal ratio determines base weight split
+  const { pilotsFlying, pilotsInGoal, pilotsReachedESS } = stats;
   const goalRatio = pilotsFlying > 0 ? pilotsInGoal / pilotsFlying : 0;
-
-  // Distance weight: CIVL-GAP cubic polynomial
-  // Higher when fewer pilots reach goal
   const gr = goalRatio;
-  const distanceWeight =
-    0.9 - 1.665 * gr + 1.713 * gr * gr - 0.587 * gr * gr * gr;
 
-  // Speed weight is the complement, then split into time/leading/etc
-  let timeWeight = 1 - distanceWeight;
+  // Distance weight (GAP.cs:519-533) — different polynomial when constant leading weight
+  let distanceWeight = 0;
+  if (formula.useDistancePoints) {
+    if (formula.useConstantLeadingWeight) {
+      distanceWeight =
+        pilotsInGoal === 0
+          ? 0.838
+          : 0.805 - 1.374 * gr + 1.413 * gr * gr - 0.484 * gr * gr * gr;
+    } else {
+      distanceWeight =
+        0.9 - 1.665 * gr + 1.713 * gr * gr - 0.587 * gr * gr * gr;
+    }
+  }
 
-  // Arrival weight (optional, usually 0 in GAP2023+)
+  // Dummy arrival weight (GAP.cs:537-548)
+  const dummyArrWeight = (1 - distanceWeight) / 8;
+
+  // Arrival weight — only if pilots reached ESS (GAP.cs:552-557)
   let arrivalWeight = 0;
-  if (formula.useArrivalPoints && goalRatio > 0) {
-    arrivalWeight = goalRatio * formula.arrivalFraction;
-    timeWeight -= arrivalWeight;
+  if (formula.useArrivalPoints && pilotsReachedESS > 0) {
+    arrivalWeight = dummyArrWeight;
   }
 
-  // Leading weight (from time portion)
-  let leadingWeight = 0;
-  if (formula.useLeadingPoints && timeWeight > 0) {
-    leadingWeight = timeWeight * formula.leadingFraction;
-    timeWeight -= leadingWeight;
-  }
-
-  // Departure weight (usually 0 in modern formulas)
+  // Departure weight (GAP.cs:559-563)
   let departureWeight = 0;
-  if (formula.useDeparturePoints && timeWeight > 0) {
-    departureWeight = timeWeight * formula.departureFraction;
-    timeWeight -= departureWeight;
+  if (formula.useDeparturePoints && pilotsReachedESS > 0) {
+    departureWeight = dummyArrWeight * 1.4;
+  }
+
+  // Leading weight (GAP.cs:566-568, calls CalculateLeadingWeight)
+  let leadingWeight = 0;
+  if (formula.useLeadingPoints) {
+    leadingWeight = calculateLeadingWeight(
+      stats,
+      formula,
+      distanceWeight,
+      dummyArrWeight
+    );
+  }
+
+  // Time weight = remainder (GAP.cs:572-578)
+  let timeWeight = 0;
+  if (formula.useTimePoints) {
+    timeWeight =
+      1 - distanceWeight - arrivalWeight - departureWeight - leadingWeight;
   }
 
   return {
@@ -72,72 +87,42 @@ export function calculateWeights(
 }
 
 /**
- * Apply GAP2023 specific weight adjustments
+ * Calculate leading weight (FS GAP.cs:620-648)
  *
- * GAP2023 uses a fixed leading weight factor.
- *
- * @param weights Base weights
- * @param stats Task statistics
- * @param formula Scoring formula configuration
- * @returns Adjusted weights
+ * Different formula paths depending on configuration flags:
+ * 1. useConstantLeadingWeight → fixed 0.162
+ * 2. useProportionalLeadingWeightIfNobodyInGoal (no goal) → min(bestDist/taskDist * 0.1, 0.1)
+ * 3. useLeadingTimeRatio → (1 - distWeight) * (noGoal ? 1 : leadingFraction)
+ * 4. Fallback → dummyArrWeight * 1.4 * leadingWeightFactor
  */
-export function applyGap2023Adjustments(
-  weights: PointWeights,
-  stats: TaskStatistics,
-  formula: ScoringFormulaConfig
-): PointWeights {
-  const adjusted = { ...weights };
-
-  // GAP2023 applies leadingWeightFactor to leading weight
-  if (
-    formula.leadingWeightFactor !== undefined &&
-    formula.leadingWeightFactor !== 1.0
-  ) {
-    const factor = formula.leadingWeightFactor;
-    const originalLeading = adjusted.leadingWeight;
-    adjusted.leadingWeight = originalLeading * factor;
-
-    // Take the difference from time weight
-    const difference = adjusted.leadingWeight - originalLeading;
-    adjusted.timeWeight = Math.max(0, adjusted.timeWeight - difference);
-  }
-
-  return adjusted;
-}
-
-/**
- * Apply GAP2025 specific weight adjustments
- *
- * GAP2025 introduces dynamic leading weight based on speed section ratio.
- * Longer speed sections = more leading weight.
- *
- * @param weights Base weights
- * @param stats Task statistics
- * @param formula Scoring formula configuration
- * @param task Task definition (for speed section distance)
- * @returns Adjusted weights
- */
-export function applyGap2025Adjustments(
-  weights: PointWeights,
+function calculateLeadingWeight(
   stats: TaskStatistics,
   formula: ScoringFormulaConfig,
-  task: TaskDefinition
-): PointWeights {
-  const adjusted = { ...weights };
+  distanceWeight: number,
+  dummyArrWeight: number
+): number {
+  // Path 1: Fixed constant (GAP.cs:624-626)
+  if (formula.useConstantLeadingWeight) {
+    return 0.162;
+  }
 
-  // Calculate dynamic factor based on speed section ratio
-  // Range: 0.8 (short SS) to 1.2 (long SS)
-  const ssRatio = task.speedSectionDistance / task.taskDistance;
-  const dynamicFactor = 0.8 + 0.4 * ssRatio;
+  // Path 2: Proportional when nobody in goal (GAP.cs:630-632)
+  if (
+    stats.pilotsInGoal === 0 &&
+    formula.useProportionalLeadingWeightIfNobodyInGoal
+  ) {
+    const taskDist = stats.taskDistance || 1;
+    return Math.min((stats.bestDistance / taskDist) * 0.1, 0.1);
+  }
 
-  const originalLeading = adjusted.leadingWeight;
-  adjusted.leadingWeight = originalLeading * dynamicFactor;
+  // Path 3: Leading time ratio (GAP.cs:636-638)
+  if (formula.useLeadingTimeRatio) {
+    const ltr = stats.pilotsInGoal === 0 ? 1 : formula.leadingFraction;
+    return (1 - distanceWeight) * ltr;
+  }
 
-  // Take the difference from time weight
-  const difference = adjusted.leadingWeight - originalLeading;
-  adjusted.timeWeight = Math.max(0, adjusted.timeWeight - difference);
-
-  return adjusted;
+  // Path 4: Fallback with dummy_arr_weight (GAP.cs:642)
+  return dummyArrWeight * 1.4 * formula.leadingWeightFactor;
 }
 
 /**

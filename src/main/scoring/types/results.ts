@@ -20,6 +20,7 @@ export interface TaskStatistics {
 
   // Distance stats (meters)
   bestDistance: number;
+  taskDistance: number;
   sumOfFlownDistancesOverMin: number;
   maxDistanceOverMin: number;
   minDistance: number;

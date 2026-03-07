@@ -4,7 +4,11 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import type { ScoringFormulaConfig, FormulaId } from "@main/scoring/types";
+import type {
+  ScoringFormulaConfig,
+  FormulaId,
+  LeadingCalculatorType,
+} from "@main/scoring/types";
 
 interface FormulaEditorDialogProps {
   isOpen: boolean;
@@ -107,10 +111,57 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
   const [useLegacyLandingDetection, setUseLegacyLandingDetection] =
     useState(false);
 
-  // Additional advanced settings
+  // Leading calculator
+  const [leadingCalculatorType, setLeadingCalculatorType] =
+    useState<LeadingCalculatorType>("PWC2019");
+  const [useLeadingTimeRatio, setUseLeadingTimeRatio] = useState(false);
+  const [leadingFractionPct, setLeadingFractionPct] = useState(16.2);
+  const [arrivalFractionPct, setArrivalFractionPct] = useState(0);
+  const [departureFractionPct, setDepartureFractionPct] = useState(0);
+
+  // Time points
+  const [useFlatDecline, setUseFlatDecline] = useState(true);
+  const [
+    redistributeRemovedTimePointsAsDistancePoints,
+    setRedistributeRemovedTimePointsAsDistancePoints,
+  ] = useState(true);
+
+  // Final glide decelerator
+  const [finalGlideDecelerator, setFinalGlideDecelerator] = useState<
+    "none" | "cess" | "aatb"
+  >("none");
+  const [cessIncline, setCessIncline] = useState(0);
+  const [aatbFactor, setAatbFactor] = useState(0);
+
+  // Goal settings
+  const [
+    useSemiCircleControlZoneForGoalLine,
+    setUseSemiCircleControlZoneForGoalLine,
+  ] = useState(true);
+
+  // Stopped task settings
+  const [minTimeSpanForValidTaskMin, setMinTimeSpanForValidTaskMin] =
+    useState(0);
+  const [altitudeBonusFactor, setAltitudeBonusFactor] = useState(0);
+  const [
+    minimumValidityToCountStoppedTask,
+    setMinimumValidityToCountStoppedTask,
+  ] = useState(0);
+
+  // FTV / Other
   const [ftvFactor, setFtvFactor] = useState(0);
+  const [useBestScoreForFtvValidity, setUseBestScoreForFtvValidity] =
+    useState(false);
   const [taskDecimals, setTaskDecimals] = useState(1);
   const [compDecimals, setCompDecimals] = useState(0);
+
+  // Misc
+  const [isPgComp, setIsPgComp] = useState(true);
+  const [faiSanctioning, setFaiSanctioning] = useState(0);
+  const [bonusForWholeTrack, setBonusForWholeTrack] = useState(false);
+  const [optimizeSsAlone, setOptimizeSsAlone] = useState(false);
+  const [useFirstPilotStartTimeForLC, setUseFirstPilotStartTimeForLC] =
+    useState(false);
 
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -156,10 +207,48 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
       setUseDifficultyForDistancePoints(formula.useDifficultyForDistancePoints);
       setUseLegacyLandingDetection(formula.useLegacyLandingDetection ?? false);
 
-      // Additional
+      // Leading calculator
+      setLeadingCalculatorType(formula.leadingCalculatorType);
+      setUseLeadingTimeRatio(formula.useLeadingTimeRatio);
+      setLeadingFractionPct(formula.leadingFraction * 100);
+      setArrivalFractionPct(formula.arrivalFraction * 100);
+      setDepartureFractionPct(formula.departureFraction * 100);
+
+      // Time points
+      setUseFlatDecline(formula.useFlatDecline);
+      setRedistributeRemovedTimePointsAsDistancePoints(
+        formula.redistributeRemovedTimePointsAsDistancePoints
+      );
+
+      // Final glide decelerator
+      setFinalGlideDecelerator(formula.finalGlideDecelerator);
+      setCessIncline(formula.cessIncline);
+      setAatbFactor(formula.aatbFactor);
+
+      // Goal settings
+      setUseSemiCircleControlZoneForGoalLine(
+        formula.useSemiCircleControlZoneForGoalLine
+      );
+
+      // Stopped task settings
+      setMinTimeSpanForValidTaskMin(formula.minTimeSpanForValidTask / 60);
+      setAltitudeBonusFactor(formula.altitudeBonusFactor);
+      setMinimumValidityToCountStoppedTask(
+        formula.minimumValidityToCountStoppedTask
+      );
+
+      // FTV / Other
       setFtvFactor(formula.ftvFactor);
+      setUseBestScoreForFtvValidity(formula.useBestScoreForFtvValidity);
       setTaskDecimals(formula.numberOfDecimalsTaskResults);
       setCompDecimals(formula.numberOfDecimalsCompetitionResults);
+
+      // Misc
+      setIsPgComp(formula.isPgComp);
+      setFaiSanctioning(formula.faiSanctioning);
+      setBonusForWholeTrack(formula.bonusForWholeTrack);
+      setOptimizeSsAlone(formula.optimizeSsAlone);
+      setUseFirstPilotStartTimeForLC(formula.useFirstPilotStartTimeForLC);
 
       setShowAdvanced(false);
     }
@@ -196,6 +285,26 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
         bonusGr,
         useDifficultyForDistancePoints,
         useLegacyLandingDetection,
+        leadingCalculatorType,
+        useLeadingTimeRatio,
+        leadingFraction: leadingFractionPct / 100,
+        arrivalFraction: arrivalFractionPct / 100,
+        departureFraction: departureFractionPct / 100,
+        useFlatDecline,
+        redistributeRemovedTimePointsAsDistancePoints,
+        finalGlideDecelerator,
+        cessIncline,
+        aatbFactor,
+        useSemiCircleControlZoneForGoalLine,
+        minTimeSpanForValidTask: minTimeSpanForValidTaskMin * 60,
+        altitudeBonusFactor,
+        minimumValidityToCountStoppedTask,
+        useBestScoreForFtvValidity,
+        isPgComp,
+        faiSanctioning,
+        bonusForWholeTrack,
+        optimizeSsAlone,
+        useFirstPilotStartTimeForLC,
         ftvFactor,
         numberOfDecimalsTaskResults: taskDecimals,
         numberOfDecimalsCompetitionResults: compDecimals,
@@ -234,6 +343,26 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
     bonusGr,
     useDifficultyForDistancePoints,
     useLegacyLandingDetection,
+    leadingCalculatorType,
+    useLeadingTimeRatio,
+    leadingFractionPct,
+    arrivalFractionPct,
+    departureFractionPct,
+    useFlatDecline,
+    redistributeRemovedTimePointsAsDistancePoints,
+    finalGlideDecelerator,
+    cessIncline,
+    aatbFactor,
+    useSemiCircleControlZoneForGoalLine,
+    minTimeSpanForValidTaskMin,
+    altitudeBonusFactor,
+    minimumValidityToCountStoppedTask,
+    useBestScoreForFtvValidity,
+    isPgComp,
+    faiSanctioning,
+    bonusForWholeTrack,
+    optimizeSsAlone,
+    useFirstPilotStartTimeForLC,
     ftvFactor,
     taskDecimals,
     compDecimals,
@@ -399,7 +528,7 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
 
               {showAdvanced && (
                 <div className="mt-4 space-y-6">
-                  {/* Point Types */}
+                  {/* Point Types & Fractions */}
                   <div>
                     <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                       Point Types
@@ -431,6 +560,129 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         onChange={setUseArrivalPoints}
                       />
                     </div>
+                    <div className="grid grid-cols-3 gap-4 mt-3">
+                      <NumberInput
+                        label="Leading Fraction"
+                        value={leadingFractionPct}
+                        onChange={setLeadingFractionPct}
+                        step={0.1}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                      />
+                      <NumberInput
+                        label="Arrival Fraction"
+                        value={arrivalFractionPct}
+                        onChange={setArrivalFractionPct}
+                        step={0.1}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                      />
+                      <NumberInput
+                        label="Departure Fraction"
+                        value={departureFractionPct}
+                        onChange={setDepartureFractionPct}
+                        step={0.1}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Leading Coefficient */}
+                  <div>
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Leading Coefficient
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          LC Calculator
+                        </label>
+                        <select
+                          value={leadingCalculatorType}
+                          onChange={(e) =>
+                            setLeadingCalculatorType(
+                              e.target.value as LeadingCalculatorType
+                            )
+                          }
+                          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+                        >
+                          <option value="PWC2019">PWC2019</option>
+                          <option value="PWC2023">PWC2023</option>
+                          <option value="Classic">Classic</option>
+                        </select>
+                      </div>
+                      <NumberInput
+                        label="Leading Weight Factor"
+                        value={leadingWeightFactor}
+                        onChange={setLeadingWeightFactor}
+                        step={0.1}
+                        min={0}
+                        max={2}
+                      />
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Checkbox
+                        label="Use leading time ratio"
+                        checked={useLeadingTimeRatio}
+                        onChange={setUseLeadingTimeRatio}
+                      />
+                      <Checkbox
+                        label="Use constant leading weight"
+                        checked={useConstantLeadingWeight}
+                        onChange={setUseConstantLeadingWeight}
+                      />
+                      <Checkbox
+                        label="Proportional leading weight if no pilot in goal"
+                        checked={useProportionalLeadingWeightIfNobodyInGoal}
+                        onChange={setUseProportionalLeadingWeightIfNobodyInGoal}
+                      />
+                      <Checkbox
+                        label="Use first pilot start time for LC"
+                        checked={useFirstPilotStartTimeForLC}
+                        onChange={setUseFirstPilotStartTimeForLC}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time & Distance Points */}
+                  <div>
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Time & Distance Points
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <NumberInput
+                        label="Time Points if ES but not Goal"
+                        value={timePointsIfNotInGoalPct}
+                        onChange={setTimePointsIfNotInGoalPct}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                      />
+                      <div />
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Checkbox
+                        label="Use flat decline (5/6 exponent)"
+                        checked={useFlatDecline}
+                        onChange={setUseFlatDecline}
+                      />
+                      <Checkbox
+                        label="Redistribute removed time points as distance points"
+                        checked={redistributeRemovedTimePointsAsDistancePoints}
+                        onChange={
+                          setRedistributeRemovedTimePointsAsDistancePoints
+                        }
+                      />
+                      <Checkbox
+                        label='Use "difficulty" for distance points calculation'
+                        checked={useDifficultyForDistancePoints}
+                        onChange={setUseDifficultyForDistancePoints}
+                      />
+                    </div>
                   </div>
 
                   {/* Technical Parameters */}
@@ -448,20 +700,6 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         max={1}
                       />
                       <NumberInput
-                        label="Time Points if ES but not Goal"
-                        value={timePointsIfNotInGoalPct}
-                        onChange={setTimePointsIfNotInGoalPct}
-                        min={0}
-                        max={100}
-                        suffix="%"
-                      />
-                      <NumberInput
-                        label={'"Jump the Gun" Factor'}
-                        value={jumpTheGunFactor}
-                        onChange={setJumpTheGunFactor}
-                        min={0}
-                      />
-                      <NumberInput
                         label="Turnpoint Radius Tolerance"
                         value={turnpointRadiusTolerancePct}
                         onChange={setTurnpointRadiusTolerancePct}
@@ -470,10 +708,9 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         suffix="%"
                       />
                       <NumberInput
-                        label={'Max "Jump the Gun" (seconds)'}
-                        value={jumpTheGunMax}
-                        onChange={setJumpTheGunMax}
-                        step={10}
+                        label={'"Jump the Gun" Factor'}
+                        value={jumpTheGunFactor}
+                        onChange={setJumpTheGunFactor}
                         min={0}
                       />
                       <NumberInput
@@ -484,23 +721,14 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         suffix="m"
                       />
                       <NumberInput
-                        label="Leading Weight Factor"
-                        value={leadingWeightFactor}
-                        onChange={setLeadingWeightFactor}
-                        step={0.1}
+                        label={'Max "Jump the Gun" (seconds)'}
+                        value={jumpTheGunMax}
+                        onChange={setJumpTheGunMax}
+                        step={10}
                         min={0}
-                        max={2}
-                      />
-                      <NumberInput
-                        label="Stopped Task Bonus Glide Ratio"
-                        value={bonusGr}
-                        onChange={setBonusGr}
-                        min={0}
-                        suffix=":1"
                       />
                     </div>
-
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-3 space-y-2">
                       <Checkbox
                         label="1000 points for winner if no pilot in goal"
                         checked={use1000PointsForMaxDayQuality}
@@ -512,24 +740,107 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         onChange={setNormalize1000BeforeDayQuality}
                       />
                       <Checkbox
-                        label="Use constant leading weight"
-                        checked={useConstantLeadingWeight}
-                        onChange={setUseConstantLeadingWeight}
-                      />
-                      <Checkbox
-                        label="Proportional Leading Points weight if no pilot in goal"
-                        checked={useProportionalLeadingWeightIfNobodyInGoal}
-                        onChange={setUseProportionalLeadingWeightIfNobodyInGoal}
-                      />
-                      <Checkbox
-                        label='Use "difficulty" for distance points calculation'
-                        checked={useDifficultyForDistancePoints}
-                        onChange={setUseDifficultyForDistancePoints}
-                      />
-                      <Checkbox
                         label="Use legacy landing detection (4-min avg speed)"
                         checked={useLegacyLandingDetection}
                         onChange={setUseLegacyLandingDetection}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Goal & Final Glide */}
+                  <div>
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Goal & Final Glide
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Final Glide Decelerator
+                        </label>
+                        <select
+                          value={finalGlideDecelerator}
+                          onChange={(e) =>
+                            setFinalGlideDecelerator(
+                              e.target.value as "none" | "cess" | "aatb"
+                            )
+                          }
+                          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+                        >
+                          <option value="none">None</option>
+                          <option value="cess">CESS</option>
+                          <option value="aatb">AATB</option>
+                        </select>
+                      </div>
+                      <div />
+                      <NumberInput
+                        label="CESS Incline"
+                        value={cessIncline}
+                        onChange={setCessIncline}
+                        step={0.5}
+                        min={0}
+                        suffix="°"
+                      />
+                      <NumberInput
+                        label="AATB Factor"
+                        value={aatbFactor}
+                        onChange={setAatbFactor}
+                        step={0.05}
+                        min={0}
+                        max={1}
+                      />
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Checkbox
+                        label="Use semi-circle control zone for goal line"
+                        checked={useSemiCircleControlZoneForGoalLine}
+                        onChange={setUseSemiCircleControlZoneForGoalLine}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stopped Task */}
+                  <div>
+                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Stopped Task
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <NumberInput
+                        label="Stopped Task Bonus Glide Ratio"
+                        value={bonusGr}
+                        onChange={setBonusGr}
+                        min={0}
+                        suffix=":1"
+                      />
+                      <NumberInput
+                        label="Min Time Span for Valid Task"
+                        value={minTimeSpanForValidTaskMin}
+                        onChange={setMinTimeSpanForValidTaskMin}
+                        step={5}
+                        min={0}
+                        suffix="min"
+                      />
+                      <NumberInput
+                        label="Altitude Bonus Factor"
+                        value={altitudeBonusFactor}
+                        onChange={setAltitudeBonusFactor}
+                        step={0.01}
+                        min={0}
+                        max={0.1}
+                      />
+                      <NumberInput
+                        label="Min Validity for Stopped Task"
+                        value={minimumValidityToCountStoppedTask}
+                        onChange={setMinimumValidityToCountStoppedTask}
+                        step={0.01}
+                        min={0}
+                        max={1}
+                      />
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Checkbox
+                        label="Use bonus for whole track"
+                        checked={bonusForWholeTrack}
+                        onChange={setBonusForWholeTrack}
                       />
                     </div>
                   </div>
@@ -548,7 +859,22 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         min={0}
                         max={1}
                       />
-                      <div />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          FAI Sanctioning
+                        </label>
+                        <select
+                          value={faiSanctioning}
+                          onChange={(e) =>
+                            setFaiSanctioning(parseInt(e.target.value, 10))
+                          }
+                          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+                        >
+                          <option value={0}>None</option>
+                          <option value={1}>Category 2</option>
+                          <option value={2}>Category 1</option>
+                        </select>
+                      </div>
                       <NumberInput
                         label="Decimals (Task)"
                         value={taskDecimals}
@@ -562,6 +888,23 @@ const FormulaEditorDialog: React.FC<FormulaEditorDialogProps> = ({
                         onChange={(v) => setCompDecimals(Math.round(v))}
                         min={0}
                         max={4}
+                      />
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Checkbox
+                        label="Use best score for FTV validity"
+                        checked={useBestScoreForFtvValidity}
+                        onChange={setUseBestScoreForFtvValidity}
+                      />
+                      <Checkbox
+                        label="Paragliding competition"
+                        checked={isPgComp}
+                        onChange={setIsPgComp}
+                      />
+                      <Checkbox
+                        label="Optimize SS alone"
+                        checked={optimizeSsAlone}
+                        onChange={setOptimizeSsAlone}
                       />
                     </div>
                   </div>
