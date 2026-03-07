@@ -73,6 +73,27 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
       { value: "ID", readOnly: true, className: "cell read-only w-[50px]" },
       { value: "Name", readOnly: true },
       {
+        value: "Nationality",
+        readOnly: true,
+        className: "cell read-only w-[80px]",
+      },
+      { value: "Glider", readOnly: true },
+      {
+        value: "Glider Class",
+        readOnly: true,
+        className: "cell read-only w-[80px]",
+      },
+      {
+        value: "Genre",
+        readOnly: true,
+        className: "cell read-only w-[70px]",
+      },
+      {
+        value: "Club",
+        readOnly: true,
+        className: "cell read-only w-[100px]",
+      },
+      {
         value: "XContest",
         readOnly: true,
         className: "cell read-only w-[125px]",
@@ -89,6 +110,11 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
           {
             id: null,
             name: null,
+            nation: null,
+            glider: null,
+            gliderClass: null,
+            genre: null,
+            club: null,
             xcontest: null,
             volandoo: null,
           },
@@ -96,6 +122,11 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
     ).map((participant) => [
       { value: participant.id ? String(participant.id) : undefined },
       { value: participant.name },
+      { value: participant.nation },
+      { value: participant.glider },
+      { value: participant.gliderClass },
+      { value: participant.genre },
+      { value: participant.club },
       { value: participant.xcontest },
       { value: participant.volandoo },
     ]),
@@ -136,17 +167,19 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
         return {
           id,
           name: row[1]?.value || "",
-          xcontest: row[2]?.value || undefined,
-          volandoo: row[3]?.value || undefined,
+          nation: row[2]?.value || undefined,
+          glider: row[3]?.value || undefined,
+          gliderClass: row[4]?.value || undefined,
+          genre: row[5]?.value || undefined,
+          club: row[6]?.value || undefined,
+          xcontest: row[7]?.value || undefined,
+          volandoo: row[8]?.value || undefined,
           status: existing?.status || ("Confirmed" as const),
           // Preserve other fields from existing participant
           ...(existing && {
             firstName: existing.firstName,
             lastName: existing.lastName,
-            nation: existing.nation,
             faiId: existing.faiId,
-            glider: existing.glider,
-            gliderClass: existing.gliderClass,
             sponsor: existing.sponsor,
             taskTracks: existing.taskTracks,
           }),
@@ -158,7 +191,7 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
 
   return (
     <div className="PilotsForm space-y-4">
-      <div className="max-h-[23rem] overflow-y-auto border border-gray-300 rounded-lg">
+      <div className="h-[calc(100vh-16rem)] overflow-y-auto overflow-x-auto border border-gray-300 rounded-lg">
         <DataSheet
           className="w-full"
           data={data}
@@ -225,7 +258,17 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
             handle: () => {
               const grid = [
                 ...data.slice(0, cellContextMenu.row),
-                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                [
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                ],
                 ...data.slice(cellContextMenu.row),
               ];
               setData(grid);
@@ -236,7 +279,17 @@ const ParticipantTable: React.FC<ParticipantTableProps> = ({
             handle: () => {
               const grid = [
                 ...data.slice(0, cellContextMenu.row + 1),
-                [{ value: "" }, { value: "" }, { value: "" }, { value: "" }],
+                [
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                  { value: "" },
+                ],
                 ...data.slice(cellContextMenu.row + 1),
               ];
               setData(grid);

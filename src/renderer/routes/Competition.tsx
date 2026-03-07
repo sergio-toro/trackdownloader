@@ -2,7 +2,7 @@
  * Competition detail page - View tasks, participants, results, and standings
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCompetition } from "@renderer/context/competitionContext";
 import CompetitionHeader from "@components/competition/CompetitionHeader";
@@ -59,6 +59,43 @@ const Competition: React.FC = () => {
       loadCompetition(competitionId);
     }
   }, [competitionId, competition, loadCompetition]);
+
+  // Hydrate results for previously-scored tasks on load
+  const loadedResultsForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!competitionId || tasks.length === 0) return;
+    if (loadedResultsForRef.current === competitionId) return;
+
+    const scoredTasks = tasks.filter((t) => t.scoredAt);
+    if (scoredTasks.length === 0) return;
+
+    loadedResultsForRef.current = competitionId;
+
+    const loadAllResults = async () => {
+      try {
+        const entries = await Promise.all(
+          scoredTasks.map(async (task) => {
+            const result = await window.scoring.getTaskResults(
+              competitionId,
+              task.id
+            );
+            return [task.id, result] as const;
+          })
+        );
+        const loaded: Record<string, TaskResult> = {};
+        for (const [taskId, result] of entries) {
+          if (result) loaded[taskId] = result;
+        }
+        if (Object.keys(loaded).length > 0) {
+          setTaskResults((prev) => ({ ...prev, ...loaded }));
+        }
+      } catch (err) {
+        console.error("Failed to load scored task results:", err);
+      }
+    };
+
+    loadAllResults();
+  }, [competitionId, tasks]);
 
   // Load task results
   const loadTaskResults = useCallback(

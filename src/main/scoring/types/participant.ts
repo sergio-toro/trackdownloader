@@ -29,6 +29,8 @@ export interface Participant {
   glider?: string;
   gliderClass?: string;
   sponsor?: string;
+  genre?: string; // MALE, FEMALE
+  club?: string;
   status: ParticipantStatus;
   taskTracks?: TaskTrack[];
 }
