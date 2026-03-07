@@ -2,13 +2,11 @@
  * Competitions list page - Competition management
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import {
-  useCompetition,
-  CompetitionProvider,
-} from "@renderer/context/competitionContext";
+import { useCompetition } from "@renderer/context/competitionContext";
+import { useSettings } from "@renderer/context/settingsContext";
 import Card from "@components/layout/Card";
 
 /**
@@ -181,26 +179,159 @@ const ScoringContent: React.FC = () => {
 };
 
 /**
+ * Data folder settings dialog
+ */
+const DataFolderSettingsDialog: React.FC<{ onClose: () => void }> = ({
+  onClose,
+}) => {
+  const {
+    settings: { programDataFolder },
+    setProgramDataFolder,
+  } = useSettings();
+
+  const [defaultStoragePath, setDefaultStoragePath] = useState("");
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  useEffect(() => {
+    window.scoring.getStoragePath().then(setDefaultStoragePath);
+  }, []);
+
+  const selectFolder = async () => {
+    try {
+      const directory = await window.scoring.selectDirectory();
+      if (!directory) return;
+
+      setIsMigrating(true);
+      try {
+        await window.scoring.setStoragePath(directory, true);
+        setProgramDataFolder(directory);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        alert(`Failed to change program data folder: ${message}`);
+      } finally {
+        setIsMigrating(false);
+      }
+    } catch (error) {
+      console.error("Error selecting program data folder:", error);
+    }
+  };
+
+  const resetFolder = async () => {
+    try {
+      setIsMigrating(true);
+      await window.scoring.setStoragePath("", true);
+      setProgramDataFolder("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to reset program data folder: ${message}`);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Settings</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 mb-1">
+            Program data folder
+          </h3>
+          <p className="text-sm text-gray-500 mb-3">
+            Location for storing competition data and temporary downloads
+          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={selectFolder}
+              disabled={isMigrating}
+              className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
+            >
+              {isMigrating
+                ? "Migrating..."
+                : !programDataFolder
+                  ? "Select Folder"
+                  : "Change Folder"}
+            </button>
+            {programDataFolder && (
+              <button
+                onClick={resetFolder}
+                disabled={isMigrating}
+                className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
+              >
+                Reset to Default
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-gray-700">
+            {programDataFolder || defaultStoragePath || "Loading..."}
+            {!programDataFolder && defaultStoragePath && (
+              <span className="text-gray-500"> (default)</span>
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
  * Scoring page with provider wrapper
  */
 const Scoring: React.FC = () => {
+  const [showSettings, setShowSettings] = useState(false);
+
   return (
-    <CompetitionProvider>
-      <div id="application">
-        <div className="min-w-full relative bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6 p-4">
-          <div className="flex justify-between items-center mb-4">
+    <div id="application">
+      <div className="min-w-full relative bg-zinc-100 rounded-md border-2 border-gray-200 shadow-md mt-6 p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Competitions</h1>
-            <Link
-              to="/igc-downloader"
-              className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-200 transition-colors"
+              title="Settings"
             >
-              IGC Downloader
-            </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
           </div>
-          <ScoringContent />
+          <Link
+            to="/igc-downloader"
+            className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+          >
+            IGC Downloader
+          </Link>
         </div>
+        <ScoringContent />
       </div>
-    </CompetitionProvider>
+      {showSettings && (
+        <DataFolderSettingsDialog onClose={() => setShowSettings(false)} />
+      )}
+    </div>
   );
 };
 

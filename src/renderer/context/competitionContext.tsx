@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { useSettings } from "./settingsContext";
 import type {
   Competition,
   CompetitionSummary,
@@ -145,6 +146,8 @@ interface StoredState {
 export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const { settings } = useSettings();
+
   // State
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [tasks, setTasks] = useState<TaskDefinition[]>([]);
@@ -167,6 +170,16 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const loadStoredState = async () => {
       try {
+        // Ensure custom storage path is set before loading competitions.
+        // SettingsProvider (parent) sets programDataFolder from localStorage,
+        // but its useEffect to call setStoragePath races with this effect.
+        if (settings.programDataFolder) {
+          await window.scoring.setStoragePath(
+            settings.programDataFolder,
+            false
+          );
+        }
+
         const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (stored) {
           const state: StoredState = JSON.parse(stored);
