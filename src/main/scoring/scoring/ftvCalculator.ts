@@ -31,7 +31,10 @@ interface PilotTaskScore {
 interface FtvResult {
   participantId: number;
   totalPoints: number;
-  taskScores: Map<string, { points: number; counting: boolean }>;
+  taskScores: Map<
+    string,
+    { originalPoints: number; countingPoints: number; counting: boolean }
+  >;
   discardedTasks: string[];
 }
 
@@ -169,14 +172,21 @@ function applyFtv(
   ftvTarget: number,
   ftvFactor: number
 ): FtvResult {
-  const taskScores = new Map<string, { points: number; counting: boolean }>();
+  const taskScores = new Map<
+    string,
+    { originalPoints: number; countingPoints: number; counting: boolean }
+  >();
   const discardedTasks: string[] = [];
 
   // If no FTV (factor = 0), count all tasks fully
   if (ftvFactor === 0) {
     let totalPoints = 0;
     for (const score of scores) {
-      taskScores.set(score.taskId, { points: score.points, counting: true });
+      taskScores.set(score.taskId, {
+        originalPoints: score.points,
+        countingPoints: score.points,
+        counting: true,
+      });
       totalPoints += score.points;
     }
     return { participantId: pilotId, totalPoints, taskScores, discardedTasks };
@@ -197,7 +207,11 @@ function applyFtv(
     // Check if adding this task would exceed target
     if (accumulatedValidity + taskValidity <= ftvTarget) {
       // Fully count this task
-      taskScores.set(score.taskId, { points: score.points, counting: true });
+      taskScores.set(score.taskId, {
+        originalPoints: score.points,
+        countingPoints: score.points,
+        counting: true,
+      });
       totalPoints += score.points;
       accumulatedValidity += taskValidity;
     } else if (accumulatedValidity < ftvTarget) {
@@ -206,12 +220,20 @@ function applyFtv(
       const partialFactor = remainingValidity / taskValidity;
       const partialPoints = score.points * partialFactor;
 
-      taskScores.set(score.taskId, { points: partialPoints, counting: true });
+      taskScores.set(score.taskId, {
+        originalPoints: score.points,
+        countingPoints: partialPoints,
+        counting: false,
+      });
       totalPoints += partialPoints;
       accumulatedValidity = ftvTarget;
     } else {
       // Discard this task
-      taskScores.set(score.taskId, { points: 0, counting: false });
+      taskScores.set(score.taskId, {
+        originalPoints: score.points,
+        countingPoints: 0,
+        counting: false,
+      });
       discardedTasks.push(score.taskId);
     }
   }
@@ -227,16 +249,19 @@ function buildStandings(
   _taskCount: number
 ): CompetitionStanding[] {
   return ftvResults.map((result) => {
-    const taskPoints: Record<string, number> = {};
+    const taskScores: Record<
+      string,
+      { originalPoints: number; countingPoints: number; counting: boolean }
+    > = {};
     for (const [taskId, score] of result.taskScores) {
-      taskPoints[taskId] = score.points;
+      taskScores[taskId] = score;
     }
 
     return {
       participantId: result.participantId,
       rank: 0, // Set later
       totalPoints: result.totalPoints,
-      taskPoints,
+      taskScores,
       discardedTasks: result.discardedTasks,
       tasksFlown: result.taskScores.size,
     };
@@ -290,7 +315,14 @@ export function calculateSimpleStandings(
 ): CompetitionStanding[] {
   const pilotTotals = new Map<
     number,
-    { total: number; taskPoints: Record<string, number>; tasksFlown: number }
+    {
+      total: number;
+      taskScores: Record<
+        string,
+        { originalPoints: number; countingPoints: number; counting: boolean }
+      >;
+      tasksFlown: number;
+    }
   >();
 
   // Sum all task points per pilot
@@ -298,12 +330,16 @@ export function calculateSimpleStandings(
     for (const pilotResult of taskResult.pilotResults) {
       const existing = pilotTotals.get(pilotResult.pilotId) || {
         total: 0,
-        taskPoints: {},
+        taskScores: {},
         tasksFlown: 0,
       };
 
       existing.total += pilotResult.totalPoints;
-      existing.taskPoints[taskResult.taskId] = pilotResult.totalPoints;
+      existing.taskScores[taskResult.taskId] = {
+        originalPoints: pilotResult.totalPoints,
+        countingPoints: pilotResult.totalPoints,
+        counting: true,
+      };
       existing.tasksFlown++;
 
       pilotTotals.set(pilotResult.pilotId, existing);
@@ -317,7 +353,7 @@ export function calculateSimpleStandings(
       participantId,
       rank: 0,
       totalPoints: data.total,
-      taskPoints: data.taskPoints,
+      taskScores: data.taskScores,
       discardedTasks: [],
       tasksFlown: data.tasksFlown,
     });

@@ -170,14 +170,23 @@ export interface TaskScore {
 }
 
 /**
+ * Per-task score in overall standings, preserving both original and FTV-adjusted values
+ */
+export interface TaskStandingScore {
+  originalPoints: number; // Raw task score before FTV
+  countingPoints: number; // FTV-adjusted counting score
+  counting: boolean; // true = fully counted, false = partial or discarded
+}
+
+/**
  * Competition standing for a participant
  */
 export interface CompetitionStanding {
   participantId: number;
   rank: number;
   totalPoints: number;
-  taskPoints: Record<string, number>; // taskId -> points
-  discardedTasks: string[]; // taskIds not counting
+  taskScores: Record<string, TaskStandingScore>; // taskId -> score details
+  discardedTasks: string[]; // taskIds not counting (fully discarded, countingPoints=0)
   tasksFlown: number;
 }
 

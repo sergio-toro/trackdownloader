@@ -8,6 +8,7 @@ import React, { useMemo } from "react";
 import type {
   CompetitionResult,
   TaskResult,
+  TaskStandingScore,
   Participant,
 } from "@main/scoring/types";
 
@@ -112,11 +113,23 @@ const CompetitionStandings: React.FC<CompetitionStandingsProps> = ({
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10 w-12">
                 #
               </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                ID
+              </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-12 bg-gray-50 z-10 min-w-[150px]">
                 Pilot
               </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                M/F
+              </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                 Nation
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                Glider
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Cat.
               </th>
               {taskIds.map((taskId) => {
                 const task = taskMap.get(taskId);
@@ -137,40 +150,59 @@ const CompetitionStandings: React.FC<CompetitionStandingsProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {competitionResult.standings.map((standing) => {
               const participant = participantMap.get(standing.participantId);
+              const gender =
+                participant?.genre === "MALE"
+                  ? "M"
+                  : participant?.genre === "FEMALE"
+                    ? "F"
+                    : "";
 
               return (
                 <tr key={standing.participantId} className="hover:bg-gray-50">
                   <td className="px-3 py-2 text-sm font-medium text-gray-900 sticky left-0 bg-white">
                     {standing.rank}
                   </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {standing.participantId}
+                  </td>
                   <td className="px-3 py-2 text-sm sticky left-12 bg-white">
                     <div className="font-medium text-gray-900">
                       {participant?.name || `Pilot ${standing.participantId}`}
                     </div>
-                    {participant?.glider && (
-                      <div className="text-xs text-gray-500">
-                        {participant.glider}
-                      </div>
-                    )}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">{gender}</td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {participant?.nation || ""}
                   </td>
                   <td className="px-3 py-2 text-sm text-gray-500">
-                    {participant?.nation || "-"}
+                    {participant?.glider || ""}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {participant?.gliderClass || ""}
                   </td>
                   {taskIds.map((taskId) => {
-                    const points = standing.taskPoints[taskId] ?? 0;
-                    const isDiscarded =
-                      standing.discardedTasks.includes(taskId);
+                    const score: TaskStandingScore | undefined =
+                      standing.taskScores?.[taskId];
+                    const countingPts = score?.countingPoints ?? 0;
+                    const originalPts = score?.originalPoints ?? 0;
+                    const isPartial =
+                      originalPts !== countingPts && originalPts > 0;
 
                     return (
                       <td
                         key={taskId}
-                        className={`px-3 py-2 text-sm text-right ${
-                          isDiscarded
-                            ? "text-gray-400 line-through"
-                            : "text-gray-900"
-                        }`}
+                        className="px-3 py-2 text-sm text-right text-gray-900"
                       >
-                        {points > 0 ? points.toFixed(0) : "-"}
+                        {isPartial ? (
+                          <span>
+                            {countingPts.toFixed(1)}/
+                            <s className="text-gray-400">
+                              {originalPts.toFixed(1)}
+                            </s>
+                          </span>
+                        ) : (
+                          countingPts.toFixed(1)
+                        )}
                       </td>
                     );
                   })}
@@ -185,10 +217,17 @@ const CompetitionStandings: React.FC<CompetitionStandingsProps> = ({
       </div>
 
       {/* Legend */}
-      {competitionResult.standings.some((s) => s.discardedTasks.length > 0) && (
+      {competitionResult.standings.some((s) =>
+        Object.values(s.taskScores ?? {}).some(
+          (sc) =>
+            sc.originalPoints !== sc.countingPoints && sc.originalPoints > 0
+        )
+      ) && (
         <div className="text-xs text-gray-500 flex items-center gap-2">
-          <span className="line-through">123</span>
-          <span>= Discarded task (FTV)</span>
+          <span>
+            5.2/<s>452.6</s>
+          </span>
+          <span>= Partially counted task (FTV)</span>
         </div>
       )}
     </div>

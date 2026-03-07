@@ -355,7 +355,28 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
     "scoring-get-competition-results",
     async (_, compId: string) => {
       try {
-        return await storage.getCompetitionResults(compId);
+        const result = await storage.getCompetitionResults(compId);
+        if (result) {
+          // Migrate old taskPoints -> taskScores for persisted data
+          for (const standing of result.standings) {
+            const legacy = standing as unknown as {
+              taskPoints?: Record<string, number>;
+            };
+            if (!standing.taskScores && legacy.taskPoints) {
+              standing.taskScores = {};
+              for (const [taskId, pts] of Object.entries(legacy.taskPoints)) {
+                const isDiscarded = standing.discardedTasks.includes(taskId);
+                standing.taskScores[taskId] = {
+                  originalPoints: pts,
+                  countingPoints: pts,
+                  counting: !isDiscarded,
+                };
+              }
+              delete legacy.taskPoints;
+            }
+          }
+        }
+        return result;
       } catch (error) {
         console.error("Error getting competition results:", error);
         throw error;

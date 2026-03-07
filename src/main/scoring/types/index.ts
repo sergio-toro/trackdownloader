@@ -60,6 +60,7 @@ export type {
   TaskResult,
   TaskResultExtended,
   TaskScore,
+  TaskStandingScore,
   CompetitionStanding,
   CompetitionResult,
 } from "./results";

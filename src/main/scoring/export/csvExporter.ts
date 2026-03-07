@@ -117,7 +117,15 @@ function generateStandingsCsv(
   const rows: string[] = [];
 
   // Header row
-  const headers = ["Rank", "Pilot", "Nation", "Glider"];
+  const headers = [
+    "Rank",
+    "ID",
+    "Pilot",
+    "Gender",
+    "Nation",
+    "Glider",
+    "Category",
+  ];
 
   // Add task columns
   const taskIds = taskResults.map((t) => t.taskId);
@@ -132,20 +140,36 @@ function generateStandingsCsv(
   // Data rows
   for (const standing of competitionResult.standings) {
     const participant = participantMap.get(standing.participantId);
+    const gender =
+      participant?.genre === "MALE"
+        ? "M"
+        : participant?.genre === "FEMALE"
+          ? "F"
+          : "";
     const row: string[] = [
       String(standing.rank),
+      String(standing.participantId),
       participant?.name || `Pilot ${standing.participantId}`,
+      gender,
       participant?.nation || "",
       participant?.glider || "",
+      participant?.gliderClass || "",
     ];
 
     // Task points
     for (const taskId of taskIds) {
-      const points = standing.taskPoints[taskId] ?? 0;
-      const isDiscarded = standing.discardedTasks.includes(taskId);
-      const formatted = formatPoints(points, decimals);
-      // Mark discarded with parentheses
-      row.push(isDiscarded ? `(${formatted})` : formatted);
+      const score = standing.taskScores[taskId];
+      const countingPts = score?.countingPoints ?? 0;
+      const originalPts = score?.originalPoints ?? 0;
+      const isPartial = originalPts !== countingPts && originalPts > 0;
+
+      if (isPartial) {
+        row.push(
+          `${formatPoints(countingPts, decimals)} (${formatPoints(originalPts, decimals)})`
+        );
+      } else {
+        row.push(formatPoints(countingPts, decimals));
+      }
     }
 
     // Total

@@ -159,21 +159,35 @@ function generateStandingsHtml(
   const rows = competitionResult.standings
     .map((standing) => {
       const participant = participantMap.get(standing.participantId);
+      const gender =
+        participant?.genre === "MALE"
+          ? "M"
+          : participant?.genre === "FEMALE"
+            ? "F"
+            : "";
       const taskCells = taskIds
         .map((taskId) => {
-          const points = standing.taskPoints[taskId] ?? 0;
-          const isDiscarded = standing.discardedTasks.includes(taskId);
-          const classes = isDiscarded ? "discarded" : "";
-          return `<td class="points ${classes}">${formatPoints(points, decimals)}</td>`;
+          const score = standing.taskScores[taskId];
+          const countingPts = score?.countingPoints ?? 0;
+          const originalPts = score?.originalPoints ?? 0;
+          const isPartial = originalPts !== countingPts && originalPts > 0;
+
+          if (isPartial) {
+            return `<td class="points">${formatPoints(countingPts, decimals)}/<del>${formatPoints(originalPts, decimals)}</del></td>`;
+          }
+          return `<td class="points">${formatPoints(countingPts, decimals)}</td>`;
         })
         .join("");
 
       return `
         <tr>
           <td class="rank">${standing.rank}</td>
+          <td class="id">${standing.participantId}</td>
           <td class="pilot">${escapeHtml(participant?.name || `Pilot ${standing.participantId}`)}</td>
+          <td class="gender">${gender}</td>
           <td class="nation">${escapeHtml(participant?.nation || "")}</td>
           <td class="glider">${escapeHtml(participant?.glider || "")}</td>
+          <td class="category">${escapeHtml(participant?.gliderClass || "")}</td>
           ${taskCells}
           <td class="total">${formatPoints(standing.totalPoints, 0)}</td>
         </tr>
@@ -188,9 +202,12 @@ function generateStandingsHtml(
         <thead>
           <tr>
             <th class="rank-col">#</th>
+            <th class="id-col">ID</th>
             <th class="pilot-col">Pilot</th>
+            <th class="gender-col">M/F</th>
             <th class="nation-col">Nation</th>
             <th class="glider-col">Glider</th>
+            <th class="category-col">Category</th>
             ${taskHeaders}
             <th class="total-col">Total</th>
           </tr>
