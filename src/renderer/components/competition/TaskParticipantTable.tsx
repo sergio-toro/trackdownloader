@@ -27,6 +27,18 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                 Name
               </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                Nation
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                Glider
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                Cat.
+              </th>
+              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                M/F
+              </th>
               <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
                 Track
               </th>
@@ -40,6 +52,22 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
                   <td className="px-3 py-2 text-sm text-gray-500">{p.id}</td>
                   <td className="px-3 py-2 text-sm font-medium text-gray-900">
                     {p.name}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-600">
+                    {p.nation || "—"}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-600">
+                    {p.glider || "—"}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-600">
+                    {p.gliderClass || "—"}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-600 text-center">
+                    {p.genre === "MALE"
+                      ? "M"
+                      : p.genre === "FEMALE"
+                        ? "F"
+                        : "—"}
                   </td>
                   <td className="px-3 py-2 text-center">
                     {has ? (

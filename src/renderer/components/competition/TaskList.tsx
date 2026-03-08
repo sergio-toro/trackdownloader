@@ -26,13 +26,13 @@ import type {
   Participant,
 } from "@main/scoring/types";
 import TaskDownloadPanel from "./TaskDownloadPanel";
-import TaskDetailView from "./TaskDetailView";
 
 interface TaskListProps {
   tasks: TaskDefinition[];
   taskResults: Record<string, TaskResult>;
   onScoreTask: (taskId: string) => Promise<void>;
   onViewResults: (taskId: string) => void;
+  onSelectTaskDetail: (taskId: string) => void;
   participants: Participant[];
   competitionId: string;
   onAddTask: () => void;
@@ -261,6 +261,7 @@ const TaskList: React.FC<TaskListProps> = ({
   taskResults,
   onScoreTask,
   onViewResults,
+  onSelectTaskDetail,
   participants,
   competitionId,
   onAddTask,
@@ -273,9 +274,6 @@ const TaskList: React.FC<TaskListProps> = ({
   const [downloadingTaskId, setDownloadingTaskId] = useState<string | null>(
     null
   );
-  const [selectedDetailTaskId, setSelectedDetailTaskId] = useState<
-    string | null
-  >(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -290,10 +288,6 @@ const TaskList: React.FC<TaskListProps> = ({
       onReorderTasks?.(reordered.map((t) => t.id));
     }
   };
-
-  const selectedDetailTask = selectedDetailTaskId
-    ? (tasks.find((t) => t.id === selectedDetailTaskId) ?? null)
-    : null;
 
   const handleScoreTask = async (taskId: string) => {
     setScoringTaskId(taskId);
@@ -355,21 +349,6 @@ const TaskList: React.FC<TaskListProps> = ({
     </div>
   );
 
-  if (selectedDetailTask) {
-    return (
-      <TaskDetailView
-        task={selectedDetailTask}
-        taskResult={taskResults[selectedDetailTask.id]}
-        participants={participants}
-        competitionId={competitionId}
-        onBack={() => setSelectedDetailTaskId(null)}
-        onEditTask={onEditTask}
-        onScoreTask={onScoreTask}
-        onViewResults={onViewResults}
-      />
-    );
-  }
-
   if (tasks.length === 0) {
     return (
       <>
@@ -420,7 +399,7 @@ const TaskList: React.FC<TaskListProps> = ({
                 task={task}
                 result={taskResults[task.id]}
                 isScoring={scoringTaskId === task.id}
-                onSelect={() => setSelectedDetailTaskId(task.id)}
+                onSelect={() => onSelectTaskDetail(task.id)}
                 onScore={() => handleScoreTask(task.id)}
                 onViewResults={() => onViewResults(task.id)}
                 onEdit={() => onEditTask(task)}

@@ -198,7 +198,7 @@ const TaskMap: React.FC<TaskMapProps> = ({ turnpoints, shortestRoute }) => {
   return (
     <div
       ref={containerRef}
-      className="w-full h-80 rounded-lg overflow-hidden"
+      className="w-full h-96 rounded-lg overflow-hidden"
     />
   );
 };

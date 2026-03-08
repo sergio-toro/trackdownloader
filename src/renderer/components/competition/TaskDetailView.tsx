@@ -9,16 +9,19 @@ import TurnpointList from "./TurnpointList";
 import TaskParticipantTable from "./TaskParticipantTable";
 import TaskDownloadPanel from "./TaskDownloadPanel";
 import TaskMap from "./TaskMap";
+import TaskResultsTable from "@components/results/TaskResultsTable";
+
+type DetailTab = "info" | "participants" | "results";
 
 interface TaskDetailViewProps {
   task: TaskDefinition;
   taskResult?: TaskResult;
   participants: Participant[];
   competitionId: string;
+  competitionName: string;
   onBack: () => void;
   onEditTask: (task: TaskDefinition) => void;
   onScoreTask: (taskId: string) => Promise<void>;
-  onViewResults: (taskId: string) => void;
 }
 
 const formatDistance = (meters: number): string => {
@@ -30,15 +33,16 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
   taskResult,
   participants,
   competitionId,
+  competitionName,
   onBack,
   onEditTask,
   onScoreTask,
-  onViewResults,
 }) => {
   const [showDownloadPanel, setShowDownloadPanel] = useState(false);
   const [isScoring, setIsScoring] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DetailTab>("info");
 
   const { updateParticipant } = useCompetition();
   const isScored = !!taskResult;
@@ -112,6 +116,12 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
   ).length;
   const missingCount = participants.length - trackCount;
 
+  const tabs: { key: DetailTab; label: string }[] = [
+    { key: "info", label: "Info" },
+    { key: "participants", label: "Participants" },
+    { key: "results", label: "Results" },
+  ];
+
   return (
     <div>
       {/* Back button */}
@@ -132,13 +142,16 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Back to tasks
+        Back to {competitionName}
       </button>
 
       {/* Header */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
         <div className="flex justify-between items-start mb-3">
           <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">
+              {competitionName}
+            </p>
             <h3 className="text-lg font-semibold text-gray-900">{task.name}</h3>
             <p className="text-sm text-gray-500">{task.date}</p>
           </div>
@@ -163,35 +176,27 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
               Edit
             </button>
             {isScored ? (
-              <>
-                <button
-                  onClick={handleScore}
-                  disabled={isScoring}
-                  className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:bg-gray-50 flex items-center gap-1"
-                  title="Recalculate scoring"
+              <button
+                onClick={handleScore}
+                disabled={isScoring}
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:bg-gray-50 flex items-center gap-1"
+                title="Recalculate scoring"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                  {isScoring ? "Recalculating..." : "Recalculate"}
-                </button>
-                <button
-                  onClick={() => onViewResults(task.id)}
-                  className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                  View Results
-                </button>
-              </>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                {isScoring ? "Recalculating..." : "Recalculate"}
+              </button>
             ) : (
               <button
                 onClick={handleScore}
@@ -245,105 +250,156 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
         )}
       </div>
 
-      {/* Task map */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-        <h4 className="text-md font-semibold text-gray-900 mb-3">Task Map</h4>
-        <TaskMap
-          turnpoints={task.turnpoints}
-          shortestRoute={task.shortestRoute}
-        />
+      {/* Tab bar */}
+      <div className="border-b border-gray-200 mb-4">
+        <nav className="flex gap-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.key
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Turnpoints section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-        <h4 className="text-md font-semibold text-gray-900 mb-3">
-          Turnpoints ({task.turnpoints.length})
-        </h4>
-        <TurnpointList
-          turnpoints={task.turnpoints}
-          legDistances={task.legDistances}
-        />
-      </div>
-
-      {/* Participants section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="text-md font-semibold text-gray-900">
-            Participants ({participants.length})
-          </h4>
-          <div className="flex gap-2">
-            <button
-              onClick={handleOpenFolder}
-              className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 flex items-center gap-1"
-              title="Open IGC folder"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
-                />
-              </svg>
-              Open Folder
-            </button>
-            <button
-              onClick={handleScanFolder}
-              disabled={isScanning}
-              className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 flex items-center gap-1"
-              title="Scan IGC folder and auto-assign tracks to participants"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              {isScanning ? "Scanning..." : "Scan Folder"}
-            </button>
-            <button
-              onClick={() => setShowDownloadPanel(true)}
-              className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 flex items-center gap-1"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                />
-              </svg>
-              Download
-              {missingCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-purple-200 text-purple-800 text-xs rounded-full">
-                  {missingCount}
-                </span>
-              )}
-            </button>
+      {/* Tab content */}
+      {activeTab === "info" && (
+        <>
+          {/* Task map */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">
+              Task Map
+            </h4>
+            <TaskMap
+              turnpoints={task.turnpoints}
+              shortestRoute={task.shortestRoute}
+            />
           </div>
+
+          {/* Turnpoints section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">
+              Turnpoints ({task.turnpoints.length})
+            </h4>
+            <TurnpointList
+              turnpoints={task.turnpoints}
+              legDistances={task.legDistances}
+            />
+          </div>
+        </>
+      )}
+
+      {activeTab === "participants" && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="text-md font-semibold text-gray-900">
+              Participants ({participants.length})
+            </h4>
+            <div className="flex gap-2">
+              <button
+                onClick={handleOpenFolder}
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 flex items-center gap-1"
+                title="Open IGC folder"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Open Folder
+              </button>
+              <button
+                onClick={handleScanFolder}
+                disabled={isScanning}
+                className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 flex items-center gap-1"
+                title="Scan IGC folder and auto-assign tracks to participants"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                {isScanning ? "Scanning..." : "Scan Folder"}
+              </button>
+              <button
+                onClick={() => setShowDownloadPanel(true)}
+                className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 flex items-center gap-1"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                  />
+                </svg>
+                Download
+                {missingCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-purple-200 text-purple-800 text-xs rounded-full">
+                    {missingCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+          {scanResult && (
+            <div className="mb-3 text-sm text-gray-600 px-1">{scanResult}</div>
+          )}
+          <TaskParticipantTable participants={participants} taskId={task.id} />
         </div>
-        {scanResult && (
-          <div className="mb-3 text-sm text-gray-600 px-1">{scanResult}</div>
-        )}
-        <TaskParticipantTable participants={participants} taskId={task.id} />
-      </div>
+      )}
+
+      {activeTab === "results" && (
+        <div>
+          {isScored && taskResult ? (
+            <TaskResultsTable
+              taskResult={taskResult}
+              participants={participants}
+            />
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+              <p className="text-gray-500 mb-4">
+                This task has not been scored yet
+              </p>
+              <button
+                onClick={handleScore}
+                disabled={isScoring}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+              >
+                {isScoring ? "Scoring..." : "Score Task"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Download panel modal */}
       {showDownloadPanel && (
