@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import type {
   TaskDefinition,
   TaskResult,
@@ -43,9 +43,46 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DetailTab>("info");
+  const [pilotIgcFiles, setPilotIgcFiles] = useState<
+    Map<number, { name: string; source: string; duration: string }[]>
+  >(new Map());
 
   const { updateParticipant } = useCompetition();
   const isScored = !!taskResult;
+
+  // Scan IGC folder to list files per pilot
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const igcFolder = await window.scoring.getCompetitionIgcFolder(
+          competitionId,
+          task.id
+        );
+        const { validIgcs } = await window.tracks.listIGCs(igcFolder);
+        if (cancelled) return;
+        const map = new Map<
+          number,
+          { name: string; source: string; duration: string }[]
+        >();
+        for (const igc of validIgcs) {
+          const list = map.get(igc.pilotId) || [];
+          list.push({
+            name: igc.name,
+            source: igc.source,
+            duration: igc.duration,
+          });
+          map.set(igc.pilotId, list);
+        }
+        setPilotIgcFiles(map);
+      } catch {
+        // Folder may not exist yet
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [competitionId, task.id, participants]);
 
   const handleScore = async () => {
     setIsScoring(true);
@@ -92,6 +129,7 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
             taskId: task.id,
             igcPath,
             uploadedAt: new Date().toISOString(),
+            status: "NYP" as const,
           },
         ];
         await updateParticipant(igc.pilotId, { taskTracks: updatedTracks });
@@ -373,7 +411,14 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
           {scanResult && (
             <div className="mb-3 text-sm text-gray-600 px-1">{scanResult}</div>
           )}
-          <TaskParticipantTable participants={participants} taskId={task.id} />
+          <TaskParticipantTable
+            participants={participants}
+            taskId={task.id}
+            competitionId={competitionId}
+            task={task}
+            onUpdateParticipant={updateParticipant}
+            pilotIgcFiles={pilotIgcFiles}
+          />
         </div>
       )}
 

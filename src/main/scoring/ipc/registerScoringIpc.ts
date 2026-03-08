@@ -623,11 +623,7 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
           const track = participant.taskTracks?.find(
             (t) => t.taskId === taskId
           );
-          if (
-            track?.igcPath &&
-            track.status !== "ABS" &&
-            track.status !== "DNS"
-          ) {
+          if (track?.igcPath && track.status !== "ABS") {
             try {
               // Analyze the flight
               const analysis = await analyzeFlightForTask(

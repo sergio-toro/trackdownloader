@@ -55,6 +55,7 @@ const TaskDownloadPanel: React.FC<TaskDownloadPanelProps> = ({
         taskId: task.id,
         igcPath,
         uploadedAt: new Date().toISOString(),
+        status: "NYP" as const,
       };
 
       let updatedTracks;

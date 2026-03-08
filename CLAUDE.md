@@ -34,6 +34,7 @@ Electron app with main/renderer process separation via IPC. See `docs/architectu
 - Diff behavior between main and your changes when relevant
 - Ask yourself: "Would a staff engineer approve this?"
 - Run tests, check logs, demonstrate correctness
+- **Always launch the app and test UI changes visually** — `npm run start` (background), then use Electron MCP tools to verify the UI renders correctly. TypeScript type checks do NOT catch runtime errors like null access in conditional renders.
 
 ### 5. Demand Elegance (Balanced)
 - For non-trivial changes: pause and ask "is there a more elegant way?"
@@ -102,10 +103,10 @@ Use `run_in_background: true` when launching via the Bash tool. The app runs on 
 To kill the app:
 
 ```bash
-pkill -f "electron.*trackdownloader"
+pkill -f "trackdownloader/node_modules"
 ```
 
-This kills all Electron processes for this project. After killing, the background task will also complete.
+This kills all processes spawned from this project (Electron, helpers, webpack dev server). After killing, the background task will also complete.
 
 ## Screenshots
 

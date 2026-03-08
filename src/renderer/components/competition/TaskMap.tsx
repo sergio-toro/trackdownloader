@@ -1,7 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Turnpoint, GeoPoint, TurnpointType } from "@main/scoring/types";
+import type {
+  Turnpoint,
+  GeoPoint,
+  TurnpointType,
+  FlightFix,
+} from "@main/scoring/types";
 import { createCirclePolygon } from "@renderer/utils/geoCircle";
 import { MAPTILER_STYLE_URL } from "@renderer/config/mapConfig";
 
@@ -29,12 +34,34 @@ const CYLINDER_COLORS: Record<TurnpointType, { fill: string; stroke: string }> =
     },
   };
 
+export const TRACK_COLORS = [
+  "#dc2626", // red
+  "#2563eb", // blue
+  "#16a34a", // green
+  "#d97706", // amber
+  "#9333ea", // purple
+  "#0891b2", // cyan
+];
+
+export interface TrackLayer {
+  label: string;
+  fixes: FlightFix[];
+  color?: string;
+}
+
 interface TaskMapProps {
   turnpoints: Turnpoint[];
   shortestRoute: GeoPoint[];
+  trackFixes?: FlightFix[];
+  tracks?: TrackLayer[];
 }
 
-const TaskMap: React.FC<TaskMapProps> = ({ turnpoints, shortestRoute }) => {
+const TaskMap: React.FC<TaskMapProps> = ({
+  turnpoints,
+  shortestRoute,
+  trackFixes,
+  tracks,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -172,6 +199,64 @@ const TaskMap: React.FC<TaskMapProps> = ({ turnpoints, shortestRoute }) => {
         },
       });
 
+      // Add multiple track layers
+      if (tracks && tracks.length > 0) {
+        tracks.forEach((track, i) => {
+          const validFixes = track.fixes.filter((f) => f.valid);
+          if (validFixes.length < 2) return;
+          const id = `track-${i}`;
+          const color = track.color || TRACK_COLORS[i % TRACK_COLORS.length];
+          map.addSource(id, {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates: validFixes.map((f) => [f.longitude, f.latitude]),
+              },
+            },
+          });
+          map.addLayer({
+            id: `${id}-line`,
+            type: "line",
+            source: id,
+            paint: {
+              "line-color": color,
+              "line-width": 2,
+              "line-opacity": 0.8,
+            },
+          });
+        });
+      } else if (trackFixes && trackFixes.length > 0) {
+        // Single track (backwards compat)
+        const validFixes = trackFixes.filter((f) => f.valid);
+        if (validFixes.length > 1) {
+          map.addSource("pilot-track", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates: validFixes.map((f) => [f.longitude, f.latitude]),
+              },
+            },
+          });
+
+          map.addLayer({
+            id: "pilot-track-line",
+            type: "line",
+            source: "pilot-track",
+            paint: {
+              "line-color": "#dc2626",
+              "line-width": 2,
+              "line-opacity": 0.8,
+            },
+          });
+        }
+      }
+
       // Fit bounds to all turnpoints
       if (turnpoints.length > 0) {
         const bounds = new maplibregl.LngLatBounds();
@@ -193,7 +278,7 @@ const TaskMap: React.FC<TaskMapProps> = ({ turnpoints, shortestRoute }) => {
       map.remove();
       mapRef.current = null;
     };
-  }, [turnpoints, shortestRoute]);
+  }, [turnpoints, shortestRoute, trackFixes, tracks]);
 
   return (
     <div

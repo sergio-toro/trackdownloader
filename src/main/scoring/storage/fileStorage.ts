@@ -417,11 +417,26 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     if (!participants) return [];
     // Deduplicate by participant ID (keep first occurrence)
     const seen = new Set<number>();
-    return participants.filter((p) => {
+    const deduped = participants.filter((p) => {
       if (seen.has(p.id)) return false;
       seen.add(p.id);
       return true;
     });
+    // Migrate legacy TaskTrack.status values
+    for (const p of deduped) {
+      if (p.taskTracks) {
+        for (const t of p.taskTracks) {
+          const s = t.status as string | undefined;
+          if (!s || s === "active") {
+            t.status = "NYP";
+          } else if (s === "DNS") {
+            t.status = "DNF";
+          }
+          // "ABS" stays as "ABS"
+        }
+      }
+    }
+    return deduped;
   }
 
   async setParticipants(

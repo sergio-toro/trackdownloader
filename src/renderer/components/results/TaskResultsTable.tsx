@@ -23,6 +23,7 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortAsc, setSortAsc] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [search, setSearch] = useState("");
 
   // Build participant lookup
   const participantMap = useMemo(() => {
@@ -35,11 +36,20 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
   const sortedResults = useMemo(() => {
     let results = [...taskResult.pilotResults];
 
-    // Filter
+    // Filter by goal status
     if (filter === "goal") {
       results = results.filter((r) => r.reachedGoal);
     } else if (filter === "landedOut") {
       results = results.filter((r) => !r.reachedGoal);
+    }
+
+    // Filter by name search
+    if (search) {
+      const needle = search.toLowerCase();
+      results = results.filter((r) => {
+        const name = participantMap.get(r.pilotId)?.name || "";
+        return name.toLowerCase().includes(needle);
+      });
     }
 
     // Sort
@@ -69,7 +79,14 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
     });
 
     return results;
-  }, [taskResult.pilotResults, sortKey, sortAsc, filter, participantMap]);
+  }, [
+    taskResult.pilotResults,
+    sortKey,
+    sortAsc,
+    filter,
+    search,
+    participantMap,
+  ]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -160,20 +177,29 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2">
-        {(["all", "goal", "landedOut"] as FilterType[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded text-sm ${
-              filter === f
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {f === "all" ? "All" : f === "goal" ? "In Goal" : "Landed Out"}
-          </button>
-        ))}
+      <div className="flex items-center justify-between">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-64 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <div className="flex gap-2">
+          {(["all", "goal", "landedOut"] as FilterType[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1 rounded text-sm ${
+                filter === f
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {f === "all" ? "All" : f === "goal" ? "In Goal" : "Landed Out"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results table */}
