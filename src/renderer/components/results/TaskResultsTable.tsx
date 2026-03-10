@@ -208,18 +208,30 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
           <thead className="bg-gray-50">
             <tr>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-12"
                 onClick={() => handleSort("rank")}
               >
-                Rank
+                #
                 <SortIcon active={sortKey === "rank"} asc={sortAsc} />
               </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                ID
+              </th>
               <th
-                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[150px]"
                 onClick={() => handleSort("name")}
               >
                 Pilot
                 <SortIcon active={sortKey === "name"} asc={sortAsc} />
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                M/F
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Nation
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Cat.
               </th>
               <th
                 className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -269,15 +281,31 @@ const TaskResultsTable: React.FC<TaskResultsTableProps> = ({
                   <td className="px-3 py-2 text-sm font-medium text-gray-900">
                     {result.rank}
                   </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {result.pilotId}
+                  </td>
                   <td className="px-3 py-2 text-sm">
                     <div className="font-medium text-gray-900">
                       {participant?.name || `Pilot ${result.pilotId}`}
                     </div>
-                    {participant?.nation && (
+                    {participant?.glider && (
                       <div className="text-xs text-gray-500">
-                        {participant.nation}
+                        {participant.glider}
                       </div>
                     )}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {participant?.genre === "MALE"
+                      ? "M"
+                      : participant?.genre === "FEMALE"
+                        ? "F"
+                        : ""}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {participant?.nation || ""}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-gray-500">
+                    {participant?.gliderClass || ""}
                   </td>
                   <td className="px-3 py-2 text-sm text-gray-900 text-right">
                     {formatDistance(result.distance)}

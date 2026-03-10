@@ -194,6 +194,20 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
     [downloadXcontest, downloadVolandoo]
   );
 
+  const openProfileUrl = useCallback(
+    (source: "xcontest" | "volandoo", id: string) => {
+      const year = task.date
+        ? new Date(task.date).getFullYear()
+        : new Date().getFullYear();
+      const url =
+        source === "xcontest"
+          ? `https://www.xcontest.org/${year}/world/en/pilots/detail:${id}`
+          : `https://volandoo.com/pilots/${id}`;
+      window.electron_window.titlebar.open_url(url);
+    },
+    [task.date]
+  );
+
   const renderRow = (p: Participant) => {
     const track = getTrack(p);
     const hasIgc = !!track?.igcPath;
@@ -231,8 +245,30 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
             ))}
           </select>
         </td>
-        <td className="px-3 py-2 text-sm text-gray-600">{p.xcontest || "—"}</td>
-        <td className="px-3 py-2 text-sm text-gray-600">{p.volandoo || "—"}</td>
+        <td className="px-3 py-2 text-sm text-gray-600">
+          {p.xcontest ? (
+            <button
+              onClick={() => openProfileUrl("xcontest", p.xcontest!)}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              {p.xcontest}
+            </button>
+          ) : (
+            "—"
+          )}
+        </td>
+        <td className="px-3 py-2 text-sm text-gray-600">
+          {p.volandoo ? (
+            <button
+              onClick={() => openProfileUrl("volandoo", p.volandoo!)}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              {p.volandoo}
+            </button>
+          ) : (
+            "—"
+          )}
+        </td>
         <td className="px-3 py-2 text-center">
           {(() => {
             const files = pilotIgcFiles?.get(p.id) || [];

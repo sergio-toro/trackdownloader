@@ -169,6 +169,11 @@ const CompetitionStandings: React.FC<CompetitionStandingsProps> = ({
                     <div className="font-medium text-gray-900">
                       {participant?.name || `Pilot ${standing.participantId}`}
                     </div>
+                    {participant?.glider && (
+                      <div className="text-xs text-gray-500">
+                        {participant.glider}
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-2 text-sm text-gray-500">{gender}</td>
                   <td className="px-3 py-2 text-sm text-gray-500">

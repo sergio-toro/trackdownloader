@@ -8,6 +8,8 @@ import { format } from "date-fns";
 import { useCompetition } from "@renderer/context/competitionContext";
 import { useSettings } from "@renderer/context/settingsContext";
 import Card from "@components/layout/Card";
+import FlymasterCredentialsForm from "@components/flymaster/CredentialsForm";
+import XContestCredentialsForm from "@components/xcontest/CredentialsForm";
 
 /**
  * Competition list view
@@ -245,41 +247,47 @@ const DataFolderSettingsDialog: React.FC<{ onClose: () => void }> = ({
             &times;
           </button>
         </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-1">
-            Program data folder
-          </h3>
-          <p className="text-sm text-gray-500 mb-3">
-            Location for storing competition data and temporary downloads
-          </p>
-          <div className="flex items-center gap-2 mb-2">
-            <button
-              onClick={selectFolder}
-              disabled={isMigrating}
-              className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
-            >
-              {isMigrating
-                ? "Migrating..."
-                : !programDataFolder
-                  ? "Select Folder"
-                  : "Change Folder"}
-            </button>
-            {programDataFolder && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-1">
+              Program data folder
+            </h3>
+            <p className="text-sm text-gray-500 mb-3">
+              Location for storing competition data and temporary downloads
+            </p>
+            <div className="flex items-center gap-2 mb-2">
               <button
-                onClick={resetFolder}
+                onClick={selectFolder}
                 disabled={isMigrating}
                 className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
               >
-                Reset to Default
+                {isMigrating
+                  ? "Migrating..."
+                  : !programDataFolder
+                    ? "Select Folder"
+                    : "Change Folder"}
               </button>
-            )}
+              {programDataFolder && (
+                <button
+                  onClick={resetFolder}
+                  disabled={isMigrating}
+                  className="border border-gray-300 px-2 py-1 font-medium text-sm rounded-md hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Reset to Default
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-gray-700">
+              {programDataFolder || defaultStoragePath || "Loading..."}
+              {!programDataFolder && defaultStoragePath && (
+                <span className="text-gray-500"> (default)</span>
+              )}
+            </p>
           </div>
-          <p className="text-sm text-gray-700">
-            {programDataFolder || defaultStoragePath || "Loading..."}
-            {!programDataFolder && defaultStoragePath && (
-              <span className="text-gray-500"> (default)</span>
-            )}
-          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <FlymasterCredentialsForm />
+            <XContestCredentialsForm />
+          </div>
         </div>
       </div>
     </div>
