@@ -9,6 +9,7 @@ import { useSettings } from "@renderer/context/settingsContext";
 import IconDropdownButton from "@renderer/components/buttons/IconDropdownButton";
 import Tooltip from "@renderer/components/buttons/Tooltip";
 import TrackPreviewModal from "./TrackPreviewModal";
+import TrackPreview3DModal from "./TrackPreview3DModal";
 
 export interface IgcFileInfo {
   name: string;
@@ -65,6 +66,8 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
     setDebug,
   } = useSettings();
   const [previewParticipant, setPreviewParticipant] =
+    useState<Participant | null>(null);
+  const [preview3DParticipant, setPreview3DParticipant] =
     useState<Participant | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
@@ -363,6 +366,43 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
               </svg>
             </button>
 
+            {/* 3D Preview */}
+            <button
+              onClick={() => setPreview3DParticipant(p)}
+              disabled={!hasIgc && !pilotIgcFiles?.get(p.id)?.length}
+              title="3D track view"
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3.27 6.96L12 12.01l8.73-5.05"
+                />
+                <line
+                  x1="12"
+                  y1="22.08"
+                  x2="12"
+                  y2="12"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                />
+              </svg>
+            </button>
+
             {/* Download */}
             {isDownloadingPilot ? (
               <span className="p-1 text-gray-600">
@@ -553,6 +593,33 @@ const TaskParticipantTable: React.FC<TaskParticipantTableProps> = ({
               isOpen
               onClose={() => setPreviewParticipant(null)}
               participant={previewParticipant}
+              task={task}
+              competitionId={competitionId}
+              igcFiles={fallback}
+            />
+          );
+        })()}
+
+      {/* 3D Track preview modal */}
+      {preview3DParticipant &&
+        (() => {
+          const files = pilotIgcFiles?.get(preview3DParticipant.id) || [];
+          const track = getTrack(preview3DParticipant);
+          const fallback: IgcFileInfo[] =
+            files.length === 0 && track?.igcPath
+              ? [
+                  {
+                    name: track.igcPath.split("/").pop()!,
+                    source: "assigned",
+                    duration: "",
+                  },
+                ]
+              : files;
+          return (
+            <TrackPreview3DModal
+              isOpen
+              onClose={() => setPreview3DParticipant(null)}
+              participant={preview3DParticipant}
               task={task}
               competitionId={competitionId}
               igcFiles={fallback}

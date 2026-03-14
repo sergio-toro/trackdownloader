@@ -108,6 +108,36 @@ pkill -f "trackdownloader/node_modules"
 
 This kills all processes spawned from this project (Electron, helpers, webpack dev server). After killing, the background task will also complete.
 
+## Data Safety
+
+**NEVER delete app cache, user settings, configuration files, or stored data without explicitly asking the user first.** If an action would remove or overwrite user data (e.g., clearing localStorage, deleting `data/` folders, resetting config), always prompt the user before proceeding.
+
 ## Screenshots
 
 Save Electron MCP screenshots to `.electron-mcp/` directory. This directory is gitignored.
+
+## Electron MCP Navigation
+
+Tested navigation commands for the running app (use after `npm run start`):
+
+```
+# Competition list → Competition detail
+click_by_text: "Sergio Competition" (or any competition name)
+
+# Competition tabs
+click_by_text: "Standings" | "Results" | "Tasks" | "Participants"
+
+# Tasks tab → Task detail view (click the task CARD, not "View Results")
+click_by_selector: ".grid .bg-white.rounded-lg.border.cursor-pointer"
+
+# Task detail tabs
+click_by_text: "Info" | "Participants" | "Results"
+
+# Task participant action buttons
+click_by_selector: "button[title='Preview track']"      # 2D preview
+click_by_selector: "button[title='3D track view']"       # 3D preview
+
+# Back navigation
+click_by_text: "Back to Sergio Competition"
+click_by_text: "Back to Competitions"
+```

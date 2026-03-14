@@ -8,6 +8,7 @@ import type {
   FlightFix,
 } from "@main/scoring/types";
 import { createCirclePolygon } from "@renderer/utils/geoCircle";
+import { segmentTrack } from "@renderer/utils/trackSegmentation";
 import { MAPTILER_STYLE_URL } from "@renderer/config/mapConfig";
 
 const CYLINDER_COLORS: Record<TurnpointType, { fill: string; stroke: string }> =
@@ -199,57 +200,54 @@ const TaskMap: React.FC<TaskMapProps> = ({
         },
       });
 
-      // Add multiple track layers
+      // Add track layers with grey before-SS / after-goal segments
+      const INACTIVE_COLOR = "#434646";
+      const allTracks: { fixes: FlightFix[]; color: string }[] = [];
       if (tracks && tracks.length > 0) {
         tracks.forEach((track, i) => {
           const validFixes = track.fixes.filter((f) => f.valid);
-          if (validFixes.length < 2) return;
-          const id = `track-${i}`;
-          const color = track.color || TRACK_COLORS[i % TRACK_COLORS.length];
-          map.addSource(id, {
-            type: "geojson",
-            data: {
-              type: "Feature",
-              properties: {},
-              geometry: {
-                type: "LineString",
-                coordinates: validFixes.map((f) => [f.longitude, f.latitude]),
-              },
-            },
-          });
-          map.addLayer({
-            id: `${id}-line`,
-            type: "line",
-            source: id,
-            paint: {
-              "line-color": color,
-              "line-width": 2,
-              "line-opacity": 0.8,
-            },
-          });
+          if (validFixes.length >= 2) {
+            allTracks.push({
+              fixes: validFixes,
+              color: track.color || TRACK_COLORS[i % TRACK_COLORS.length],
+            });
+          }
         });
       } else if (trackFixes && trackFixes.length > 0) {
-        // Single track (backwards compat)
         const validFixes = trackFixes.filter((f) => f.valid);
-        if (validFixes.length > 1) {
-          map.addSource("pilot-track", {
+        if (validFixes.length >= 2) {
+          allTracks.push({ fixes: validFixes, color: "#dc2626" });
+        }
+      }
+
+      for (let i = 0; i < allTracks.length; i++) {
+        const { fixes, color } = allTracks[i];
+        const segments = segmentTrack(fixes, turnpoints);
+        const segDefs = [
+          { key: "before", fixes: segments.beforeSS, color: INACTIVE_COLOR },
+          { key: "race", fixes: segments.racing, color },
+          { key: "after", fixes: segments.afterGoal, color: INACTIVE_COLOR },
+        ];
+        for (const seg of segDefs) {
+          if (seg.fixes.length < 2) continue;
+          const srcId = `track-${i}-${seg.key}`;
+          map.addSource(srcId, {
             type: "geojson",
             data: {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "LineString",
-                coordinates: validFixes.map((f) => [f.longitude, f.latitude]),
+                coordinates: seg.fixes.map((f) => [f.longitude, f.latitude]),
               },
             },
           });
-
           map.addLayer({
-            id: "pilot-track-line",
+            id: `${srcId}-line`,
             type: "line",
-            source: "pilot-track",
+            source: srcId,
             paint: {
-              "line-color": "#dc2626",
+              "line-color": seg.color,
               "line-width": 2,
               "line-opacity": 0.8,
             },
