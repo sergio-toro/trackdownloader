@@ -11,6 +11,7 @@ import type {
   ScoringFormulaConfig,
   TaskResult,
   CompetitionResult,
+  TeamResult,
 } from "../types";
 
 /**
@@ -63,6 +64,40 @@ export interface ICompetitionStorage {
     results: CompetitionResult
   ): Promise<void>;
   getCompetitionResults(compId: string): Promise<CompetitionResult | null>;
+
+  // Category result storage
+  saveCategoryTaskResults(
+    compId: string,
+    taskId: string,
+    categoryId: string,
+    result: TaskResult
+  ): Promise<void>;
+  getCategoryTaskResults(
+    compId: string,
+    taskId: string,
+    categoryId: string
+  ): Promise<TaskResult | null>;
+  getAllCategoryTaskResults(
+    compId: string,
+    taskId: string
+  ): Promise<Record<string, TaskResult>>;
+  saveCategoryCompetitionResults(
+    compId: string,
+    categoryId: string,
+    result: CompetitionResult
+  ): Promise<void>;
+  getCategoryCompetitionResults(
+    compId: string,
+    categoryId: string
+  ): Promise<CompetitionResult | null>;
+
+  // Team result storage
+  saveTeamResults(
+    compId: string,
+    teamDefId: string,
+    result: TeamResult
+  ): Promise<void>;
+  getTeamResults(compId: string, teamDefId: string): Promise<TeamResult | null>;
 
   // Formula management
   getScoringFormula(compId: string): Promise<ScoringFormulaConfig>;

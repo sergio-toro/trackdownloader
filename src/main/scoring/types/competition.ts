@@ -58,6 +58,7 @@ export type PenaltyType =
 // Leading calculator type
 export type LeadingCalculatorType = "Classic" | "PWC2019" | "PWC2023";
 
+import type { CompetitionCategory, TeamDefinition } from "./category";
 import type { ScoringFormulaConfig } from "./formula";
 import type { Participant } from "./participant";
 import type { TaskDefinition } from "./task";
@@ -76,6 +77,8 @@ export interface Competition {
   participants: Participant[];
   tasks: TaskDefinition[];
   taskOrder?: string[];
+  categories?: CompetitionCategory[];
+  teams?: TeamDefinition[];
   createdAt: string;
   updatedAt: string;
 }
@@ -113,4 +116,6 @@ export interface ExportOptions {
   format: ExportFormat;
   includeTaskResults: boolean;
   includeStandings: boolean;
+  includeCategories?: boolean;
+  includeTeams?: boolean;
 }

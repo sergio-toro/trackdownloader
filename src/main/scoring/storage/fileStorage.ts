@@ -17,6 +17,7 @@ import type {
   ScoringFormulaConfig,
   TaskResult,
   CompetitionResult,
+  TeamResult,
 } from "../types";
 import { getDefaultFormula } from "../types";
 
@@ -488,6 +489,114 @@ export class FileCompetitionStorage implements ICompetitionStorage {
   ): Promise<CompetitionResult | null> {
     const resultPath = path.join(this.compDir(compId), "overall-results.json");
     return this.readJson<CompetitionResult>(resultPath);
+  }
+
+  // Category result storage
+
+  private categoryResultsDir(compId: string): string {
+    return path.join(this.resultsDir(compId), "categories");
+  }
+
+  private categoryStandingsDir(compId: string): string {
+    return path.join(this.compDir(compId), "category-results");
+  }
+
+  private teamResultsDir(compId: string): string {
+    return path.join(this.compDir(compId), "team-results");
+  }
+
+  async saveCategoryTaskResults(
+    compId: string,
+    taskId: string,
+    categoryId: string,
+    result: TaskResult
+  ): Promise<void> {
+    const filePath = path.join(
+      this.categoryResultsDir(compId),
+      `${taskId}_${categoryId}.json`
+    );
+    await this.writeJson(filePath, result);
+  }
+
+  async getCategoryTaskResults(
+    compId: string,
+    taskId: string,
+    categoryId: string
+  ): Promise<TaskResult | null> {
+    const filePath = path.join(
+      this.categoryResultsDir(compId),
+      `${taskId}_${categoryId}.json`
+    );
+    return this.readJson<TaskResult>(filePath);
+  }
+
+  async getAllCategoryTaskResults(
+    compId: string,
+    taskId: string
+  ): Promise<Record<string, TaskResult>> {
+    const dir = this.categoryResultsDir(compId);
+    if (!(await this.exists(dir))) return {};
+
+    const prefix = `${taskId}_`;
+    const files = await fs.readdir(dir);
+    const results: Record<string, TaskResult> = {};
+
+    for (const file of files) {
+      if (!file.startsWith(prefix) || !file.endsWith(".json")) continue;
+      const categoryId = file.slice(prefix.length, -5); // strip prefix and .json
+      const result = await this.readJson<TaskResult>(path.join(dir, file));
+      if (result) results[categoryId] = result;
+    }
+
+    return results;
+  }
+
+  async saveCategoryCompetitionResults(
+    compId: string,
+    categoryId: string,
+    result: CompetitionResult
+  ): Promise<void> {
+    const filePath = path.join(
+      this.categoryStandingsDir(compId),
+      `${categoryId}.json`
+    );
+    await this.writeJson(filePath, result);
+  }
+
+  async getCategoryCompetitionResults(
+    compId: string,
+    categoryId: string
+  ): Promise<CompetitionResult | null> {
+    const filePath = path.join(
+      this.categoryStandingsDir(compId),
+      `${categoryId}.json`
+    );
+    return this.readJson<CompetitionResult>(filePath);
+  }
+
+  // Team result storage
+
+  async saveTeamResults(
+    compId: string,
+    teamDefId: string,
+    result: TeamResult
+  ): Promise<void> {
+    const filePath = path.join(
+      this.teamResultsDir(compId),
+      `${teamDefId}.json`
+    );
+    await this.writeJson(filePath, result);
+  }
+
+  async getTeamResults(
+    compId: string,
+    teamDefId: string
+  ): Promise<TeamResult | null> {
+    const filePath = path.join(
+      this.teamResultsDir(compId),
+      `${teamDefId}.json`
+    );
+    return this.readJson<TeamResult>(filePath);
   }
 
   // Formula management

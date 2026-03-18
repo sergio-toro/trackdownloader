@@ -11,14 +11,21 @@ import ParticipantTable from "@components/participants/ParticipantTable";
 import TaskDetailView from "@components/competition/TaskDetailView";
 import TaskResultsTable from "@components/results/TaskResultsTable";
 import CompetitionStandings from "@components/results/CompetitionStandings";
+import CategorySelector from "@components/results/CategorySelector";
+import TeamStandings from "@components/results/TeamStandings";
 import ExportDialog from "@components/export/ExportDialog";
 import TaskEditorDialog from "@components/scoring/TaskEditorDialog";
 import ImportXctskDialog from "@components/scoring/ImportXctskDialog";
 import FormulaEditorDialog from "@components/scoring/FormulaEditorDialog";
 import CompetitionEditorDialog from "@components/competition/CompetitionEditorDialog";
+import CategoryEditorDialog from "@components/competition/CategoryEditorDialog";
+import TeamEditorDialog from "@components/competition/TeamEditorDialog";
 import type {
   TaskResult,
   CompetitionResult,
+  CompetitionCategory,
+  TeamDefinition,
+  TeamResult,
   TaskDefinition,
   ScoringFormulaConfig,
 } from "@main/scoring/types";
@@ -60,6 +67,21 @@ const Competition: React.FC = () => {
   const [selectedDetailTaskId, setSelectedDetailTaskId] = useState<
     string | null
   >(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
+  const [categoryTaskResults, setCategoryTaskResults] = useState<
+    Record<string, Record<string, TaskResult>>
+  >({});
+  const [categoryStandings, setCategoryStandings] = useState<
+    Record<string, CompetitionResult>
+  >({});
+  const [teamResults, setTeamResults] = useState<Record<string, TeamResult>>(
+    {}
+  );
+  const [showCategoryEditor, setShowCategoryEditor] = useState(false);
+  const [showTeamEditor, setShowTeamEditor] = useState(false);
+  const [standingsVersion, setStandingsVersion] = useState(0);
 
   // Load competition on mount
   useEffect(() => {
@@ -123,13 +145,89 @@ const Competition: React.FC = () => {
     [competitionId]
   );
 
-  // Load standings
+  // Load standings (always recalculates to cascade category/team results)
   const loadStandings = useCallback(async () => {
+    if (!competitionId) return;
+    try {
+      const result = await window.scoring.calculateStandings(competitionId);
+      setCompetitionResult(result);
+      // Invalidate cached category/team standings — version bump triggers re-fetch
+      setCategoryStandings({});
+      setCategoryTaskResults({});
+      setTeamResults({});
+      setStandingsVersion((v) => v + 1);
+    } catch (err) {
+      console.error("Failed to load standings:", err);
+    }
+  }, [competitionId]);
+
+  // Load category task results
+  const loadCategoryTaskResults = useCallback(
+    async (taskId: string, categoryId: string) => {
+      try {
+        const result = await window.scoring.getCategoryTaskResults(
+          competitionId!,
+          taskId,
+          categoryId
+        );
+        if (result) {
+          setCategoryTaskResults((prev) => ({
+            ...prev,
+            [categoryId]: { ...prev[categoryId], [taskId]: result },
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load category task results:", err);
+      }
+    },
+    [competitionId]
+  );
+
+  // Load category standings
+  const loadCategoryStandings = useCallback(
+    async (categoryId: string) => {
+      try {
+        const result = await window.scoring.getCategoryStandings(
+          competitionId!,
+          categoryId
+        );
+        if (result) {
+          setCategoryStandings((prev) => ({
+            ...prev,
+            [categoryId]: result,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load category standings:", err);
+      }
+    },
+    [competitionId]
+  );
+
+  // Load team results
+  const loadTeamResults = useCallback(
+    async (teamDefId: string) => {
+      try {
+        const result = await window.scoring.getTeamResults(
+          competitionId!,
+          teamDefId
+        );
+        if (result) {
+          setTeamResults((prev) => ({ ...prev, [teamDefId]: result }));
+        }
+      } catch (err) {
+        console.error("Failed to load team results:", err);
+      }
+    },
+    [competitionId]
+  );
+
+  // Load existing standings when switching to standings tab
+  const loadExistingStandings = useCallback(async () => {
     if (!competitionId) return;
     try {
       let result = await window.scoring.getCompetitionResults(competitionId);
       if (!result) {
-        // Calculate standings if not yet computed
         result = await window.scoring.calculateStandings(competitionId);
       }
       setCompetitionResult(result);
@@ -138,12 +236,11 @@ const Competition: React.FC = () => {
     }
   }, [competitionId]);
 
-  // Load results when switching to standings tab
   useEffect(() => {
     if (activeTab === "standings" && !competitionResult) {
-      loadStandings();
+      loadExistingStandings();
     }
-  }, [activeTab, competitionResult, loadStandings]);
+  }, [activeTab, competitionResult, loadExistingStandings]);
 
   // Load task result when selecting a task in results tab
   useEffect(() => {
@@ -155,6 +252,34 @@ const Competition: React.FC = () => {
       loadTaskResults(selectedTaskId);
     }
   }, [activeTab, selectedTaskId, taskResults, loadTaskResults]);
+
+  // Load category data when category is selected or standings recalculated
+  useEffect(() => {
+    if (!selectedCategoryId || !competitionId) return;
+    if (activeTab === "standings") {
+      loadCategoryStandings(selectedCategoryId);
+    }
+    if (activeTab === "results" && selectedTaskId) {
+      loadCategoryTaskResults(selectedTaskId, selectedCategoryId);
+    }
+  }, [
+    activeTab,
+    selectedCategoryId,
+    selectedTaskId,
+    competitionId,
+    standingsVersion,
+    loadCategoryStandings,
+    loadCategoryTaskResults,
+  ]);
+
+  // Load team results when on standings tab
+  useEffect(() => {
+    if (activeTab === "standings" && competition?.teams?.length) {
+      for (const teamDef of competition.teams) {
+        loadTeamResults(teamDef.id);
+      }
+    }
+  }, [activeTab, competition?.teams, standingsVersion, loadTeamResults]);
 
   // Set initial selected task
   useEffect(() => {
@@ -270,6 +395,7 @@ const Competition: React.FC = () => {
             participants={participants}
             competitionId={competitionId!}
             competitionName={competition.name}
+            categories={competition.categories ?? []}
             onBack={() => setSelectedDetailTaskId(null)}
             onEditTask={handleEditTask}
             onScoreTask={handleScoreTaskForDetail}
@@ -308,6 +434,8 @@ const Competition: React.FC = () => {
               onExport={() => setShowExportDialog(true)}
               onEditFormula={() => setShowFormulaEditor(true)}
               onEditCompetition={() => setShowCompetitionEditor(true)}
+              onEditCategories={() => setShowCategoryEditor(true)}
+              onEditTeams={() => setShowTeamEditor(true)}
             />
 
             {/* Tabs */}
@@ -369,15 +497,41 @@ const Competition: React.FC = () => {
 
               {activeTab === "standings" && (
                 <div>
+                  <CategorySelector
+                    categories={competition.categories ?? []}
+                    selectedCategoryId={selectedCategoryId}
+                    onChange={setSelectedCategoryId}
+                  />
                   <h3 className="text-lg font-semibold mb-4">
-                    Overall Standings
+                    {selectedCategoryId
+                      ? `${competition.categories?.find((c) => c.id === selectedCategoryId)?.name ?? ""} Standings`
+                      : "Overall Standings"}
                   </h3>
                   <CompetitionStandings
-                    competitionResult={competitionResult}
+                    competitionResult={
+                      selectedCategoryId
+                        ? (categoryStandings[selectedCategoryId] ?? null)
+                        : competitionResult
+                    }
                     taskResults={Object.values(taskResults)}
                     participants={participants}
                     onRecalculate={loadStandings}
                   />
+
+                  {/* Team standings */}
+                  {!selectedCategoryId &&
+                    competition.teams?.map((teamDef) => (
+                      <div key={teamDef.id} className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4">
+                          {teamDef.name}
+                        </h3>
+                        <TeamStandings
+                          teamResult={teamResults[teamDef.id] ?? null}
+                          participants={participants}
+                          taskNames={new Map(tasks.map((t) => [t.id, t.name]))}
+                        />
+                      </div>
+                    ))}
                 </div>
               )}
 
@@ -401,10 +555,26 @@ const Competition: React.FC = () => {
                     ))}
                   </div>
 
+                  {/* Category selector */}
+                  <CategorySelector
+                    categories={competition.categories ?? []}
+                    selectedCategoryId={selectedCategoryId}
+                    onChange={setSelectedCategoryId}
+                  />
+
                   {/* Results table */}
-                  {selectedTaskId && taskResults[selectedTaskId] ? (
+                  {selectedTaskId &&
+                  (selectedCategoryId
+                    ? categoryTaskResults[selectedCategoryId]?.[selectedTaskId]
+                    : taskResults[selectedTaskId]) ? (
                     <TaskResultsTable
-                      taskResult={taskResults[selectedTaskId]}
+                      taskResult={
+                        selectedCategoryId
+                          ? categoryTaskResults[selectedCategoryId][
+                              selectedTaskId
+                            ]
+                          : taskResults[selectedTaskId]
+                      }
                       participants={participants}
                     />
                   ) : selectedTaskId ? (
@@ -434,6 +604,8 @@ const Competition: React.FC = () => {
           onClose={() => setShowExportDialog(false)}
           competitionId={competitionId!}
           competitionName={competition.name}
+          hasCategories={(competition.categories?.length ?? 0) > 0}
+          hasTeams={(competition.teams?.length ?? 0) > 0}
         />
 
         <TaskEditorDialog
@@ -469,6 +641,33 @@ const Competition: React.FC = () => {
             onClose={() => setShowCompetitionEditor(false)}
             competition={competition}
             onSave={updateCompetition}
+          />
+        )}
+
+        {competition && (
+          <CategoryEditorDialog
+            isOpen={showCategoryEditor}
+            onClose={() => setShowCategoryEditor(false)}
+            categories={competition.categories ?? []}
+            onSave={async (categories: CompetitionCategory[]) => {
+              await updateCompetition({ categories });
+              // Reset cached category results
+              setCategoryTaskResults({});
+              setCategoryStandings({});
+              setSelectedCategoryId(null);
+            }}
+          />
+        )}
+
+        {competition && (
+          <TeamEditorDialog
+            isOpen={showTeamEditor}
+            onClose={() => setShowTeamEditor(false)}
+            teams={competition.teams ?? []}
+            onSave={async (teams: TeamDefinition[]) => {
+              await updateCompetition({ teams });
+              setTeamResults({});
+            }}
           />
         )}
       </div>

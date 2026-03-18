@@ -50,6 +50,14 @@ export type {
   TaskParticipant,
 } from "./participant";
 
+// Category and team types
+export type {
+  SelectorComparator,
+  CategorySelector,
+  CompetitionCategory,
+  TeamDefinition,
+} from "./category";
+
 // Result types
 export type {
   TaskStatistics,
@@ -63,6 +71,10 @@ export type {
   TaskStandingScore,
   CompetitionStanding,
   CompetitionResult,
+  TeamMemberScore,
+  TeamTaskScore,
+  TeamStanding,
+  TeamResult,
 } from "./results";
 
 // Formula types

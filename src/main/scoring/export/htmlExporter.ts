@@ -6,8 +6,22 @@
 
 import * as fs from "fs";
 import type { Competition } from "../types/competition";
-import type { CompetitionResult, TaskResult } from "../types/results";
+import type { CompetitionCategory } from "../types/category";
+import type {
+  CompetitionResult,
+  TaskResult,
+  TeamResult,
+} from "../types/results";
 import type { Participant } from "../types/participant";
+
+/**
+ * Category export data
+ */
+export interface CategoryExportData {
+  category: CompetitionCategory;
+  standings: CompetitionResult;
+  taskResults: TaskResult[];
+}
 
 /**
  * HTML export options
@@ -24,6 +38,12 @@ export interface HtmlExportOptions {
 
   /** Decimal places for points */
   decimals?: number;
+
+  /** Category results to include */
+  categoryResults?: CategoryExportData[];
+
+  /** Team results to include */
+  teamResults?: TeamResult[];
 }
 
 /**
@@ -55,7 +75,9 @@ export async function exportToHtml(
     taskNameMap,
     options.includeStandings,
     options.includeTaskResults,
-    decimals
+    decimals,
+    options.categoryResults,
+    options.teamResults
   );
 
   await fs.promises.writeFile(options.outputPath, html, "utf-8");
@@ -73,7 +95,9 @@ function generateHtml(
   taskNameMap: Map<string, string>,
   includeStandings: boolean,
   includeTaskResults: boolean,
-  decimals: number
+  decimals: number,
+  categoryResults?: CategoryExportData[],
+  teamResults?: TeamResult[]
 ): string {
   const sections: string[] = [];
 
@@ -91,7 +115,7 @@ function generateHtml(
     </header>
   `);
 
-  // Standings section
+  // Overall standings section
   if (includeStandings) {
     sections.push(
       generateStandingsHtml(
@@ -99,17 +123,64 @@ function generateHtml(
         taskResults,
         participantMap,
         taskNameMap,
-        decimals
+        decimals,
+        "Overall Standings"
       )
     );
   }
 
-  // Task results sections
+  // Category standings sections
+  if (includeStandings && categoryResults?.length) {
+    for (const catData of categoryResults) {
+      sections.push(
+        generateStandingsHtml(
+          catData.standings,
+          catData.taskResults,
+          participantMap,
+          taskNameMap,
+          decimals,
+          `${catData.category.name} Standings`
+        )
+      );
+    }
+  }
+
+  // Team results sections
+  if (includeStandings && teamResults?.length) {
+    for (const teamResult of teamResults) {
+      sections.push(
+        generateTeamResultHtml(
+          teamResult,
+          participantMap,
+          taskNameMap,
+          decimals
+        )
+      );
+    }
+  }
+
+  // Overall task results sections
   if (includeTaskResults) {
     for (const taskResult of taskResults) {
       sections.push(
         generateTaskResultHtml(taskResult, participantMap, decimals)
       );
+    }
+  }
+
+  // Category task results sections
+  if (includeTaskResults && categoryResults?.length) {
+    for (const catData of categoryResults) {
+      for (const taskResult of catData.taskResults) {
+        sections.push(
+          generateTaskResultHtml(
+            taskResult,
+            participantMap,
+            decimals,
+            catData.category.name
+          )
+        );
+      }
     }
   }
 
@@ -143,7 +214,8 @@ function generateStandingsHtml(
   taskResults: TaskResult[],
   participantMap: Map<number, Participant>,
   taskNameMap: Map<string, string>,
-  decimals: number
+  decimals: number,
+  title: string
 ): string {
   const taskIds = taskResults.map((t) => t.taskId);
 
@@ -196,8 +268,8 @@ function generateStandingsHtml(
     .join("");
 
   return `
-    <section class="standings">
-      <h2>Overall Standings</h2>
+    <section class="standings category-section">
+      <h2>${escapeHtml(title)}</h2>
       <table class="results-table">
         <thead>
           <tr>
@@ -226,7 +298,8 @@ function generateStandingsHtml(
 function generateTaskResultHtml(
   taskResult: TaskResult,
   participantMap: Map<number, Participant>,
-  decimals: number
+  decimals: number,
+  categoryPrefix?: string
 ): string {
   const sortedResults = [...taskResult.pilotResults].sort(
     (a, b) => a.rank - b.rank
@@ -254,9 +327,13 @@ function generateTaskResultHtml(
     })
     .join("");
 
+  const title = categoryPrefix
+    ? `${taskResult.taskName} - ${categoryPrefix}`
+    : taskResult.taskName;
+
   return `
-    <section class="task-result">
-      <h2>${escapeHtml(taskResult.taskName)}</h2>
+    <section class="task-result category-section">
+      <h2>${escapeHtml(title)}</h2>
       <p class="task-date">${taskResult.taskDate}</p>
 
       <div class="task-stats">
@@ -292,6 +369,91 @@ function generateTaskResultHtml(
             <th>Time Pts</th>
             <th>Lead Pts</th>
             <th>Penalty</th>
+            <th class="total-col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </section>
+  `;
+}
+
+/**
+ * Generate team result HTML section
+ */
+function generateTeamResultHtml(
+  teamResult: TeamResult,
+  participantMap: Map<number, Participant>,
+  taskNameMap: Map<string, string>,
+  decimals: number
+): string {
+  if (teamResult.standings.length === 0) return "";
+
+  const taskIds =
+    teamResult.standings[0]?.taskScores.map((ts) => ts.taskId) ?? [];
+  const taskHeaders = taskIds
+    .map((id) => {
+      const name = taskNameMap.get(id) || id;
+      return `<th class="task-col">${escapeHtml(name)}</th>`;
+    })
+    .join("");
+
+  const rows = teamResult.standings
+    .map((standing) => {
+      const taskCells = standing.taskScores
+        .map(
+          (ts) =>
+            `<td class="points">${formatPoints(ts.teamPoints, decimals)}</td>`
+        )
+        .join("");
+
+      // Member sub-rows
+      const memberRows = standing.taskScores[0]?.members
+        .map((member) => {
+          const pilot = participantMap.get(member.participantId);
+          const memberTaskCells = standing.taskScores
+            .map((ts) => {
+              const m = ts.members.find(
+                (x) => x.participantId === member.participantId
+              );
+              const cls = m?.counting ? "" : ' class="team-non-counting"';
+              return `<td class="points"${cls}>${m ? formatPoints(m.points, decimals) : "-"}</td>`;
+            })
+            .join("");
+
+          return `
+          <tr class="team-member-row">
+            <td></td>
+            <td class="pilot team-member">${escapeHtml(pilot?.name || `Pilot ${member.participantId}`)}</td>
+            ${memberTaskCells}
+            <td></td>
+          </tr>`;
+        })
+        .join("");
+
+      return `
+        <tr>
+          <td class="rank">${standing.rank}</td>
+          <td class="pilot" style="font-weight:600">${escapeHtml(standing.teamName)}</td>
+          ${taskCells}
+          <td class="total">${formatPoints(standing.totalPoints, 0)}</td>
+        </tr>
+        ${memberRows}
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="standings category-section">
+      <h2>${escapeHtml(teamResult.teamDefinitionName)}</h2>
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th class="rank-col">#</th>
+            <th class="pilot-col">Team</th>
+            ${taskHeaders}
             <th class="total-col">Total</th>
           </tr>
         </thead>
@@ -358,6 +520,16 @@ function getStyles(): string {
 
     section {
       margin-bottom: 40px;
+    }
+
+    .category-section {
+      border-top: 2px solid #ccc;
+      padding-top: 20px;
+    }
+
+    .category-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
     }
 
     h2 {
@@ -430,6 +602,20 @@ function getStyles(): string {
       background: #e8f5e9;
     }
 
+    .team-member-row {
+      background: #f9f9f9;
+    }
+
+    .team-member {
+      padding-left: 24px !important;
+      font-size: 10px;
+      color: #666;
+    }
+
+    .team-non-counting {
+      color: #aaa;
+    }
+
     footer {
       margin-top: 40px;
       padding-top: 20px;
@@ -443,6 +629,7 @@ function getStyles(): string {
       body { font-size: 10px; }
       .container { padding: 10px; }
       section { page-break-inside: avoid; }
+      .category-section { page-break-before: auto; }
       .results-table { font-size: 9px; }
     }
   `;

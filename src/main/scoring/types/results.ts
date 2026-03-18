@@ -124,6 +124,7 @@ export interface TaskResult {
   taskDate: string;
   scoredAt: string;
   formula: string;
+  categoryName?: string; // undefined or "Overall" for default
 
   // Validity scores (0-1)
   timeValidity: number;
@@ -198,5 +199,45 @@ export interface CompetitionResult {
   scoredAt: string;
   taskCount: number;
   scoredTaskCount: number;
+  categoryName?: string; // undefined or "Overall" for default
   standings: CompetitionStanding[];
+}
+
+/**
+ * Individual team member's score for a task
+ */
+export interface TeamMemberScore {
+  participantId: number;
+  points: number;
+  counting: boolean;
+}
+
+/**
+ * Team score for a single task
+ */
+export interface TeamTaskScore {
+  taskId: string;
+  teamPoints: number;
+  members: TeamMemberScore[];
+}
+
+/**
+ * A team's overall standing
+ */
+export interface TeamStanding {
+  teamName: string; // Attribute value, e.g., "ESP", "FRA"
+  rank: number;
+  totalPoints: number;
+  taskScores: TeamTaskScore[];
+}
+
+/**
+ * Team classification result
+ */
+export interface TeamResult {
+  competitionId: string;
+  teamDefinitionId: string;
+  teamDefinitionName: string;
+  scoredAt: string;
+  standings: TeamStanding[];
 }

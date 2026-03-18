@@ -3,7 +3,9 @@ import type {
   TaskDefinition,
   TaskResult,
   Participant,
+  CompetitionCategory,
 } from "@main/scoring/types";
+import CategorySelector from "@components/results/CategorySelector";
 import { useCompetition } from "@renderer/context/competitionContext";
 import TurnpointList from "./TurnpointList";
 import TaskParticipantTable from "./TaskParticipantTable";
@@ -19,6 +21,7 @@ interface TaskDetailViewProps {
   participants: Participant[];
   competitionId: string;
   competitionName: string;
+  categories?: CompetitionCategory[];
   onBack: () => void;
   onEditTask: (task: TaskDefinition) => void;
   onScoreTask: (taskId: string) => Promise<void>;
@@ -34,6 +37,7 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
   participants,
   competitionId,
   competitionName,
+  categories = [],
   onBack,
   onEditTask,
   onScoreTask,
@@ -43,12 +47,40 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DetailTab>("info");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
+  const [categoryResult, setCategoryResult] = useState<TaskResult | null>(null);
   const [pilotIgcFiles, setPilotIgcFiles] = useState<
     Map<number, { name: string; source: string; duration: string }[]>
   >(new Map());
 
   const { updateParticipant } = useCompetition();
   const isScored = !!taskResult;
+
+  // Load category result when category selected
+  useEffect(() => {
+    if (!selectedCategoryId || !isScored) {
+      setCategoryResult(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.scoring.getCategoryTaskResults(
+          competitionId,
+          task.id,
+          selectedCategoryId
+        );
+        if (!cancelled) setCategoryResult(result);
+      } catch {
+        if (!cancelled) setCategoryResult(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCategoryId, competitionId, task.id, isScored]);
 
   // Scan IGC folder to list files per pilot
   useEffect(() => {
@@ -424,9 +456,18 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
 
       {activeTab === "results" && (
         <div>
+          <CategorySelector
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            onChange={setSelectedCategoryId}
+          />
           {isScored && taskResult ? (
             <TaskResultsTable
-              taskResult={taskResult}
+              taskResult={
+                selectedCategoryId && categoryResult
+                  ? categoryResult
+                  : taskResult
+              }
               participants={participants}
             />
           ) : (

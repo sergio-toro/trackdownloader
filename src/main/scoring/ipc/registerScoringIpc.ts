@@ -14,6 +14,11 @@ import { parseXctskFile, previewXctskFile } from "../import/xctaskImporter";
 import { analyzeFlightForTask, readIgcFile } from "../analysis";
 import { scoreTask } from "../scoring";
 import { calculateCompetitionStandings } from "../scoring/ftvCalculator";
+import {
+  scoreAllCategoriesForTask,
+  filterTaskResult,
+} from "../scoring/categoryScorer";
+import { calculateTeamResults } from "../scoring/teamScorer";
 import { exportToCsv } from "../export/csvExporter";
 import { exportToHtml } from "../export/htmlExporter";
 import { getDefaultFormula } from "../types/formula";
@@ -385,6 +390,58 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
   );
 
   // ============================================================
+  // Category & Team Results
+  // ============================================================
+
+  ipcMain.handle(
+    "scoring-get-category-task-results",
+    async (_, compId: string, taskId: string, categoryId: string) => {
+      try {
+        return await storage.getCategoryTaskResults(compId, taskId, categoryId);
+      } catch (error) {
+        console.error("Error getting category task results:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-get-all-category-task-results",
+    async (_, compId: string, taskId: string) => {
+      try {
+        return await storage.getAllCategoryTaskResults(compId, taskId);
+      } catch (error) {
+        console.error("Error getting all category task results:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-get-category-standings",
+    async (_, compId: string, categoryId: string) => {
+      try {
+        return await storage.getCategoryCompetitionResults(compId, categoryId);
+      } catch (error) {
+        console.error("Error getting category standings:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-get-team-results",
+    async (_, compId: string, teamDefId: string) => {
+      try {
+        return await storage.getTeamResults(compId, teamDefId);
+      } catch (error) {
+        console.error("Error getting team results:", error);
+        throw error;
+      }
+    }
+  );
+
+  // ============================================================
   // Formula Management
   // ============================================================
 
@@ -676,6 +733,27 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
         // Save results
         await storage.saveTaskResults(compId, taskId, result);
 
+        // Cascade: score all defined categories for this task
+        const competition = await storage.getCompetition(compId);
+        if (competition?.categories?.length) {
+          const categoryResults = scoreAllCategoriesForTask(
+            result,
+            competition.categories,
+            participants
+          );
+          for (const [categoryId, categoryResult] of categoryResults) {
+            await storage.saveCategoryTaskResults(
+              compId,
+              taskId,
+              categoryId,
+              categoryResult
+            );
+          }
+          console.log(
+            `Scored ${categoryResults.size} categories for task ${taskId}`
+          );
+        }
+
         return result;
       } catch (error) {
         console.error("Error scoring task:", error);
@@ -842,6 +920,86 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
         // Save results
         await storage.saveCompetitionResults(compId, result);
 
+        // Cascade: calculate category standings
+        if (competition.categories?.length) {
+          // First, ensure category task results exist for all categories
+          // (generates them on-the-fly if categories were added after scoring)
+          for (const category of competition.categories) {
+            for (const tr of taskResults) {
+              const existing = await storage.getCategoryTaskResults(
+                compId,
+                tr.taskId,
+                category.id
+              );
+              if (!existing) {
+                const catResult = filterTaskResult(
+                  tr,
+                  category,
+                  competition.participants
+                );
+                await storage.saveCategoryTaskResults(
+                  compId,
+                  tr.taskId,
+                  category.id,
+                  catResult
+                );
+              }
+            }
+          }
+
+          for (const category of competition.categories) {
+            // Load category task results (now guaranteed to exist)
+            const categoryTaskResults: TaskResult[] = [];
+            for (const task of tasks) {
+              const catResult = await storage.getCategoryTaskResults(
+                compId,
+                task.id,
+                category.id
+              );
+              if (catResult) categoryTaskResults.push(catResult);
+            }
+
+            if (categoryTaskResults.length > 0) {
+              const catStandings = calculateCompetitionStandings(
+                categoryTaskResults,
+                competition.participants,
+                {
+                  ...competition.formula,
+                  ...(category.discardFactor != null
+                    ? { ftvFactor: category.discardFactor }
+                    : {}),
+                }
+              );
+              catStandings.competitionId = compId;
+              catStandings.categoryName = category.name;
+              await storage.saveCategoryCompetitionResults(
+                compId,
+                category.id,
+                catStandings
+              );
+            }
+          }
+          console.log(
+            `Calculated standings for ${competition.categories.length} categories`
+          );
+        }
+
+        // Cascade: calculate team results
+        if (competition.teams?.length) {
+          for (const teamDef of competition.teams) {
+            const teamResult = calculateTeamResults(
+              taskResults,
+              competition.participants,
+              teamDef,
+              compId
+            );
+            await storage.saveTeamResults(compId, teamDef.id, teamResult);
+          }
+          console.log(
+            `Calculated results for ${competition.teams.length} team definitions`
+          );
+        }
+
         return result;
       } catch (error) {
         console.error("Error calculating standings:", error);
@@ -981,6 +1139,59 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
           }
         }
 
+        // Load category data if requested
+        const includeCategories =
+          options.includeCategories !== false &&
+          (competition.categories?.length ?? 0) > 0;
+        let categoryResults:
+          | {
+              category: (typeof competition.categories)[number];
+              standings: CompetitionResult;
+              taskResults: TaskResult[];
+            }[]
+          | undefined;
+
+        if (includeCategories && competition.categories) {
+          categoryResults = [];
+          for (const category of competition.categories) {
+            const catStandings = await storage.getCategoryCompetitionResults(
+              compId,
+              category.id
+            );
+            if (!catStandings) continue;
+
+            const catTaskResults: TaskResult[] = [];
+            for (const task of tasks) {
+              const catResult = await storage.getCategoryTaskResults(
+                compId,
+                task.id,
+                category.id
+              );
+              if (catResult) catTaskResults.push(catResult);
+            }
+
+            categoryResults.push({
+              category,
+              standings: catStandings,
+              taskResults: catTaskResults,
+            });
+          }
+        }
+
+        // Load team data if requested
+        const includeTeams =
+          options.includeTeams !== false &&
+          (competition.teams?.length ?? 0) > 0;
+        let teamResultsArr: import("../types").TeamResult[] | undefined;
+
+        if (includeTeams && competition.teams) {
+          teamResultsArr = [];
+          for (const teamDef of competition.teams) {
+            const teamResult = await storage.getTeamResults(compId, teamDef.id);
+            if (teamResult) teamResultsArr.push(teamResult);
+          }
+        }
+
         // Open save dialog
         const saveResult = await dialog.showSaveDialog(appWindow, {
           defaultPath: `${competition.name.replace(/[^a-zA-Z0-9]/g, "_")}_results.html`,
@@ -1002,6 +1213,8 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
             includeStandings: options.includeStandings,
             includeTaskResults: options.includeTaskResults,
             decimals: competition.formula.numberOfDecimalsTaskResults,
+            categoryResults,
+            teamResults: teamResultsArr,
           }
         );
 

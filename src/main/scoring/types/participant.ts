@@ -31,6 +31,7 @@ export interface Participant {
   sponsor?: string;
   genre?: string; // MALE, FEMALE
   club?: string;
+  customAttributes?: Record<string, string>;
   status: ParticipantStatus;
   taskTracks?: TaskTrack[];
 }

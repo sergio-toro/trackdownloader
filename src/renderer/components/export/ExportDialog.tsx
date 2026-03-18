@@ -11,6 +11,8 @@ interface ExportDialogProps {
   onClose: () => void;
   competitionId: string;
   competitionName: string;
+  hasCategories?: boolean;
+  hasTeams?: boolean;
 }
 
 type ExportFormat = "csv" | "html";
@@ -20,10 +22,14 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
   onClose,
   competitionId,
   competitionName,
+  hasCategories = false,
+  hasTeams = false,
 }) => {
   const [format, setFormat] = useState<ExportFormat>("csv");
   const [includeStandings, setIncludeStandings] = useState(true);
   const [includeTaskResults, setIncludeTaskResults] = useState(true);
+  const [includeCategories, setIncludeCategories] = useState(true);
+  const [includeTeams, setIncludeTeams] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -38,6 +44,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
         format,
         includeStandings,
         includeTaskResults,
+        includeCategories: hasCategories && includeCategories,
+        includeTeams: hasTeams && includeTeams,
       };
 
       let result:
@@ -168,6 +176,28 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
               />
               <span>Individual task results</span>
             </label>
+            {hasCategories && (
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={includeCategories}
+                  onChange={(e) => setIncludeCategories(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Category results</span>
+              </label>
+            )}
+            {hasTeams && (
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={includeTeams}
+                  onChange={(e) => setIncludeTeams(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Team results</span>
+              </label>
+            )}
           </div>
 
           {/* Error message */}

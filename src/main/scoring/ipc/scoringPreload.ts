@@ -13,6 +13,7 @@ import type {
   ScoringFormulaConfig,
   TaskResult,
   CompetitionResult,
+  TeamResult,
   FlightAnalysis,
   FlightFix,
   FlightAnalysisOptions,
@@ -89,6 +90,25 @@ export interface ScoringMethods {
     results: CompetitionResult
   ) => Promise<void>;
   getCompetitionResults: (compId: string) => Promise<CompetitionResult | null>;
+
+  // Category & team results
+  getCategoryTaskResults: (
+    compId: string,
+    taskId: string,
+    categoryId: string
+  ) => Promise<TaskResult | null>;
+  getAllCategoryTaskResults: (
+    compId: string,
+    taskId: string
+  ) => Promise<Record<string, TaskResult>>;
+  getCategoryStandings: (
+    compId: string,
+    categoryId: string
+  ) => Promise<CompetitionResult | null>;
+  getTeamResults: (
+    compId: string,
+    teamDefId: string
+  ) => Promise<TeamResult | null>;
 
   // Formula management
   getFormula: (compId: string) => Promise<ScoringFormulaConfig>;
@@ -233,6 +253,21 @@ const scoring: ScoringMethods = {
     ipcRenderer.invoke("scoring-save-competition-results", compId, results),
   getCompetitionResults: (compId) =>
     ipcRenderer.invoke("scoring-get-competition-results", compId),
+
+  // Category & team results
+  getCategoryTaskResults: (compId, taskId, categoryId) =>
+    ipcRenderer.invoke(
+      "scoring-get-category-task-results",
+      compId,
+      taskId,
+      categoryId
+    ),
+  getAllCategoryTaskResults: (compId, taskId) =>
+    ipcRenderer.invoke("scoring-get-all-category-task-results", compId, taskId),
+  getCategoryStandings: (compId, categoryId) =>
+    ipcRenderer.invoke("scoring-get-category-standings", compId, categoryId),
+  getTeamResults: (compId, teamDefId) =>
+    ipcRenderer.invoke("scoring-get-team-results", compId, teamDefId),
 
   // Formula management
   getFormula: (compId) => ipcRenderer.invoke("scoring-get-formula", compId),
