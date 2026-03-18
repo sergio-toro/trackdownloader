@@ -148,7 +148,7 @@ interface StoredState {
 export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { settings } = useSettings();
+  const { settingsLoaded } = useSettings();
 
   // State
   const [competition, setCompetition] = useState<Competition | null>(null);
@@ -168,20 +168,12 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
     CompetitionSummary[]
   >([]);
 
-  // Load stored state on mount
+  // Load stored state once settings are loaded (storage path is set)
   useEffect(() => {
+    if (!settingsLoaded) return;
+
     const loadStoredState = async () => {
       try {
-        // Ensure custom storage path is set before loading competitions.
-        // SettingsProvider (parent) sets programDataFolder from localStorage,
-        // but its useEffect to call setStoragePath races with this effect.
-        if (settings.programDataFolder) {
-          await window.scoring.setStoragePath(
-            settings.programDataFolder,
-            false
-          );
-        }
-
         const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (stored) {
           const state: StoredState = JSON.parse(stored);
@@ -206,7 +198,7 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     loadStoredState();
-  }, []);
+  }, [settingsLoaded]);
 
   // Persist state to localStorage
   useEffect(() => {

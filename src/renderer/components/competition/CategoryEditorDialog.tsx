@@ -52,6 +52,8 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
 }) => {
   const [categories, setCategories] = useState<CompetitionCategory[]>([]);
   const [saving, setSaving] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
   // Track original IDs to detect renames
   const originalIds = useRef<Map<number, string>>(new Map());
   // Track which categories have manually edited IDs
@@ -143,26 +145,167 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
     setCategories((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const applyPreset = (preset: "women" | "serial") => {
-    const cat = makeEmptyCategory();
-    if (preset === "women") {
-      cat.name = "Women";
-      cat.id = "women";
-      cat.selectors = [
-        { attributeName: "female", comparator: "equals", requiredValue: "1" },
-      ];
-    } else if (preset === "serial") {
-      cat.name = "Serial";
-      cat.id = "serial";
-      cat.selectors = [
-        {
-          attributeName: "glider_class",
-          comparator: "equals",
-          requiredValue: "Serial",
-        },
-      ];
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDropIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null);
+      setDropIndex(null);
+      return;
     }
-    setCategories((prev) => [...prev, cat]);
+    setCategories((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(index, 0, moved);
+      // Rebuild originalIds mapping to follow the reorder
+      const newOriginalIds = new Map<number, string>();
+      const oldMap = new Map(originalIds.current);
+      const oldEntries = [...oldMap.entries()].sort((a, b) => a[0] - b[0]);
+      const ids = oldEntries.map(([, id]) => id);
+      // Apply same reorder to the IDs array
+      if (ids.length > 0) {
+        const reorderedIds = [...ids];
+        const [movedId] = reorderedIds.splice(dragIndex, 1);
+        if (movedId !== undefined) {
+          reorderedIds.splice(index, 0, movedId);
+        }
+        reorderedIds.forEach((id, i) => newOriginalIds.set(i, id));
+      }
+      originalIds.current = newOriginalIds;
+      // Rebuild manualIds mapping
+      const newManualIds = new Set<number>();
+      const oldManualArr = [...manualIds.current];
+      for (const mi of oldManualArr) {
+        let newIdx = mi;
+        if (mi === dragIndex) {
+          newIdx = index;
+        } else if (dragIndex < index && mi > dragIndex && mi <= index) {
+          newIdx = mi - 1;
+        } else if (dragIndex > index && mi >= index && mi < dragIndex) {
+          newIdx = mi + 1;
+        }
+        newManualIds.add(newIdx);
+      }
+      manualIds.current = newManualIds;
+      return next;
+    });
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
+  const PRESETS: {
+    key: string;
+    label: string;
+    color: string;
+    category: CompetitionCategory;
+  }[] = [
+    {
+      key: "women",
+      label: "Women",
+      color: "bg-pink-100 text-pink-700 hover:bg-pink-200",
+      category: {
+        ...makeEmptyCategory(),
+        name: "Women",
+        id: "women",
+        selectors: [
+          {
+            attributeName: "female",
+            comparator: "equals",
+            requiredValue: "1",
+          },
+        ],
+      },
+    },
+    {
+      key: "serial",
+      label: "Serial",
+      color: "bg-purple-100 text-purple-700 hover:bg-purple-200",
+      category: {
+        ...makeEmptyCategory(),
+        name: "Serial",
+        id: "serial",
+        selectors: [
+          {
+            attributeName: "glider_class",
+            comparator: "equals",
+            requiredValue: "Serial",
+          },
+        ],
+      },
+    },
+    {
+      key: "sport",
+      label: "Sport",
+      color: "bg-blue-100 text-blue-700 hover:bg-blue-200",
+      category: {
+        ...makeEmptyCategory(),
+        name: "Sport",
+        id: "sport",
+        selectors: [
+          {
+            attributeName: "glider_class",
+            comparator: "equals",
+            requiredValue: "Sport",
+          },
+        ],
+      },
+    },
+    {
+      key: "club",
+      label: "Club",
+      color: "bg-green-100 text-green-700 hover:bg-green-200",
+      category: {
+        ...makeEmptyCategory(),
+        name: "Club",
+        id: "club",
+        selectors: [
+          {
+            attributeName: "glider_class",
+            comparator: "equals",
+            requiredValue: "Club",
+          },
+        ],
+      },
+    },
+    {
+      key: "open",
+      label: "Open",
+      color: "bg-amber-100 text-amber-700 hover:bg-amber-200",
+      category: {
+        ...makeEmptyCategory(),
+        name: "Open",
+        id: "open",
+        selectors: [
+          {
+            attributeName: "glider_class",
+            comparator: "equals",
+            requiredValue: "Open",
+          },
+        ],
+      },
+    },
+  ];
+
+  const applyPreset = (preset: (typeof PRESETS)[number]) => {
+    setCategories((prev) => [
+      ...prev,
+      {
+        ...preset.category,
+        selectors: [...preset.category.selectors],
+      },
+    ]);
   };
 
   const handleSave = async () => {
@@ -218,29 +361,54 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
         {/* Content */}
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
           {/* Presets */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center flex-wrap">
             <span className="text-sm text-gray-500">Quick add:</span>
-            <button
-              onClick={() => applyPreset("women")}
-              className="px-2 py-1 text-xs bg-pink-100 text-pink-700 rounded hover:bg-pink-200"
-            >
-              Women
-            </button>
-            <button
-              onClick={() => applyPreset("serial")}
-              className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
-            >
-              Serial
-            </button>
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.key}
+                onClick={() => applyPreset(preset)}
+                className={`px-2 py-1 text-xs rounded ${preset.color}`}
+              >
+                {preset.label}
+              </button>
+            ))}
           </div>
 
           {/* Categories */}
           {categories.map((cat, catIdx) => (
             <div
               key={catIdx}
-              className="border border-gray-200 rounded-lg p-4 space-y-3"
+              draggable
+              onDragStart={() => handleDragStart(catIdx)}
+              onDragOver={(e) => handleDragOver(e, catIdx)}
+              onDrop={() => handleDrop(catIdx)}
+              onDragEnd={handleDragEnd}
+              className={`border rounded-lg p-4 space-y-3 transition-colors ${
+                dragIndex === catIdx
+                  ? "opacity-50 border-gray-300"
+                  : dropIndex === catIdx && dragIndex !== null
+                    ? "border-blue-400 bg-blue-50"
+                    : "border-gray-200"
+              }`}
             >
               <div className="flex justify-between items-start gap-3">
+                <div
+                  className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 mt-5 flex-shrink-0"
+                  title="Drag to reorder"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="9" cy="6" r="1.5" />
+                    <circle cx="15" cy="6" r="1.5" />
+                    <circle cx="9" cy="12" r="1.5" />
+                    <circle cx="15" cy="12" r="1.5" />
+                    <circle cx="9" cy="18" r="1.5" />
+                    <circle cx="15" cy="18" r="1.5" />
+                  </svg>
+                </div>
                 <div className="flex-1 space-y-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">

@@ -38,6 +38,7 @@ export interface SettingsState {
 
 interface SettingsContextProps {
   settings: SettingsState;
+  settingsLoaded: boolean;
   setSettings: React.Dispatch<React.SetStateAction<SettingsState>>;
   setDebug: (debug: boolean) => void;
   setPilots: (pilots: PilotsState[] | null) => void;
@@ -57,6 +58,7 @@ const defaultSettings: SettingsState = {
 
 const initialContext: SettingsContextProps = {
   settings: defaultSettings,
+  settingsLoaded: false,
   setDebug: () => {},
   setSettings: () => {},
   setPilots: () => {},
@@ -78,13 +80,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const initialized = useRef(false);
 
   // Load settings from disk on mount
   useEffect(() => {
-    window.appSettings
-      .load()
-      .then((persisted) => {
+    (async () => {
+      try {
+        const persisted = await window.appSettings.load();
         const loaded: SettingsState = {
           ...defaultSettings,
           ...persisted,
@@ -103,19 +106,17 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         setSettings(loaded);
         initialized.current = true;
 
-        // Initialize program data storage path
+        // Initialize program data storage path before signaling loaded
         if (loaded.programDataFolder) {
-          window.scoring
-            .setStoragePath(loaded.programDataFolder, false)
-            .catch((error) => {
-              console.error("Failed to initialize program data folder:", error);
-            });
+          await window.scoring.setStoragePath(loaded.programDataFolder, false);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Failed to load settings:", error);
         initialized.current = true;
-      });
+      } finally {
+        setSettingsLoaded(true);
+      }
+    })();
   }, []);
 
   // Persist settings to disk on change (skip initial load)
@@ -144,6 +145,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const contextValue = {
     settings,
+    settingsLoaded,
     setSettings,
     setDebug: (debug: boolean) => {
       setSettings((prevSettings) => ({ ...prevSettings, debug }));
