@@ -45,6 +45,16 @@ export interface ScoringMethods {
   ) => Promise<void>;
   deleteCompetition: (id: string) => Promise<void>;
   listCompetitions: () => Promise<CompetitionSummary[]>;
+  listCompetitionIds: () => Promise<string[]>;
+  listTaskIds: (compId: string) => Promise<string[]>;
+  renameCategoryIds: (
+    compId: string,
+    renameMap: Record<string, string>
+  ) => Promise<void>;
+  renameTeamIds: (
+    compId: string,
+    renameMap: Record<string, string>
+  ) => Promise<void>;
 
   // Task management
   addTask: (compId: string, task: TaskDefinition) => Promise<void>;
@@ -213,6 +223,13 @@ const scoring: ScoringMethods = {
   deleteCompetition: (id) =>
     ipcRenderer.invoke("scoring-delete-competition", id),
   listCompetitions: () => ipcRenderer.invoke("scoring-list-competitions"),
+  listCompetitionIds: () => ipcRenderer.invoke("scoring-list-competition-ids"),
+  listTaskIds: (compId: string) =>
+    ipcRenderer.invoke("scoring-list-task-ids", compId),
+  renameCategoryIds: (compId: string, renameMap: Record<string, string>) =>
+    ipcRenderer.invoke("scoring-rename-category-ids", compId, renameMap),
+  renameTeamIds: (compId: string, renameMap: Record<string, string>) =>
+    ipcRenderer.invoke("scoring-rename-team-ids", compId, renameMap),
 
   // Task management
   addTask: (compId, task) =>

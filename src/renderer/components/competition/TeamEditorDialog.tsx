@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { TeamDefinition } from "@main/scoring/types";
+import { toSlug } from "@main/scoring/utils/slug";
 
 interface TeamEditorDialogProps {
   isOpen: boolean;
   onClose: () => void;
   teams: TeamDefinition[];
-  onSave: (teams: TeamDefinition[]) => Promise<void>;
+  onSave: (
+    teams: TeamDefinition[],
+    renameMap: Record<string, string>
+  ) => Promise<void>;
 }
 
 const ATTRIBUTE_OPTIONS = [
@@ -13,13 +17,9 @@ const ATTRIBUTE_OPTIONS = [
   { value: "club", label: "Club" },
 ];
 
-function generateId(): string {
-  return crypto.randomUUID();
-}
-
 function makeEmptyTeamDef(): TeamDefinition {
   return {
-    id: generateId(),
+    id: "",
     name: "",
     attributeName: "nat_code_ioc",
     numberToCount: 3,
@@ -35,12 +35,21 @@ const TeamEditorDialog: React.FC<TeamEditorDialogProps> = ({
 }) => {
   const [teams, setTeams] = useState<TeamDefinition[]>([]);
   const [saving, setSaving] = useState(false);
+  const originalIds = useRef<Map<number, string>>(new Map());
+  const manualIds = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (isOpen) {
-      setTeams(
-        initialTeams.length > 0 ? initialTeams.map((t) => ({ ...t })) : []
-      );
+      originalIds.current = new Map();
+      manualIds.current = new Set();
+      const ts =
+        initialTeams.length > 0
+          ? initialTeams.map((t, i) => {
+              originalIds.current.set(i, t.id);
+              return { ...t };
+            })
+          : [];
+      setTeams(ts);
     }
   }, [isOpen, initialTeams]);
 
@@ -48,7 +57,22 @@ const TeamEditorDialog: React.FC<TeamEditorDialogProps> = ({
 
   const updateTeam = (index: number, updates: Partial<TeamDefinition>) => {
     setTeams((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, ...updates } : t))
+      prev.map((t, i) => {
+        if (i !== index) return t;
+        const updated = { ...t, ...updates };
+        if ("name" in updates && !manualIds.current.has(i)) {
+          updated.id = toSlug(updates.name || "");
+        }
+        return updated;
+      })
+    );
+  };
+
+  const updateTeamId = (index: number, id: string) => {
+    const sanitized = id.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    manualIds.current.add(index);
+    setTeams((prev) =>
+      prev.map((t, i) => (i === index ? { ...t, id: sanitized } : t))
     );
   };
 
@@ -66,7 +90,14 @@ const TeamEditorDialog: React.FC<TeamEditorDialogProps> = ({
     setSaving(true);
     try {
       const valid = teams.filter((t) => t.name.trim());
-      await onSave(valid);
+      const renameMap: Record<string, string> = {};
+      for (const [idx, oldId] of originalIds.current.entries()) {
+        const team = teams[idx];
+        if (team && team.id && team.id !== oldId) {
+          renameMap[oldId] = team.id;
+        }
+      }
+      await onSave(valid, renameMap);
       onClose();
     } finally {
       setSaving(false);
@@ -106,21 +137,37 @@ const TeamEditorDialog: React.FC<TeamEditorDialogProps> = ({
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
           {teams.map((team, idx) => (
             <div
-              key={team.id}
+              key={idx}
               className="border border-gray-200 rounded-lg p-4 space-y-3"
             >
               <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Team Name
-                  </label>
-                  <input
-                    type="text"
-                    value={team.name}
-                    onChange={(e) => updateTeam(idx, { name: e.target.value })}
-                    placeholder="e.g. Nations, Clubs"
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
+                <div className="flex-1 space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Team Name
+                    </label>
+                    <input
+                      type="text"
+                      value={team.name}
+                      onChange={(e) =>
+                        updateTeam(idx, { name: e.target.value })
+                      }
+                      placeholder="e.g. Nations, Clubs"
+                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      ID
+                    </label>
+                    <input
+                      type="text"
+                      value={team.id}
+                      onChange={(e) => updateTeamId(idx, e.target.value)}
+                      placeholder="auto-generated"
+                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm font-mono"
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={() => removeTeam(idx)}

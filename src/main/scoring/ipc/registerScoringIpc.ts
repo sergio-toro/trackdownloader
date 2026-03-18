@@ -99,13 +99,12 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
   ipcMain.handle(
     "scoring-get-competition-igc-folder",
     async (_, compId: string, taskId: string) => {
-      // Use first 8 characters of task UUID for folder name
-      const taskIdShort = taskId.substring(0, 8);
       const igcFolder = path.join(
         currentStoragePath,
+        "competitions",
         compId,
         "igcs",
-        taskIdShort
+        taskId
       );
       // Ensure the directory exists
       await fs.mkdir(igcFolder, { recursive: true });
@@ -171,6 +170,52 @@ export default function registerScoringIpc(appWindow: BrowserWindow) {
       throw error;
     }
   });
+
+  ipcMain.handle("scoring-list-competition-ids", async () => {
+    try {
+      return await storage.listCompetitionIds();
+    } catch (error) {
+      console.error("Error listing competition IDs:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("scoring-list-task-ids", async (_, compId: string) => {
+    try {
+      return await storage.listTaskIds(compId);
+    } catch (error) {
+      console.error("Error listing task IDs:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    "scoring-rename-category-ids",
+    async (_, compId: string, renameMap: Record<string, string>) => {
+      try {
+        for (const [oldId, newId] of Object.entries(renameMap)) {
+          await storage.renameCategoryId(compId, oldId, newId);
+        }
+      } catch (error) {
+        console.error("Error renaming category IDs:", error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "scoring-rename-team-ids",
+    async (_, compId: string, renameMap: Record<string, string>) => {
+      try {
+        for (const [oldId, newId] of Object.entries(renameMap)) {
+          await storage.renameTeamId(compId, oldId, newId);
+        }
+      } catch (error) {
+        console.error("Error renaming team IDs:", error);
+        throw error;
+      }
+    }
+  );
 
   // ============================================================
   // Task Management

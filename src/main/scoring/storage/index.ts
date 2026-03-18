@@ -106,6 +106,14 @@ export interface ICompetitionStorage {
     formula: Partial<ScoringFormulaConfig>
   ): Promise<void>;
 
+  // ID listing (for uniqueness validation)
+  listCompetitionIds(): Promise<string[]>;
+  listTaskIds(compId: string): Promise<string[]>;
+
+  // Category/Team ID rename
+  renameCategoryId(compId: string, oldId: string, newId: string): Promise<void>;
+  renameTeamId(compId: string, oldId: string, newId: string): Promise<void>;
+
   // File operations
   loadFromFile(filePath: string): Promise<Competition>;
   saveToFile(compId: string, filePath: string): Promise<void>;

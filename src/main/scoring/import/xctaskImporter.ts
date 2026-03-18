@@ -6,7 +6,7 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import { toSlug } from "../utils/slug";
 
 import type {
   TaskDefinition,
@@ -526,7 +526,7 @@ function createTaskDefinition(
     new Date().toISOString().split("T")[0];
 
   return {
-    id: uuidv4(),
+    id: toSlug(taskImport.name),
     name: taskImport.name,
     date: taskDate,
     taskType: taskImport.taskType,

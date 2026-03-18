@@ -5,7 +5,6 @@
 import fs from "fs/promises";
 import path from "path";
 import { app } from "electron";
-import { v4 as uuidv4 } from "uuid";
 
 import type { ICompetitionStorage } from "./index";
 import type {
@@ -20,19 +19,27 @@ import type {
   TeamResult,
 } from "../types";
 import { getDefaultFormula } from "../types";
+import { toSlug, ensureUniqueSlug } from "../utils/slug";
 
 /**
  * Directory structure:
- * ~/trackdownloader/competitions/
- *   {competition-id}/
- *     competition.json    - metadata
- *     formula.json        - scoring formula
- *     participants.json   - participant list
- *     tasks/
- *       {task-id}.json    - task definitions
- *     results/
- *       {task-id}.json    - task results
- *     overall-results.json - competition results
+ * {baseDir}/
+ *   competitions/
+ *     {competition-slug}/
+ *       competition.json    - metadata
+ *       formula.json        - scoring formula
+ *       participants.json   - participant list
+ *       tasks/
+ *         {task-slug}.json  - task definitions
+ *       results/
+ *         {task-slug}.json  - task results
+ *         categories/
+ *           {task-slug}_{categoryId}.json
+ *       igcs/
+ *         {task-slug}/      - IGC flight files
+ *       overall-results.json - competition results
+ *   downloads/              - temporary downloads
+ *   waypoints/              - waypoint library
  */
 
 export class FileCompetitionStorage implements ICompetitionStorage {
@@ -45,8 +52,12 @@ export class FileCompetitionStorage implements ICompetitionStorage {
 
   // Helper methods
 
+  private get competitionsDir(): string {
+    return path.join(this.baseDir, "competitions");
+  }
+
   private compDir(compId: string): string {
-    return path.join(this.baseDir, compId);
+    return path.join(this.competitionsDir, compId);
   }
 
   private tasksDir(compId: string): string {
@@ -90,7 +101,10 @@ export class FileCompetitionStorage implements ICompetitionStorage {
   // Competition CRUD
 
   async createCompetition(data: CreateCompetitionData): Promise<string> {
-    const id = uuidv4();
+    const existingIds = await this.listCompetitionIds();
+    const baseSlug = data.id || toSlug(data.name);
+    const id = ensureUniqueSlug(baseSlug, existingIds);
+
     const now = new Date().toISOString();
     const formula = getDefaultFormula(
       data.formulaName === "GAP2025" ? "GAP2025" : "GAP2023"
@@ -173,10 +187,105 @@ export class FileCompetitionStorage implements ICompetitionStorage {
       throw new Error(`Competition not found: ${id}`);
     }
 
+    // Handle ID (slug) rename
+    const newId = updates.id;
+    if (newId && newId !== id) {
+      const newDir = this.compDir(newId);
+      if (await this.exists(newDir)) {
+        throw new Error(`Competition ID already taken: ${newId}`);
+      }
+
+      // Rename the folder
+      await fs.rename(compDir, newDir);
+
+      // Update igcPaths in participants
+      const participantsPath = path.join(newDir, "participants.json");
+      const participants = await this.readJson<Participant[]>(participantsPath);
+      if (participants) {
+        for (const p of participants) {
+          if (p.taskTracks) {
+            for (const t of p.taskTracks) {
+              if (t.igcPath) {
+                t.igcPath = t.igcPath.replace(
+                  `/competitions/${id}/`,
+                  `/competitions/${newId}/`
+                );
+              }
+            }
+          }
+        }
+        await this.writeJson(participantsPath, participants);
+      }
+
+      // Update competitionId in overall-results
+      const overallPath = path.join(newDir, "overall-results.json");
+      const overall = await this.readJson<
+        CompetitionResult & { competitionId: string }
+      >(overallPath);
+      if (overall) {
+        overall.competitionId = newId;
+        await this.writeJson(overallPath, overall);
+      }
+
+      // Update competitionId in category standings
+      const catStDir = path.join(newDir, "category-results");
+      if (await this.exists(catStDir)) {
+        const catFiles = await fs.readdir(catStDir);
+        for (const file of catFiles) {
+          if (!file.endsWith(".json")) continue;
+          const filePath = path.join(catStDir, file);
+          const data = await this.readJson<Record<string, unknown>>(filePath);
+          if (data && data.competitionId !== newId) {
+            data.competitionId = newId;
+            await this.writeJson(filePath, data);
+          }
+        }
+      }
+
+      // Update competitionId in team results
+      const teamDir = path.join(newDir, "team-results");
+      if (await this.exists(teamDir)) {
+        const teamFiles = await fs.readdir(teamDir);
+        for (const file of teamFiles) {
+          if (!file.endsWith(".json")) continue;
+          const filePath = path.join(teamDir, file);
+          const data = await this.readJson<Record<string, unknown>>(filePath);
+          if (data && data.competitionId !== newId) {
+            data.competitionId = newId;
+            await this.writeJson(filePath, data);
+          }
+        }
+      }
+
+      // Now update metadata in the new location
+      const newMetadataPath = path.join(newDir, "competition.json");
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const {
+        participants: _p,
+        tasks: _t,
+        formula,
+        ...metadataUpdates
+      } = updates;
+      const updated = {
+        ...current,
+        ...metadataUpdates,
+        id: newId,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.writeJson(newMetadataPath, updated);
+
+      if (formula) {
+        await this.writeJson(path.join(newDir, "formula.json"), formula);
+      }
+
+      console.log(`Renamed competition: ${id} → ${newId}`);
+      return;
+    }
+
+    // Normal update (no ID change)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { participants, tasks, formula, ...metadataUpdates } = updates;
 
-    // Update metadata
     const updated = {
       ...current,
       ...metadataUpdates,
@@ -184,12 +293,10 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     };
     await this.writeJson(metadataPath, updated);
 
-    // Update formula if provided
     if (formula) {
       await this.writeJson(path.join(compDir, "formula.json"), formula);
     }
 
-    // Participants and tasks are managed separately
     console.log(`Updated competition: ${id}`);
   }
 
@@ -202,15 +309,17 @@ export class FileCompetitionStorage implements ICompetitionStorage {
   }
 
   async listCompetitions(): Promise<CompetitionSummary[]> {
-    await this.ensureDir(this.baseDir);
+    await this.ensureDir(this.competitionsDir);
 
-    const entries = await fs.readdir(this.baseDir, { withFileTypes: true });
+    const entries = await fs.readdir(this.competitionsDir, {
+      withFileTypes: true,
+    });
     const summaries: CompetitionSummary[] = [];
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
 
-      const compDir = path.join(this.baseDir, entry.name);
+      const compDir = path.join(this.competitionsDir, entry.name);
       const metadata = await this.readJson<{
         id: string;
         name: string;
@@ -245,6 +354,35 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     return summaries;
   }
 
+  async listCompetitionIds(): Promise<string[]> {
+    await this.ensureDir(this.competitionsDir);
+    const entries = await fs.readdir(this.competitionsDir, {
+      withFileTypes: true,
+    });
+    const ids: string[] = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      // Only include directories that have a competition.json
+      if (
+        await this.exists(
+          path.join(this.competitionsDir, entry.name, "competition.json")
+        )
+      ) {
+        ids.push(entry.name);
+      }
+    }
+    return ids;
+  }
+
+  async listTaskIds(compId: string): Promise<string[]> {
+    const tasksDir = this.tasksDir(compId);
+    if (!(await this.exists(tasksDir))) return [];
+    const files = await fs.readdir(tasksDir);
+    return files
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => f.replace(/\.json$/, ""));
+  }
+
   // Task operations
 
   async addTask(compId: string, task: TaskDefinition): Promise<void> {
@@ -273,6 +411,191 @@ export class FileCompetitionStorage implements ICompetitionStorage {
       throw new Error(`Task not found: ${taskId}`);
     }
 
+    // Handle task ID (slug) rename
+    const newTaskId = updates.id;
+    if (newTaskId && newTaskId !== taskId) {
+      const newTaskPath = path.join(this.tasksDir(compId), `${newTaskId}.json`);
+      if (await this.exists(newTaskPath)) {
+        throw new Error(`Task ID already taken: ${newTaskId}`);
+      }
+
+      // Update task data with new ID
+      const updated = { ...current, ...updates, id: newTaskId };
+      await this.writeJson(newTaskPath, updated);
+      await fs.unlink(taskPath);
+
+      // Rename result file and update taskId inside
+      const oldResultPath = path.join(
+        this.resultsDir(compId),
+        `${taskId}.json`
+      );
+      const newResultPath = path.join(
+        this.resultsDir(compId),
+        `${newTaskId}.json`
+      );
+      if (await this.exists(oldResultPath)) {
+        const resultData =
+          await this.readJson<Record<string, unknown>>(oldResultPath);
+        if (resultData && resultData.taskId === taskId) {
+          resultData.taskId = newTaskId;
+          await this.writeJson(newResultPath, resultData);
+          await fs.unlink(oldResultPath);
+        } else {
+          await fs.rename(oldResultPath, newResultPath);
+        }
+      }
+
+      // Rename IGC folder
+      const oldIgcFolder = path.join(this.compDir(compId), "igcs", taskId);
+      const newIgcFolder = path.join(this.compDir(compId), "igcs", newTaskId);
+      if (await this.exists(oldIgcFolder)) {
+        await fs.rename(oldIgcFolder, newIgcFolder);
+      }
+
+      // Rename category task result files and update taskId inside
+      const catDir = this.categoryResultsDir(compId);
+      if (await this.exists(catDir)) {
+        const catFiles = await fs.readdir(catDir);
+        const prefix = `${taskId}_`;
+        for (const file of catFiles) {
+          if (file.startsWith(prefix) && file.endsWith(".json")) {
+            const suffix = file.slice(prefix.length);
+            const oldCatPath = path.join(catDir, file);
+            const newCatPath = path.join(catDir, `${newTaskId}_${suffix}`);
+            const catData =
+              await this.readJson<Record<string, unknown>>(oldCatPath);
+            if (catData && catData.taskId === taskId) {
+              catData.taskId = newTaskId;
+              await this.writeJson(newCatPath, catData);
+              await fs.unlink(oldCatPath);
+            } else {
+              await fs.rename(oldCatPath, newCatPath);
+            }
+          }
+        }
+      }
+
+      // Update participants taskTracks
+      const participants = await this.getParticipants(compId);
+      let modified = false;
+      for (const p of participants) {
+        if (p.taskTracks) {
+          for (const t of p.taskTracks) {
+            if (t.taskId === taskId) {
+              t.taskId = newTaskId;
+              if (t.igcPath) {
+                t.igcPath = t.igcPath.replace(
+                  `/igcs/${taskId}/`,
+                  `/igcs/${newTaskId}/`
+                );
+              }
+              modified = true;
+            }
+          }
+        }
+      }
+      if (modified) {
+        await this.writeJson(
+          path.join(this.compDir(compId), "participants.json"),
+          participants
+        );
+      }
+
+      // Update overall-results (taskScores keys, discardedTasks)
+      const overallPath = path.join(
+        this.compDir(compId),
+        "overall-results.json"
+      );
+      const overall = await this.readJson<CompetitionResult>(overallPath);
+      if (overall) {
+        for (const standing of overall.standings) {
+          if (standing.taskScores && taskId in standing.taskScores) {
+            standing.taskScores[newTaskId] = standing.taskScores[taskId];
+            delete standing.taskScores[taskId];
+          }
+          if (standing.discardedTasks) {
+            standing.discardedTasks = standing.discardedTasks.map((id) =>
+              id === taskId ? newTaskId : id
+            );
+          }
+        }
+        await this.writeJson(overallPath, overall);
+      }
+
+      // Update category standings (taskScores keys, discardedTasks)
+      const catStandingsDir = this.categoryStandingsDir(compId);
+      if (await this.exists(catStandingsDir)) {
+        const catStandingsFiles = await fs.readdir(catStandingsDir);
+        for (const file of catStandingsFiles) {
+          if (!file.endsWith(".json")) continue;
+          const filePath = path.join(catStandingsDir, file);
+          const catStandings = await this.readJson<CompetitionResult>(filePath);
+          if (catStandings?.standings) {
+            let changed = false;
+            for (const standing of catStandings.standings) {
+              if (standing.taskScores && taskId in standing.taskScores) {
+                standing.taskScores[newTaskId] = standing.taskScores[taskId];
+                delete standing.taskScores[taskId];
+                changed = true;
+              }
+              if (standing.discardedTasks?.includes(taskId)) {
+                standing.discardedTasks = standing.discardedTasks.map((id) =>
+                  id === taskId ? newTaskId : id
+                );
+                changed = true;
+              }
+            }
+            if (changed) {
+              await this.writeJson(filePath, catStandings);
+            }
+          }
+        }
+      }
+
+      // Update team results (taskScores[*].taskId)
+      const teamDir = this.teamResultsDir(compId);
+      if (await this.exists(teamDir)) {
+        const teamFiles = await fs.readdir(teamDir);
+        for (const file of teamFiles) {
+          if (!file.endsWith(".json")) continue;
+          const filePath = path.join(teamDir, file);
+          const teamResult = await this.readJson<TeamResult>(filePath);
+          if (teamResult?.standings) {
+            let changed = false;
+            for (const standing of teamResult.standings) {
+              if (standing.taskScores) {
+                for (const ts of standing.taskScores) {
+                  if (ts.taskId === taskId) {
+                    ts.taskId = newTaskId;
+                    changed = true;
+                  }
+                }
+              }
+            }
+            if (changed) {
+              await this.writeJson(filePath, teamResult);
+            }
+          }
+        }
+      }
+
+      // Update taskOrder in competition metadata
+      const metadataPath = path.join(this.compDir(compId), "competition.json");
+      const metadata =
+        await this.readJson<Record<string, unknown>>(metadataPath);
+      if (metadata?.taskOrder && Array.isArray(metadata.taskOrder)) {
+        metadata.taskOrder = (metadata.taskOrder as string[]).map((id) =>
+          id === taskId ? newTaskId : id
+        );
+        await this.writeJson(metadataPath, metadata);
+      }
+
+      await this.touchCompetition(compId);
+      console.log(`Renamed task: ${taskId} → ${newTaskId}`);
+      return;
+    }
+
+    // Normal update (no ID change)
     const updated = { ...current, ...updates };
     await this.writeJson(taskPath, updated);
     await this.touchCompetition(compId);
@@ -293,12 +616,23 @@ export class FileCompetitionStorage implements ICompetitionStorage {
       await fs.unlink(resultPath);
     }
 
-    // Delete IGC folder for this task
-    const taskIdShort = taskId.substring(0, 8);
-    const igcFolder = path.join(this.compDir(compId), "igcs", taskIdShort);
+    // Delete IGC folder for this task (use full task ID as folder name)
+    const igcFolder = path.join(this.compDir(compId), "igcs", taskId);
     if (await this.exists(igcFolder)) {
       await fs.rm(igcFolder, { recursive: true });
       console.log(`Deleted IGC folder: ${igcFolder}`);
+    }
+
+    // Delete category result files for this task
+    const catDir = this.categoryResultsDir(compId);
+    if (await this.exists(catDir)) {
+      const catFiles = await fs.readdir(catDir);
+      const prefix = `${taskId}_`;
+      for (const file of catFiles) {
+        if (file.startsWith(prefix) && file.endsWith(".json")) {
+          await fs.unlink(path.join(catDir, file));
+        }
+      }
     }
 
     // Clean participant taskTracks entries for this task
@@ -599,6 +933,65 @@ export class FileCompetitionStorage implements ICompetitionStorage {
     return this.readJson<TeamResult>(filePath);
   }
 
+  // Category/Team ID rename
+
+  async renameCategoryId(
+    compId: string,
+    oldId: string,
+    newId: string
+  ): Promise<void> {
+    // Rename category standings file
+    const oldStandings = path.join(
+      this.categoryStandingsDir(compId),
+      `${oldId}.json`
+    );
+    const newStandings = path.join(
+      this.categoryStandingsDir(compId),
+      `${newId}.json`
+    );
+    if (await this.exists(oldStandings)) {
+      await fs.rename(oldStandings, newStandings);
+    }
+
+    // Rename category task result files
+    const catDir = this.categoryResultsDir(compId);
+    if (await this.exists(catDir)) {
+      const files = await fs.readdir(catDir);
+      const suffix = `_${oldId}.json`;
+      for (const file of files) {
+        if (file.endsWith(suffix)) {
+          const prefix = file.slice(0, -suffix.length);
+          await fs.rename(
+            path.join(catDir, file),
+            path.join(catDir, `${prefix}_${newId}.json`)
+          );
+        }
+      }
+    }
+
+    console.log(`Renamed category ID: ${oldId} → ${newId} in ${compId}`);
+  }
+
+  async renameTeamId(
+    compId: string,
+    oldId: string,
+    newId: string
+  ): Promise<void> {
+    // Rename team results file and update content
+    const oldPath = path.join(this.teamResultsDir(compId), `${oldId}.json`);
+    const newPath = path.join(this.teamResultsDir(compId), `${newId}.json`);
+    if (await this.exists(oldPath)) {
+      const data = await this.readJson<TeamResult>(oldPath);
+      if (data) {
+        data.teamDefinitionId = newId;
+        await this.writeJson(newPath, data);
+        await fs.unlink(oldPath);
+      }
+    }
+
+    console.log(`Renamed team ID: ${oldId} → ${newId} in ${compId}`);
+  }
+
   // Formula management
 
   async getScoringFormula(compId: string): Promise<ScoringFormulaConfig> {
@@ -695,17 +1088,17 @@ export function getDefaultStoragePath(): string {
 }
 
 /**
- * Check if a directory has competition data
+ * Check if a directory has competition data (in competitions/ subdirectory)
  */
 async function hasCompetitionData(dirPath: string): Promise<boolean> {
+  const competitionsDir = path.join(dirPath, "competitions");
   try {
-    await fs.access(dirPath);
-    const entries = await fs.readdir(dirPath, { withFileTypes: true });
-    // Check if any subdirectory contains a competition.json file
+    await fs.access(competitionsDir);
+    const entries = await fs.readdir(competitionsDir, { withFileTypes: true });
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const competitionFile = path.join(
-          dirPath,
+          competitionsDir,
           entry.name,
           "competition.json"
         );
@@ -725,7 +1118,7 @@ async function hasCompetitionData(dirPath: string): Promise<boolean> {
 
 /**
  * Migrate storage from one location to another
- * Moves all competition folders from oldPath to newPath
+ * Moves all competition folders from oldPath/competitions/ to newPath/competitions/
  */
 export async function migrateStorage(
   oldPath: string,
@@ -735,7 +1128,7 @@ export async function migrateStorage(
   const hasOldData = await hasCompetitionData(oldPath);
   if (!hasOldData) {
     // No data to migrate, just ensure new directory exists
-    await fs.mkdir(newPath, { recursive: true });
+    await fs.mkdir(path.join(newPath, "competitions"), { recursive: true });
     console.log("No existing competition data to migrate");
     return;
   }
@@ -748,18 +1141,21 @@ export async function migrateStorage(
     );
   }
 
-  // Ensure new directory exists
-  await fs.mkdir(newPath, { recursive: true });
+  const oldCompDir = path.join(oldPath, "competitions");
+  const newCompDir = path.join(newPath, "competitions");
 
-  // Get all entries from old path
-  const entries = await fs.readdir(oldPath, { withFileTypes: true });
+  // Ensure new directory exists
+  await fs.mkdir(newCompDir, { recursive: true });
+
+  // Get all entries from old competitions dir
+  const entries = await fs.readdir(oldCompDir, { withFileTypes: true });
 
   // Move each competition folder
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
 
-    const oldCompPath = path.join(oldPath, entry.name);
-    const newCompPath = path.join(newPath, entry.name);
+    const oldCompPath = path.join(oldCompDir, entry.name);
+    const newCompPath = path.join(newCompDir, entry.name);
 
     // Check if this is a competition folder
     const competitionFile = path.join(oldCompPath, "competition.json");

@@ -301,8 +301,15 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
       if (!competition) return;
       setError(null);
       try {
-        await window.scoring.updateCompetition(competition.id, updates);
-        setCompetition((prev) => (prev ? { ...prev, ...updates } : null));
+        const oldId = competition.id;
+        await window.scoring.updateCompetition(oldId, updates);
+
+        if (updates.id && updates.id !== oldId) {
+          // ID changed — reload competition with new ID
+          await loadCompetitionInternal(updates.id);
+        } else {
+          setCompetition((prev) => (prev ? { ...prev, ...updates } : null));
+        }
         await refreshCompetitionsInternal();
       } catch (err) {
         setError(`Failed to update competition: ${err}`);
@@ -350,15 +357,29 @@ export const CompetitionProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
       try {
         await window.scoring.updateTask(competition.id, taskId, updates);
+        const newId = updates.id && updates.id !== taskId ? updates.id : taskId;
         setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
+          prev.map((t) =>
+            t.id === taskId ? { ...t, ...updates, id: newId } : t
+          )
         );
+        // Update activeTaskId if the renamed task was active
+        if (activeTaskId === taskId && newId !== taskId) {
+          setActiveTaskId(newId);
+        }
+        // Update cached task results keys if ID changed
+        if (newId !== taskId && taskResults[taskId]) {
+          setTaskResults((prev) => {
+            const { [taskId]: result, ...rest } = prev;
+            return { ...rest, [newId]: result };
+          });
+        }
       } catch (err) {
         setError(`Failed to update task: ${err}`);
         console.error("Error updating task:", err);
       }
     },
-    [competition]
+    [competition, activeTaskId, taskResults]
   );
 
   const deleteTask = useCallback(

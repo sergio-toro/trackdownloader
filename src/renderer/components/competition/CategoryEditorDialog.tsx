@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type {
   CompetitionCategory,
   CategorySelector as CategorySelectorType,
   SelectorComparator,
 } from "@main/scoring/types";
+import { toSlug } from "@main/scoring/utils/slug";
 
 interface CategoryEditorDialogProps {
   isOpen: boolean;
   onClose: () => void;
   categories: CompetitionCategory[];
-  onSave: (categories: CompetitionCategory[]) => Promise<void>;
+  onSave: (
+    categories: CompetitionCategory[],
+    renameMap: Record<string, string>
+  ) => Promise<void>;
 }
 
 const ATTRIBUTE_OPTIONS = [
@@ -25,17 +29,13 @@ const COMPARATOR_OPTIONS: { value: SelectorComparator; label: string }[] = [
   { value: "contains", label: "Contains" },
 ];
 
-function generateId(): string {
-  return crypto.randomUUID();
-}
-
 function makeEmptySelector(): CategorySelectorType {
   return { attributeName: "female", comparator: "equals", requiredValue: "" };
 }
 
 function makeEmptyCategory(): CompetitionCategory {
   return {
-    id: generateId(),
+    id: "",
     name: "",
     useFilter: true,
     filterFromCategory: "",
@@ -52,17 +52,23 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
 }) => {
   const [categories, setCategories] = useState<CompetitionCategory[]>([]);
   const [saving, setSaving] = useState(false);
+  // Track original IDs to detect renames
+  const originalIds = useRef<Map<number, string>>(new Map());
+  // Track which categories have manually edited IDs
+  const manualIds = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (isOpen) {
-      setCategories(
+      originalIds.current = new Map();
+      manualIds.current = new Set();
+      const cats =
         initialCategories.length > 0
-          ? initialCategories.map((c) => ({
-              ...c,
-              selectors: [...c.selectors],
-            }))
-          : []
-      );
+          ? initialCategories.map((c, i) => {
+              originalIds.current.set(i, c.id);
+              return { ...c, selectors: [...c.selectors] };
+            })
+          : [];
+      setCategories(cats);
     }
   }, [isOpen, initialCategories]);
 
@@ -73,7 +79,23 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
     updates: Partial<CompetitionCategory>
   ) => {
     setCategories((prev) =>
-      prev.map((c, i) => (i === index ? { ...c, ...updates } : c))
+      prev.map((c, i) => {
+        if (i !== index) return c;
+        const updated = { ...c, ...updates };
+        // Auto-derive ID from name if not manually edited
+        if ("name" in updates && !manualIds.current.has(i)) {
+          updated.id = toSlug(updates.name || "");
+        }
+        return updated;
+      })
+    );
+  };
+
+  const updateCategoryId = (index: number, id: string) => {
+    const sanitized = id.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    manualIds.current.add(index);
+    setCategories((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, id: sanitized } : c))
     );
   };
 
@@ -125,11 +147,13 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
     const cat = makeEmptyCategory();
     if (preset === "women") {
       cat.name = "Women";
+      cat.id = "women";
       cat.selectors = [
         { attributeName: "female", comparator: "equals", requiredValue: "1" },
       ];
     } else if (preset === "serial") {
       cat.name = "Serial";
+      cat.id = "serial";
       cat.selectors = [
         {
           attributeName: "glider_class",
@@ -144,9 +168,16 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Filter out categories with empty names
       const valid = categories.filter((c) => c.name.trim());
-      await onSave(valid);
+      // Build rename map from originalIds
+      const renameMap: Record<string, string> = {};
+      for (const [idx, oldId] of originalIds.current.entries()) {
+        const cat = categories[idx];
+        if (cat && cat.id && cat.id !== oldId) {
+          renameMap[oldId] = cat.id;
+        }
+      }
+      await onSave(valid, renameMap);
       onClose();
     } finally {
       setSaving(false);
@@ -206,23 +237,37 @@ const CategoryEditorDialog: React.FC<CategoryEditorDialogProps> = ({
           {/* Categories */}
           {categories.map((cat, catIdx) => (
             <div
-              key={cat.id}
+              key={catIdx}
               className="border border-gray-200 rounded-lg p-4 space-y-3"
             >
               <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Category Name
-                  </label>
-                  <input
-                    type="text"
-                    value={cat.name}
-                    onChange={(e) =>
-                      updateCategory(catIdx, { name: e.target.value })
-                    }
-                    placeholder="e.g. Women, Serial, Sport"
-                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
-                  />
+                <div className="flex-1 space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Category Name
+                    </label>
+                    <input
+                      type="text"
+                      value={cat.name}
+                      onChange={(e) =>
+                        updateCategory(catIdx, { name: e.target.value })
+                      }
+                      placeholder="e.g. Women, Serial, Sport"
+                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      ID
+                    </label>
+                    <input
+                      type="text"
+                      value={cat.id}
+                      onChange={(e) => updateCategoryId(catIdx, e.target.value)}
+                      placeholder="auto-generated"
+                      className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm font-mono"
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={() => removeCategory(catIdx)}

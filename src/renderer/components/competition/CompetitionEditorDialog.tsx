@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import type { Competition } from "@main/scoring/types";
+import { toSlug } from "@main/scoring/utils/slug";
 
 interface CompetitionEditorDialogProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ const CompetitionEditorDialog: React.FC<CompetitionEditorDialogProps> = ({
   onSave,
 }) => {
   const [name, setName] = useState(competition.name);
+  const [compId, setCompId] = useState(competition.id);
+  const [idManuallyEdited, setIdManuallyEdited] = useState(false);
+  const [idError, setIdError] = useState("");
   const [location, setLocation] = useState(competition.location);
   const [startDate, setStartDate] = useState(competition.startDate);
   const [endDate, setEndDate] = useState(competition.endDate);
@@ -28,6 +32,9 @@ const CompetitionEditorDialog: React.FC<CompetitionEditorDialogProps> = ({
   useEffect(() => {
     if (isOpen) {
       setName(competition.name);
+      setCompId(competition.id);
+      setIdManuallyEdited(false);
+      setIdError("");
       setLocation(competition.location);
       setStartDate(competition.startDate);
       setEndDate(competition.endDate);
@@ -37,10 +44,48 @@ const CompetitionEditorDialog: React.FC<CompetitionEditorDialogProps> = ({
 
   if (!isOpen) return null;
 
+  const handleNameChange = (newName: string) => {
+    setName(newName);
+    if (!idManuallyEdited) {
+      setCompId(toSlug(newName));
+      setIdError("");
+    }
+  };
+
+  const handleIdChange = (id: string) => {
+    const sanitized = id.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setCompId(sanitized);
+    setIdManuallyEdited(true);
+    setIdError("");
+  };
+
+  const validateId = async () => {
+    if (!compId || compId === competition.id) return;
+    try {
+      const existingIds = await window.scoring.listCompetitionIds();
+      if (existingIds.includes(compId)) {
+        setIdError("This ID is already taken");
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   const handleSave = async () => {
+    if (idError) return;
     setSaving(true);
     try {
-      await onSave({ name, location, startDate, endDate, timeZone });
+      const updates: Partial<Competition> = {
+        name,
+        location,
+        startDate,
+        endDate,
+        timeZone,
+      };
+      if (compId !== competition.id) {
+        updates.id = compId;
+      }
+      await onSave(updates);
       onClose();
     } finally {
       setSaving(false);
@@ -63,9 +108,25 @@ const CompetitionEditorDialog: React.FC<CompetitionEditorDialogProps> = ({
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              ID
+            </label>
+            <input
+              type="text"
+              value={compId}
+              onChange={(e) => handleIdChange(e.target.value)}
+              onBlur={validateId}
+              className={`w-full border rounded px-3 py-1.5 text-sm font-mono ${
+                idError ? "border-red-400" : "border-gray-300"
+              }`}
+            />
+            {idError && <p className="text-red-500 text-xs mt-1">{idError}</p>}
           </div>
 
           <div>
@@ -128,7 +189,7 @@ const CompetitionEditorDialog: React.FC<CompetitionEditorDialogProps> = ({
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !name.trim()}
+            disabled={saving || !name.trim() || !compId || !!idError}
             className="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save"}

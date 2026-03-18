@@ -103,10 +103,10 @@ Use `run_in_background: true` when launching via the Bash tool. The app runs on 
 To kill the app:
 
 ```bash
-pkill -f "trackdownloader/node_modules"
+pkill -9 -f "trackdownloader/node_modules"
 ```
 
-This kills all processes spawned from this project (Electron, helpers, webpack dev server). After killing, the background task will also complete.
+Must use `-9` (SIGKILL). Electron's main process catches SIGTERM and stays alive as a grey window, and its GPU/network helpers respawn. SIGKILL guarantees all processes die. After killing, the background task will also complete.
 
 ## Data Safety
 

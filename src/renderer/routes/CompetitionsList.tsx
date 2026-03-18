@@ -10,6 +10,7 @@ import { useSettings } from "@renderer/context/settingsContext";
 import Card from "@components/layout/Card";
 import FlymasterCredentialsForm from "@components/flymaster/CredentialsForm";
 import XContestCredentialsForm from "@components/xcontest/CredentialsForm";
+import { toSlug } from "@main/scoring/utils/slug";
 
 /**
  * Competition list view
@@ -26,6 +27,9 @@ const CompetitionList: React.FC = () => {
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCompName, setNewCompName] = useState("");
+  const [newCompId, setNewCompId] = useState("");
+  const [idManuallyEdited, setIdManuallyEdited] = useState(false);
+  const [idError, setIdError] = useState("");
   const [newCompLocation, setNewCompLocation] = useState("");
   const [newCompStartDate, setNewCompStartDate] = useState(
     format(new Date(), "yyyy-MM-dd")
@@ -34,10 +38,39 @@ const CompetitionList: React.FC = () => {
     format(new Date(), "yyyy-MM-dd")
   );
 
+  const handleNameChange = (name: string) => {
+    setNewCompName(name);
+    if (!idManuallyEdited) {
+      setNewCompId(toSlug(name));
+      setIdError("");
+    }
+  };
+
+  const handleIdChange = (id: string) => {
+    // Only allow slug-safe characters
+    const sanitized = id.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setNewCompId(sanitized);
+    setIdManuallyEdited(true);
+    setIdError("");
+  };
+
+  const validateId = async () => {
+    if (!newCompId) return;
+    try {
+      const existingIds = await window.scoring.listCompetitionIds();
+      if (existingIds.includes(newCompId)) {
+        setIdError("This ID is already taken");
+      }
+    } catch {
+      // ignore validation errors
+    }
+  };
+
   const handleCreate = async () => {
-    if (!newCompName.trim()) return;
+    if (!newCompName.trim() || !newCompId || idError) return;
 
     const id = await createCompetition({
+      id: newCompId,
       name: newCompName.trim(),
       location: newCompLocation.trim(),
       startDate: newCompStartDate,
@@ -47,7 +80,10 @@ const CompetitionList: React.FC = () => {
     if (id) {
       setShowCreateForm(false);
       setNewCompName("");
+      setNewCompId("");
       setNewCompLocation("");
+      setIdManuallyEdited(false);
+      setIdError("");
     }
   };
 
@@ -82,10 +118,28 @@ const CompetitionList: React.FC = () => {
               <input
                 type="text"
                 value={newCompName}
-                onChange={(e) => setNewCompName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Competition name"
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ID
+              </label>
+              <input
+                type="text"
+                value={newCompId}
+                onChange={(e) => handleIdChange(e.target.value)}
+                onBlur={validateId}
+                placeholder="auto-generated-from-name"
+                className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm ${
+                  idError ? "border-red-400" : "border-gray-300"
+                }`}
+              />
+              {idError && (
+                <p className="text-red-500 text-xs mt-1">{idError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -126,7 +180,9 @@ const CompetitionList: React.FC = () => {
             <div className="flex justify-end">
               <button
                 onClick={handleCreate}
-                disabled={!newCompName.trim() || isLoading}
+                disabled={
+                  !newCompName.trim() || !newCompId || !!idError || isLoading
+                }
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Create Competition

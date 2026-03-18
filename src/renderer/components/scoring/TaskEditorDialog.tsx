@@ -3,8 +3,8 @@
  */
 
 import React, { useState, useCallback, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
+import { toSlug } from "@main/scoring/utils/slug";
 import TurnpointEditor, { waypointToTurnpoint } from "./TurnpointEditor";
 import StartGateEditor from "./StartGateEditor";
 import WaypointLibraryPanel from "./WaypointLibraryPanel";
@@ -61,6 +61,9 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({
 
   // Form state
   const [name, setName] = useState("");
+  const [taskId, setTaskId] = useState("");
+  const [idManuallyEdited, setIdManuallyEdited] = useState(false);
+  const [idError, setIdError] = useState("");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [taskType, setTaskType] = useState<TaskType>("Race");
   const [earthModel, setEarthModel] = useState<EarthModel>("WGS84");
@@ -83,6 +86,9 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({
     if (isOpen) {
       if (existingTask) {
         setName(existingTask.name);
+        setTaskId(existingTask.id);
+        setIdManuallyEdited(false);
+        setIdError("");
         setDate(existingTask.date);
         setTaskType(existingTask.taskType);
         setEarthModel(existingTask.earthModel);
@@ -103,6 +109,9 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({
         // Reset to defaults for new task
         const today = format(new Date(), "yyyy-MM-dd");
         setName("");
+        setTaskId("");
+        setIdManuallyEdited(false);
+        setIdError("");
         setDate(today);
         setTaskType("Race");
         setEarthModel("WGS84");
@@ -201,7 +210,7 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({
 
       // Build task definition (distances will be calculated by main process on save)
       const task: TaskDefinition = {
-        id: existingTask?.id || uuidv4(),
+        id: taskId || toSlug(name.trim()),
         name: name.trim(),
         date,
         taskType,
@@ -330,10 +339,41 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({
                     <input
                       type="text"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (!idManuallyEdited) {
+                          setTaskId(toSlug(e.target.value));
+                          setIdError("");
+                        }
+                      }}
                       placeholder="e.g., Task 1 - Race to Goal"
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      ID
+                    </label>
+                    <input
+                      type="text"
+                      value={taskId}
+                      onChange={(e) => {
+                        const sanitized = e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9-]/g, "");
+                        setTaskId(sanitized);
+                        setIdManuallyEdited(true);
+                        setIdError("");
+                      }}
+                      placeholder="auto-generated-from-name"
+                      className={`w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm ${
+                        idError ? "border-red-400" : "border-gray-300"
+                      }`}
+                    />
+                    {idError && (
+                      <p className="text-red-500 text-xs mt-1">{idError}</p>
+                    )}
                   </div>
 
                   <div>

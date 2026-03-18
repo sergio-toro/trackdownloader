@@ -101,6 +101,7 @@ export interface CompetitionSummary {
  * Data required to create a new competition
  */
 export interface CreateCompetitionData {
+  id?: string; // slug identifier (auto-generated from name if not provided)
   name: string;
   location: string;
   startDate: string;

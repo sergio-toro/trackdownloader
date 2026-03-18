@@ -649,9 +649,17 @@ const Competition: React.FC = () => {
             isOpen={showCategoryEditor}
             onClose={() => setShowCategoryEditor(false)}
             categories={competition.categories ?? []}
-            onSave={async (categories: CompetitionCategory[]) => {
+            onSave={async (
+              categories: CompetitionCategory[],
+              renameMap: Record<string, string>
+            ) => {
+              if (Object.keys(renameMap).length > 0 && competition) {
+                await window.scoring.renameCategoryIds(
+                  competition.id,
+                  renameMap
+                );
+              }
               await updateCompetition({ categories });
-              // Reset cached category results
               setCategoryTaskResults({});
               setCategoryStandings({});
               setSelectedCategoryId(null);
@@ -664,7 +672,13 @@ const Competition: React.FC = () => {
             isOpen={showTeamEditor}
             onClose={() => setShowTeamEditor(false)}
             teams={competition.teams ?? []}
-            onSave={async (teams: TeamDefinition[]) => {
+            onSave={async (
+              teams: TeamDefinition[],
+              renameMap: Record<string, string>
+            ) => {
+              if (Object.keys(renameMap).length > 0 && competition) {
+                await window.scoring.renameTeamIds(competition.id, renameMap);
+              }
               await updateCompetition({ teams });
               setTeamResults({});
             }}
