@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface FlymasterGroup {
   id: string;
@@ -39,15 +46,17 @@ interface SettingsContextProps {
   setProgramDataFolder: (programDataFolder: string) => void;
 }
 
+const defaultSettings: SettingsState = {
+  flymaster: null,
+  xcontest: null,
+  pilots: null,
+  debug: false,
+  leagues: [],
+  programDataFolder: "",
+};
+
 const initialContext: SettingsContextProps = {
-  settings: {
-    flymaster: null,
-    xcontest: null,
-    pilots: null,
-    debug: false,
-    leagues: [],
-    programDataFolder: "",
-  },
+  settings: defaultSettings,
   setDebug: () => {},
   setSettings: () => {},
   setPilots: () => {},
@@ -60,21 +69,66 @@ const SettingsContext = createContext<SettingsContextProps>(initialContext);
 
 export const useSettings = () => useContext(SettingsContext);
 
-const LOCAL_STORAGE_KEY = "settings";
+function toPersistedSettings(settings: SettingsState) {
+  const { leagues: _leagues, ...rest } = settings;
+  return rest;
+}
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [settings, setSettings] = useState<SettingsState>(() => {
-    const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return storedSettings
-      ? JSON.parse(storedSettings)
-      : initialContext.settings;
-  });
+  const [settings, setSettings] = useState<SettingsState>(defaultSettings);
+  const initialized = useRef(false);
+
+  // Load settings from disk on mount
+  useEffect(() => {
+    window.appSettings
+      .load()
+      .then((persisted) => {
+        const loaded: SettingsState = {
+          ...defaultSettings,
+          ...persisted,
+          leagues: [],
+        };
+        // Derive leagues from pilots
+        if (loaded.pilots) {
+          const leagues: string[] = [];
+          loaded.pilots.forEach((pilot) => {
+            if (pilot.league && !leagues.includes(pilot.league)) {
+              leagues.push(pilot.league);
+            }
+          });
+          loaded.leagues = leagues;
+        }
+        setSettings(loaded);
+        initialized.current = true;
+
+        // Initialize program data storage path
+        if (loaded.programDataFolder) {
+          window.scoring
+            .setStoragePath(loaded.programDataFolder, false)
+            .catch((error) => {
+              console.error("Failed to initialize program data folder:", error);
+            });
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load settings:", error);
+        initialized.current = true;
+      });
+  }, []);
+
+  // Persist settings to disk on change (skip initial load)
+  const persistSettings = useCallback((updated: SettingsState) => {
+    if (!initialized.current) return;
+    window.appSettings.save(toPersistedSettings(updated)).catch((error) => {
+      console.error("Failed to save settings:", error);
+    });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+    persistSettings(settings);
+  }, [settings, persistSettings]);
 
   useEffect(() => {
     if (settings.pilots) {
@@ -87,19 +141,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       setSettings((prevSettings) => ({ ...prevSettings, leagues }));
     }
   }, [settings.pilots]);
-
-  // Initialize program data storage path on app start
-  useEffect(() => {
-    if (settings.programDataFolder) {
-      // Set storage path without migration (just restoring saved setting)
-      window.scoring
-        .setStoragePath(settings.programDataFolder, false)
-        .catch((error) => {
-          console.error("Failed to initialize program data folder:", error);
-        });
-    }
-    // Only run once on mount with initial settings
-  }, []);
 
   const contextValue = {
     settings,

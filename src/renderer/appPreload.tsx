@@ -3,6 +3,7 @@ import "@main/window/windowPreload";
 import "@main/scrappers/scrappersPreload";
 import "@main/tracks/tracksPreload";
 import "@main/scoring/ipc/scoringPreload";
+import "@main/settings/settingsPreload";
 
 // Say something
 console.log("[TrackDownloader] : Preload execution started");
